@@ -22,3 +22,19 @@ One way to follow along is by:
 
 If you have any suggestions or improvements to the tutorials, feel free to open a pull request.
 
+## Dependency graph
+Can be viewed with a dependency graph visual editor, ex. http://magjac.com/graphviz-visual-editor/
+```
+strict digraph {
+    server -> flask
+    server -> database
+    server -> sqlite3
+    server -> hashlib
+    server -> os
+    server -> sys
+    flask -> templates
+    test -> server
+    templates -> css
+    templates -> jinja
+}
+```
