@@ -3,17 +3,21 @@
 {% endblock %}
 {% block body %}
 <div>
-  <input id="search-input" placeholder="Search..." value="{{ request.args.get('q', '') }}"/>
+    <input id="search-input" placeholder="Search..." value="{{ request.args.get('q', '') }}"/>
   <button onclick="makeSearchRequest()">Search</button>
 </div>
 
 <div id="results">
-  {% for result in search_results %}
-  <div>
-      <h2><a class="search-result-title" href="{{ result.url }}">{{ result.title }}</a></h2>
-      <p class="search-result-description">{{ result.description }}</p>
-  </div>
-  {% endfor %}
+  {% if search_results %}
+    {% for result in search_results %}
+      <div>
+        <h2><a class="search-result-title" href="{{ result.url }}">{{ result.title }}</a></h2>
+        <p class="search-result-description">{{ result.description }}</p>
+      </div>
+    {% endfor %}
+  {% else %}
+    <p>No search results found.</p>
+  {% endif %}
 </div>
 
 <script>

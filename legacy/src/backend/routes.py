@@ -82,10 +82,11 @@ def register_routes(app):
         """
         q = request.args.get('q')
         language = request.args.get('language', "en")
-        if not q:
-            search_results = []
-        else:
+        search_results = []
+
+        if q:
             search_results = query_db("SELECT * FROM pages WHERE language = ? AND content LIKE ?", (language, f"%{q}%"))
+
         return jsonify(search_results=search_results)
 
     @app.route('/api/login', methods=['POST'])

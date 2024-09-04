@@ -1,9 +1,11 @@
 import os
 import sqlite3
-import sys
 from contextlib import closing
+
+from dotenv import load_dotenv
 from flask import g
-from config import DATABASE_PATH
+
+load_dotenv()
 
 def connect_db(init_mode=False):
     """
@@ -11,16 +13,15 @@ def connect_db(init_mode=False):
     """
     if not init_mode:
         check_db_exists()
-    return sqlite3.connect(DATABASE_PATH)
+    return sqlite3.connect(os.getenv('DATABASE_PATH'))
 
 def check_db_exists():
     """
     This function is responsible for checking if the database exists.
     """
-    db_exists = os.path.exists(DATABASE_PATH)
+    db_exists = os.path.exists(os.getenv('DATABASE_PATH'))
     if not db_exists:
-        print("Database not found")
-        sys.exit(1)
+        raise RuntimeError("Database not found")  # Raise an exception instead of sys.exit
     else:
         return db_exists
 
@@ -33,7 +34,7 @@ def init_db():
         with app.open_resource('../schema.sql') as f:
             db.cursor().executescript(f.read().decode())
         db.commit()
-        print("Initialized the database: " + str(DATABASE_PATH))
+        print("Initialized the database: " + str(os.getenv('DATABASE_PATH')))
 
 def query_db(query, args=(), one=False):
     """
@@ -44,9 +45,11 @@ def query_db(query, args=(), one=False):
                for idx, value in enumerate(row)) for row in cur.fetchall()]
     return (rv[0] if rv else None) if one else rv
 
-def get_user_id(username):
+def get_user_id(username, conn=None):
     """
     This function is responsible for getting the user ID.
     """
-    rv = g.db.execute("SELECT id FROM users WHERE username = ?", (username,)).fetchone()
+    # Use the provided connection if available, otherwise fall back to g.db
+    db_conn = conn or g.db
+    rv = db_conn.execute("SELECT id FROM users WHERE username = ?", (username,)).fetchone()
     return rv[0] if rv else None
