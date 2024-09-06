@@ -3,6 +3,7 @@
 # Define environment variables
 PYTHONPATH := ./src/backend
 DATABASE_PATH := ./db/whoknows.db
+TEST_DATABASE_PATH := ./db/test_whoknows.db
 VENV := .venv
 
 # Initialize the database
@@ -28,7 +29,7 @@ run:
 # Run tests using unittest
 test:
 	@echo "Running tests..."
-	PYTHONPATH=$(PYTHONPATH) $(VENV)/bin/python3 -m unittest discover -s tests -v
+	PYTHONPATH=$(PYTHONPATH) DATABASE_PATH=$(TEST_DATABASE_PATH) $(VENV)/bin/python3 -m unittest discover -s tests -v
 	@echo "Tests completed."
 
 # Clean up virtual environment and any unnecessary files
@@ -38,4 +39,5 @@ clean:
 	rm -rf __pycache__
 	rm -rf legacy/src/backend/__pycache__
 	rm -rf tests/__pycache__
+	rm -rf $(TEST_DATABASE_PATH)
 	@echo "Clean complete."

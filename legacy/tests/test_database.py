@@ -28,7 +28,7 @@ class TestDatabase(unittest.TestCase):
         """
         Set up the test environment before each test.
         """
-        test_db_path = os.path.abspath('legacy/db/test_whoknows.db')
+        test_db_path = os.path.abspath('./db/test_whoknows.db')
         os.environ['DATABASE_PATH'] = test_db_path
         os.makedirs(os.path.dirname(test_db_path), exist_ok=True)
         with app.app_context():

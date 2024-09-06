@@ -18,7 +18,7 @@ class TestAppRoutes(unittest.TestCase):
 
         # Initialize the test database
         with app.app_context():
-            test_db_path = os.path.abspath('legacy/db/test_whoknows.db')
+            test_db_path = os.path.abspath('./db/test_whoknows.db')
             os.environ['DATABASE_PATH'] = test_db_path
             init_test_db()  # Initialize the test database
 
