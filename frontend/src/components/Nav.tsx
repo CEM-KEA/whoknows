@@ -11,9 +11,11 @@ function Nav(props: NavProps) {
             <div className="flex">
                 <CustomNavLink to="/">Search</CustomNavLink>
                 <CustomNavLink to="/weather">Weather</CustomNavLink>
-                <CustomNavLink to="/register">Register</CustomNavLink>
             </div>
-            <CustomNavLink to="/login">{props.loggedIn ? "Log out" : "Login"}</CustomNavLink>
+            <div className="flex">
+                <CustomNavLink to="/register">Register</CustomNavLink>
+                <CustomNavLink to="/login">{props.loggedIn ? "Log out" : "Login"}</CustomNavLink>
+            </div>
         </nav>
     )
 }
