@@ -4,7 +4,10 @@ export interface ISearchRequest {
 }
 
 export interface ISearchResponse {
-  data: object[];
+  data: {
+    title: string;
+    url: string;
+  }[];
 }
 
 export interface IStandardResponse {

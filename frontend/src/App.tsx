@@ -1,5 +1,6 @@
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import Nav from "./components/Nav";
+import Search from "./views/Search";
 
 function App() {
   return (
@@ -9,7 +10,7 @@ function App() {
         <Routes>
           <Route
             path="/"
-            element={<div />}
+            element={<Search />}
           />
           <Route
             path="/weather"
