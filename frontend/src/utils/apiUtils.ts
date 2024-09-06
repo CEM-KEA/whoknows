@@ -1,4 +1,4 @@
-const apiUrl = "http://localhost:3001/api"; //TODO: get from env
+const apiUrl = import.meta.env.VITE_API_URL;
 
 /**
  * Sends a GET request to the API, url is the path to the endpoint and should start with a /.
