@@ -1,5 +1,6 @@
-import { BrowserRouter, Route, Routes } from "react-router-dom"
-import Nav from "./components/Nav"
+import { BrowserRouter, Route, Routes } from "react-router-dom";
+import Nav from "./components/Nav";
+import Search from "./views/Search";
 
 function App() {
   return (
@@ -7,14 +8,26 @@ function App() {
       <BrowserRouter>
         <Nav loggedIn={false} />
         <Routes>
-          <Route path="/" element={<div />} /> 
-          <Route path="/weather" element={<div />} />
-          <Route path="/register" element={<div />} />
-          <Route path="/login" element={<div />} />
+          <Route
+            path="/"
+            element={<Search />}
+          />
+          <Route
+            path="/weather"
+            element={<div />}
+          />
+          <Route
+            path="/register"
+            element={<div />}
+          />
+          <Route
+            path="/login"
+            element={<div />}
+          />
         </Routes>
       </BrowserRouter>
     </>
-  )
+  );
 }
 
-export default App
+export default App;
