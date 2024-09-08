@@ -10,7 +10,7 @@ import (
 
 func main() {
 	// Load application configuration
-	err := config.LoadConfig()
+	err := config.LoadConfig(&config.ViperConfigWrapper{})
 	if err != nil {
 		fmt.Printf("Error loading configuration: %s\n", err)
 		return
