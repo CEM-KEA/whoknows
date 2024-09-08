@@ -1,0 +1,62 @@
+linters-settings:
+  govet:
+    # No need to specify shadow analysis here
+  revive:
+    confidence: 0.8  # Minimum confidence level for reporting
+  gocyclo:
+    min-complexity: 15
+  dupl:
+    threshold: 100
+  goconst:
+    min-occurrences: 3
+  gofmt:
+    simplify: true
+  gosec:
+    severity: "medium"
+  errcheck:
+    exclude-functions:  # Use exclude-functions instead of ignore
+      - os.Open
+      - os.Create
+  staticcheck:
+    checks: ['SA1019']
+
+linters:
+  disable-all: true
+  enable:
+    - govet         # go vet is the official Go static analyzer
+    - revive        # Configurable static analyzer
+    - gocyclo       # Cyclomatic complexity checker
+    - dupl          # Check for duplicated code
+    - goconst       # Detect repeated strings that could be replaced by a constant
+    - gofmt         # Check code formatting
+    - gosec         # Inspects source code for security problems by scanning the Go AST
+    - errcheck      # Check that error return values are used
+    - staticcheck   # Statically detect bugs in your code
+    - ineffassign   # Detect ineffectual assignments in Go code
+    - misspell      # Correct commonly misspelled English words quickly
+    - unconvert     # Detect redundant type conversions
+    - unused        # Check Go code for unused constants, variables, functions and types
+    - gosimple      # Report simplifications in Go code
+    - wsl           # Report shadowing of variables in Go
+    - errname       # Check error value naming
+    - prealloc      # Detect slice declarations that could potentially be preallocated
+    - nakedret      # Check naked returns
+    - rowserrcheck  # Check that sql.Rows are closed
+
+issues:
+  exclude-rules:
+    - path: _test\.go
+      linters:
+        - errcheck
+  max-issues-per-linter: 100
+  max-same-issues: 3
+  exclude:
+    - "error return value not checked.*os.Open"
+    - "cyclomatic complexity"
+
+output:
+  formats:
+    - name: colored-line-number
+      format: colored-line-number
+  print-issued-lines: true
+  sort-results: true
