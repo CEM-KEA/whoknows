@@ -2,11 +2,13 @@ package main
 
 import (
 	"fmt"
-	"github.com/CEM-KEA/whoknows/backend/internal/config"
-	"github.com/CEM-KEA/whoknows/backend/internal/database"
-	"github.com/CEM-KEA/whoknows/backend/internal/api"
 	"net/http"
 	"time"
+
+	"github.com/CEM-KEA/whoknows/backend/internal/api"
+	"github.com/CEM-KEA/whoknows/backend/internal/config"
+	"github.com/CEM-KEA/whoknows/backend/internal/database"
+	"github.com/rs/cors"
 )
 
 func main() {
@@ -49,9 +51,20 @@ func main() {
 	serverPort := config.AppConfig.Server.Port
 	fmt.Printf("Server is running on port: %d\n", serverPort)
 
+	c := cors.New(cors.Options{
+		AllowedOrigins: []string{
+			// Dev
+			"http://localhost:*",
+			// Add deployed frontend origin here
+		},
+		AllowCredentials: true,
+	})
+
+	handler := c.Handler(router)
+
 	server := &http.Server{
 		Addr:         fmt.Sprintf(":%d", serverPort),
-		Handler:      router,
+		Handler:      handler,
 		ReadTimeout:  5 * time.Second,
 		WriteTimeout: 10 * time.Second,
 		IdleTimeout:  15 * time.Second,
