@@ -2,8 +2,16 @@ package config
 
 // Config is the struct that holds the application configuration
 type Config struct {
+	JWT      JWTConfig
 	Server   ServerConfig
 	Database DatabaseConfig
+
+}
+
+// JWTConfig is the struct that holds the JWT configuration
+type JWTConfig struct {
+	Secret     string
+	Expiration int
 }
 
 // ServerConfig is the struct that holds the server configuration
