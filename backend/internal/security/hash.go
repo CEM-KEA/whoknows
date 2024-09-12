@@ -2,7 +2,7 @@ package security
 
 import (
     "golang.org/x/crypto/bcrypt"
-    "errors"
+    "github.com/pkg/errors"
 )
 
 // HashPassword hashes the password
@@ -14,7 +14,7 @@ func HashPassword(password string) (string, error) {
 
     bytes, err := bcrypt.GenerateFromPassword([]byte(password), 14)
     if err != nil {
-        return "", errors.New("failed to hash password")
+        return "", errors.Wrap(err, "failed to hash password")
     }
     return string(bytes), nil
 }
