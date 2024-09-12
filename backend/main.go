@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/CEM-KEA/whoknows/backend/internal/config"
 	"github.com/CEM-KEA/whoknows/backend/internal/database"
+	"github.com/CEM-KEA/whoknows/backend/internal/api"
 	"net/http"
 	"time"
 )
@@ -41,13 +42,16 @@ func main() {
 		}
 	}
 
+	// Create the router from the api package
+	router := api.NewRouter()
+
 	// Start the server
 	serverPort := config.AppConfig.Server.Port
 	fmt.Printf("Server is running on port: %d\n", serverPort)
 
 	server := &http.Server{
 		Addr:         fmt.Sprintf(":%d", serverPort),
-		Handler:      nil,
+		Handler:      router,
 		ReadTimeout:  5 * time.Second,
 		WriteTimeout: 10 * time.Second,
 		IdleTimeout:  15 * time.Second,
