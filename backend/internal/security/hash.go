@@ -1,4 +1,4 @@
-package utils
+package security
 
 import (
     "golang.org/x/crypto/bcrypt"
@@ -7,6 +7,11 @@ import (
 
 // HashPassword hashes the password
 func HashPassword(password string) (string, error) {
+    
+    if password == "" {
+        return "", errors.New("password cannot be empty")
+    }
+
     bytes, err := bcrypt.GenerateFromPassword([]byte(password), 14)
     if err != nil {
         return "", errors.New("failed to hash password")
