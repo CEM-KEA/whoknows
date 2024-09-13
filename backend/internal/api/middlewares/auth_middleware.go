@@ -60,7 +60,9 @@ func GetUserIDFromContext(ctx context.Context) (uint, error) {
 		if err != nil {
 			return 0, err
 		}
+
 		return uint(userIDUint), nil
 	}
+
 	return 0, errors.New("user ID not found in context")
 }

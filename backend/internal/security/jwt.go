@@ -11,28 +11,57 @@ import (
 
 var jwtKey = []byte(config.AppConfig.JWT.Secret)
 
-// GenerateJWT generates a JWT token for a user with the given userID.
+// GenerateJWT generates a JWT token for a given user ID and email
 func GenerateJWT(userID uint, email string) (string, error) {
-
-	// Create the JWT claims, which include the user ID, email, and role
 	claims := jwt.MapClaims{
-		"iss":   "whoknows",                                                                              			// Issuer
-		"sub":   fmt.Sprintf("%d", userID),                                                                        	// Subject (user ID as string)
-		"aud":   "whoknows",                                                                              			// Audience 
-		"exp":   jwt.NewNumericDate(time.Now().Add(time.Second * time.Duration(config.AppConfig.JWT.Expiration))), 	// Expiration time
-		"iat":   jwt.NewNumericDate(time.Now()),                                                                   	// Issued at time
-		"email": email,																								// Custom claim: user email
-		"role":  "user",                                                                                           	// Custom claim: user role
+		"iss":   "whoknows",
+		"sub":   userID,
+		"aud":   "whoknows",
+		"email": email,
+		"role":  "user",
+		"iat":   time.Now().Unix(),
+		"exp":   time.Now().Add(time.Hour * 24).Unix(),
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	
-	return token.SignedString(jwtKey)
+	secret := config.AppConfig.JWT.Secret
+
+	// Debug: Print the secret key used for signing
+	fmt.Printf("Secret Key in GenerateJWT: %s\n", secret)
+
+	tokenString, err := token.SignedString([]byte(secret))
+	if err != nil {
+		return "", err
+	}
+
+	return tokenString, nil
+}
+
+// GenerateJWTWithCustomExpiration generates a JWT token for a given user ID and email, with a custom expiration time
+func GenerateJWTWithCustomExpiration(userID uint, email string, expTime time.Time) (string, error) {
+	claims := jwt.MapClaims{
+		"iss":   "whoknows",
+		"sub":   userID,
+		"aud":   "whoknows",
+		"email": email,
+		"role":  "user",
+		"iat":   time.Now().Unix(),
+		"exp":   expTime.Unix(),
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	secret := config.AppConfig.JWT.Secret
+
+	tokenString, err := token.SignedString([]byte(secret))
+	if err != nil {
+		return "", err
+	}
+
+	return tokenString, nil
 }
 
 // ValidateJWT validates the given JWT token and returns the claims if the token is valid.
 func ValidateJWT(tokenString string) (jwt.MapClaims, error) {
-	
 	// Create a new map to store the claims
 	claims := jwt.MapClaims{}
 

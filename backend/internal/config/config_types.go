@@ -2,10 +2,15 @@ package config
 
 // Config is the struct that holds the application configuration
 type Config struct {
-	JWT      JWTConfig
-	Server   ServerConfig
-	Database DatabaseConfig
+	Environment Environment
+	JWT         JWTConfig
+	Server      ServerConfig
+	Database    DatabaseConfig
+}
 
+// Environment is the struct that holds the environment configuration
+type Environment struct {
+	Environment string
 }
 
 // JWTConfig is the struct that holds the JWT configuration
@@ -21,9 +26,10 @@ type ServerConfig struct {
 
 // DatabaseConfig is the struct that holds the database configuration for sqlite3
 type DatabaseConfig struct {
-	FilePath string
-	Migrate  bool
-	Seed     bool
+	FilePath     string
+	Migrate      bool
+	Seed         bool
+	SeedFilePath string
 }
 
 // AppConfig is the variable that holds the application configuration
