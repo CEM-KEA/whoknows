@@ -36,7 +36,7 @@ func main() {
 
 	// Seed the database with initial data if the seed flag is set to true
 	if config.AppConfig.Database.Seed {
-		err = database.SeedData(database.DB)
+		err = database.SeedData(database.DB, config.AppConfig.Database.SeedFilePath)
 		if err != nil {
 			fmt.Printf("Error seeding database: %s\n", err)
 			return

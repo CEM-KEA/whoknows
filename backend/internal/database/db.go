@@ -27,6 +27,16 @@ func InitDatabase() error {
 
 	fmt.Println("Database connection established")
 
+	// Conditionally run migrations only in non-production environments
+	if config.AppConfig.Environment.Environment != "production" {
+		err = DB.AutoMigrate(&models.User{}, &models.Page{}, &models.JWT{})
+		if err != nil {
+			return fmt.Errorf("error migrating database: %s", err)
+		}
+
+		fmt.Println("Schema automatically migrated")
+	}
+
 	return nil
 }
 

@@ -9,39 +9,37 @@ import (
 	"time"
 )
 
-// PageData represents the structure of the JSON data
-type PageData struct {
+// Page represents the structure of the page data in the JSON file
+type Page struct {
 	Title       string `json:"title"`
 	Url         string `json:"url"`
 	Language    string `json:"language"`
-	LastUpdated string `json:"last_updated"`
 	Content     string `json:"content"`
+	LastUpdated string `json:"last_updated"`
 }
 
-// Parse JSON data
-func parseJSONData(file []byte) ([]PageData, error) {
-	var pages []PageData
-	err := json.Unmarshal(file, &pages)
+// parseJSONData parses the JSON data from the file and returns a slice of Page
+func parseJSONData(data []byte) ([]Page, error) {
+	var pages []Page
+	err := json.Unmarshal(data, &pages)
 
 	if err != nil {
-		return nil, fmt.Errorf("error unmarshalling JSON data: %w", err)
+		return nil, err
 	}
 
 	return pages, nil
 }
 
-// SeedData seeds the database with initial data
-func SeedData(db *gorm.DB) error {
+// SeedData seeds the database with initial data from the specified file
+func SeedData(db *gorm.DB, filePath string) error {
 	// Read JSON file
-	file, err := os.ReadFile("./internal/database/pages.json")
-
+	file, err := os.ReadFile(filePath)
 	if err != nil {
 		return fmt.Errorf("error reading JSON file: %w", err)
 	}
 
 	// Parse JSON data
 	pages, err := parseJSONData(file)
-
 	if err != nil {
 		return fmt.Errorf("error parsing JSON data: %w", err)
 	}
@@ -53,7 +51,6 @@ func SeedData(db *gorm.DB) error {
 	// Seed the users
 	for _, user := range users {
 		err := db.Create(&user).Error
-
 		if err != nil {
 			return fmt.Errorf("error seeding user data: %w", err)
 		}
@@ -61,9 +58,7 @@ func SeedData(db *gorm.DB) error {
 
 	// Seed the pages
 	for _, page := range pages {
-		// Parse the last_updated field to time.Time
 		lastUpdated, err := time.Parse("2006-01-02 15:04:05", page.LastUpdated)
-
 		if err != nil {
 			return fmt.Errorf("error parsing last_updated field for page %s: %w", page.Title, err)
 		}
@@ -76,7 +71,6 @@ func SeedData(db *gorm.DB) error {
 			CreatedAt: time.Now(),
 			UpdatedAt: lastUpdated,
 		}).Error
-
 		if err != nil {
 			return fmt.Errorf("error seeding page data for page %s: %w", page.Title, err)
 		}

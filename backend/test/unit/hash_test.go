@@ -1,8 +1,8 @@
 package unit_test
 
 import (
-	"testing"
 	"github.com/CEM-KEA/whoknows/backend/internal/security"
+	"testing"
 )
 
 // TestHashPassword tests the HashPassword function
@@ -14,6 +14,7 @@ func TestHashPassword(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Expected no error, got %v", err)
 	}
+
 	if len(hashedPassword) == 0 {
 		t.Fatalf("Expected hashed password to be non-empty")
 	}
