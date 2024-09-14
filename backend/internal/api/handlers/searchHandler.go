@@ -2,9 +2,10 @@ package handlers
 
 import (
 	"encoding/json"
+	"net/http"
+
 	"github.com/CEM-KEA/whoknows/backend/internal/database"
 	"github.com/CEM-KEA/whoknows/backend/internal/models"
-	"net/http"
 )
 
 type SearchBody struct {
@@ -75,6 +76,8 @@ func Search(w http.ResponseWriter, r *http.Request) {
 			"id":       page.ID,
 			"content":  page.Content,
 			"language": page.Language,
+			"title":    page.Title,
+			"url":      page.Url,
 		}
 	}
 
