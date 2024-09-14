@@ -20,6 +20,20 @@ jobs:
       run: echo "${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}" | docker login -u "${{ secrets.DOCKER_HUB_USERNAME }}" --password-stdin
 
     - name: Build and tag Docker images
+      env: 
+        API_SERVER_PORT: ${{ secrets.API_SERVER_PORT }}
+        API_DATABASE_FILE_PATH: ${{ secrets.API_DATABASE_FILE_PATH }}
+        API_DATABASE_MIGRATE: ${{ secrets.API_DATABASE_MIGRATE }}
+        API_DATABASE_SEED: ${{ secrets.API_DATABASE_SEED }}
+        API_DATABASE_SEED_FILE_PATH: ${{ secrets.API_DATABASE_SEED_FILE_PATH }}
+        API_JWT_SECRET: ${{ secrets.API_JWT_SECRET }}
+        API_JWT_EXPIRATION: ${{ secrets.API_JWT_EXPIRATION }}
+        API_APP_ENVIRONMENT: ${{ secrets.API_APP_ENVIRONMENT }}
+        API_PAGINATION_LIMIT: ${{ secrets.API_PAGINATION_LIMIT }}
+        API_PAGINATION_OFFSET: ${{ secrets.API_PAGINATION_OFFSET }}
+        API_LOG_LEVEL: ${{ secrets.API_LOG_LEVEL }}
+        API_LOG_FORMAT: ${{ secrets.API_LOG_FORMAT }}
+        VITE_API_URL: ${{ secrets.VITE_API_URL }}
       run: |
         docker compose -f ./compose.yml build backend
         docker compose -f ./compose.yml build frontend
