@@ -5,6 +5,7 @@ BACKEND_BUILD_SCRIPT = build.bash
 FRONTEND_BUILD_CMD = cd ./frontend/ && npm run build
 FRONTEND_DEV_CMD = cd ./frontend/ && npm run dev
 BACKEND_TEST_CMD = cd ./backend/ && go test ./...
+FRONTEND_TEST_CMD = cd ./frontend/ && npx playwright test
 
 # Target to build only the backend
 backend-build:
@@ -20,6 +21,10 @@ backend-test:
 frontend-build:
 	@echo "Building frontend..."
 	@$(FRONTEND_BUILD_CMD)
+
+frontend-test:
+	@echo "Running frontend tests..."
+	@$(FRONTEND_TEST_CMD)
 
 # Target to build and run backend, then build and run frontend
 build:
