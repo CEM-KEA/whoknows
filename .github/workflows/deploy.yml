@@ -14,7 +14,7 @@ jobs:
 
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
 
     - name: Log in to Docker Hub
       run: echo "${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}" | docker login -u "${{ secrets.DOCKER_HUB_USERNAME }}" --password-stdin
@@ -39,8 +39,8 @@ jobs:
         BRANCH_TAG=$(echo "${GITHUB_REF_NAME}" | sed 's/\//-/g')
         docker compose -f ./compose.yml build backend
         docker compose -f ./compose.yml build frontend
-        docker tag backend:latest ${{ secrets.DOCKER_HUB_USERNAME }}/backend:${BRANCH_TAG}
-        docker tag frontend:latest ${{ secrets.DOCKER_HUB_USERNAME }}/frontend:${BRANCH_TAG}
+        docker tag backend ${{ secrets.DOCKER_HUB_USERNAME }}/backend:${BRANCH_TAG}
+        docker tag frontend ${{ secrets.DOCKER_HUB_USERNAME }}/frontend:${BRANCH_TAG}
 
     - name: Push Docker images to Docker Hub
       run: |
@@ -53,7 +53,7 @@ jobs:
 
     steps:
     - name: Set up SSH
-      uses: webfactory/ssh-agent@v0.5.3
+      uses: webfactory/ssh-agent@v0.9.0
       with:
         ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
