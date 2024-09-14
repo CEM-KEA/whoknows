@@ -36,7 +36,7 @@ jobs:
         VITE_API_URL: ${{ secrets.VITE_API_URL }}
       run: |
         # Replace / with - in the branch name for valid Docker tags
-        BRANCH_TAG=$(echo "${GITHUB_REF_NAME}" | sed 's/\//-/g')
+        BRANCH_TAG=$(echo "${GITHUB_REF_NAME}" | sed -E 's/[^0-9.]+//g')
         
         # Build the backend and frontend images using Docker Compose
         docker compose -f ./compose.yml build backend
