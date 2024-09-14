@@ -6,7 +6,8 @@ import type { ISearchRequest, ISearchResponse } from "../types/types";
 function Search() {
   const [search, setSearch] = useState("");
   const [searchResponse, setSearchResponse] = useState<ISearchResponse | null>(null);
-
+  console.log(searchResponse);
+  
   const handleSearch = () => {
     const searchBody: ISearchRequest = {
       q: search,
@@ -25,6 +26,7 @@ function Search() {
     <PageLayout>
       <div className="flex gap-2">
         <input
+          id="search" // for playwright test
           type="search"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
@@ -42,7 +44,9 @@ function Search() {
       <div>
         {searchResponse?.data && searchResponse.data.length > 0 && (
           <div className="mt-4">
-            <ul>
+            <ul
+              id="search-results" // for playwright test
+            >
               {searchResponse.data.map((result, i) => (
                 <li
                   key={i}
