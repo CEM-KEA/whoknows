@@ -9,8 +9,6 @@ import (
 	"github.com/pkg/errors"
 )
 
-var jwtKey = []byte(config.AppConfig.JWT.Secret)
-
 // GenerateJWT generates a JWT token for a given user ID and email
 func GenerateJWT(userID uint, email string) (string, error) {
 	claims := jwt.MapClaims{
@@ -25,9 +23,6 @@ func GenerateJWT(userID uint, email string) (string, error) {
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	secret := config.AppConfig.JWT.Secret
-
-	// Debug: Print the secret key used for signing
-	fmt.Printf("Secret Key in GenerateJWT: %s\n", secret)
 
 	tokenString, err := token.SignedString([]byte(secret))
 	if err != nil {
@@ -62,12 +57,15 @@ func GenerateJWTWithCustomExpiration(userID uint, email string, expTime time.Tim
 
 // ValidateJWT validates the given JWT token and returns the claims if the token is valid.
 func ValidateJWT(tokenString string) (jwt.MapClaims, error) {
-	// Create a new map to store the claims
 	claims := jwt.MapClaims{}
 
 	// Parse the token with the claims
 	token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
-		return jwtKey, nil
+		secret := config.AppConfig.JWT.Secret
+		// Debug: Print the secret key used for validation
+		fmt.Printf("Secret Key in ValidateJWT: %s\n", secret)
+
+		return []byte(secret), nil
 	})
 
 	// Check if there was an error parsing the token
@@ -84,8 +82,3 @@ func ValidateJWT(tokenString string) (jwt.MapClaims, error) {
 
 	return claims, nil
 }
-
-// TODO: Implement a function to refresh JWT tokens
-// TODO: Implement a function to revoke JWT tokens
-// TODO: Implement a function to blacklist JWT tokens
-// TODO: Implement a function to check if a JWT token is blacklisted
