@@ -37,15 +37,20 @@ jobs:
       run: |
         # Replace / with - in the branch name for valid Docker tags
         BRANCH_TAG=$(echo "${GITHUB_REF_NAME}" | sed 's/\//-/g')
+        
+        # Build the backend and frontend images using Docker Compose
         docker compose -f ./compose.yml build backend
         docker compose -f ./compose.yml build frontend
-        docker tag backend:1.0 ${{ secrets.DOCKER_HUB_USERNAME }}/backend:${BRANCH_TAG}
-        docker tag frontend:1.0 ${{ secrets.DOCKER_HUB_USERNAME }}/frontend:${BRANCH_TAG}
+        
+        # Tag the images correctly to match the Docker Hub repositories
+        docker tag whoknows-backend ${{ secrets.DOCKER_HUB_USERNAME }}/whoknows-backend:${BRANCH_TAG}
+        docker tag whoknows-frontend ${{ secrets.DOCKER_HUB_USERNAME }}/whoknows-frontend:${BRANCH_TAG}
 
     - name: Push Docker images to Docker Hub
       run: |
-        docker push ${{ secrets.DOCKER_HUB_USERNAME }}/backend:${BRANCH_TAG}
-        docker push ${{ secrets.DOCKER_HUB_USERNAME }}/frontend:${BRANCH_TAG}
+        docker push ${{ secrets.DOCKER_HUB_USERNAME }}/whoknows-backend:${BRANCH_TAG}
+        docker push ${{ secrets.DOCKER_HUB_USERNAME }}/whoknows-frontend:${BRANCH_TAG}
+
 
   deploy:
     runs-on: ubuntu-latest
