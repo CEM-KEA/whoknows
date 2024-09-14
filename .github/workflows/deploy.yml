@@ -34,25 +34,21 @@ jobs:
         API_LOG_LEVEL: ${{ secrets.API_LOG_LEVEL }}
         API_LOG_FORMAT: ${{ secrets.API_LOG_FORMAT }}
         VITE_API_URL: ${{ secrets.VITE_API_URL }}
+        VERSION_TAG: 1.0
       run: |
-        # Replace / with - in the branch name for valid Docker tags
-        BRANCH_TAG=$(echo "${GITHUB_REF_NAME}" | sed -E 's/[^0-9.]+//g')
-
-        # Echo the extracted BRANCH_TAG to debug
-        echo "BRANCH_TAG: ${BRANCH_TAG}"
-
+        
         # Build the backend and frontend images using Docker Compose
         docker compose -f ./compose.yml build backend
         docker compose -f ./compose.yml build frontend
         
         # Tag the images correctly to match the Docker Hub repositories
-        docker tag whoknows-backend ${{ secrets.DOCKER_HUB_USERNAME }}/whoknows-backend:${BRANCH_TAG}
-        docker tag whoknows-frontend ${{ secrets.DOCKER_HUB_USERNAME }}/whoknows-frontend:${BRANCH_TAG}
+        docker tag whoknows-backend ${{ secrets.DOCKER_HUB_USERNAME }}/whoknows-backend:${VERSION_TAG}
+        docker tag whoknows-frontend ${{ secrets.DOCKER_HUB_USERNAME }}/whoknows-frontend:${VERSION_TAG}
 
     - name: Push Docker images to Docker Hub
       run: |
-        docker push ${{ secrets.DOCKER_HUB_USERNAME }}/whoknows-backend:${BRANCH_TAG}
-        docker push ${{ secrets.DOCKER_HUB_USERNAME }}/whoknows-frontend:${BRANCH_TAG}
+        docker push ${{ secrets.DOCKER_HUB_USERNAME }}/whoknows-backend:${VERSION_TAG}
+        docker push ${{ secrets.DOCKER_HUB_USERNAME }}/whoknows-frontend:${VERSION_TAG}
 
 
   deploy:
