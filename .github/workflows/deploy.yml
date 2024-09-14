@@ -14,15 +14,15 @@ jobs:
 
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
 
     - name: Log in to Docker Hub
       run: echo "${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}" | docker login -u "${{ secrets.DOCKER_HUB_USERNAME }}" --password-stdin
 
     - name: Build and tag Docker images
       run: |
-        docker-compose -f ./docker-compose.yml build backend
-        docker-compose -f ./docker-compose.yml build frontend
+        docker compose -f ./compose.yml build backend
+        docker compose -f ./compose.yml build frontend
         docker tag backend:latest ${{ secrets.DOCKER_HUB_USERNAME }}/backend:${{ github.ref_name }}
         docker tag frontend:latest ${{ secrets.DOCKER_HUB_USERNAME }}/frontend:${{ github.ref_name }}
 
