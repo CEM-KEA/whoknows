@@ -39,8 +39,8 @@ jobs:
         BRANCH_TAG=$(echo "${GITHUB_REF_NAME}" | sed 's/\//-/g')
         docker compose -f ./compose.yml build backend
         docker compose -f ./compose.yml build frontend
-        docker tag backend ${{ secrets.DOCKER_HUB_USERNAME }}/backend:${BRANCH_TAG}
-        docker tag frontend ${{ secrets.DOCKER_HUB_USERNAME }}/frontend:${BRANCH_TAG}
+        docker tag backend:1.0 ${{ secrets.DOCKER_HUB_USERNAME }}/backend:${BRANCH_TAG}
+        docker tag frontend:1.0 ${{ secrets.DOCKER_HUB_USERNAME }}/frontend:${BRANCH_TAG}
 
     - name: Push Docker images to Docker Hub
       run: |
