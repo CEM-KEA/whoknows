@@ -25,9 +25,6 @@ ENV PORT=8080
 # Copy the Pre-built binary file from the previous stage
 COPY --from=builder /app/main /app/main
 
-# Copy the config file into the container
-COPY internal/config/config.yaml /config/config.yaml
-
 # Expose port 8080 to the outside world
 EXPOSE 8080
 
