@@ -1,16 +1,15 @@
 package api
 
 import (
+	"net/http"
+
 	"github.com/CEM-KEA/whoknows/backend/internal/api/handlers"
-	"github.com/CEM-KEA/whoknows/backend/internal/api/middlewares"
 	"github.com/gorilla/mux"
+	"github.com/rs/cors"
 )
 
-func NewRouter() *mux.Router {
+func NewRouter() http.Handler {
 	router := mux.NewRouter()
-
-	// Apply the CORS middleware
-	router.Use(middlewares.CORSMiddleware)
 
 	router.HandleFunc("/api/search", handlers.Search).Methods("POST")
 	router.HandleFunc("/api/weather", nil).Methods("GET")   // Add the weather handler here
@@ -18,5 +17,16 @@ func NewRouter() *mux.Router {
 	router.HandleFunc("/api/login", nil).Methods("POST")    // Add the login handler here
 	router.HandleFunc("/api/logout", nil).Methods("GET")    // Add the logout handler here
 
-	return router
+
+	c := cors.New(cors.Options{
+		AllowedOrigins:   []string{"http://localhost:*"}, // CHANGE THIS - ALLOW ONLY FRONTEND URL
+		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowedHeaders:   []string{"Authorization", "Content-Type"},
+		AllowCredentials: true,
+	})
+
+	return c.Handler(router)
 }
+
+
+
