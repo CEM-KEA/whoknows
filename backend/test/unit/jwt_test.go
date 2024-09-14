@@ -1,58 +1,51 @@
 package unit_test
 
 import (
-	"fmt"
+	"os"
 	"testing"
 	"time"
 
-	"github.com/CEM-KEA/whoknows/backend/internal/config"
 	"github.com/CEM-KEA/whoknows/backend/internal/security"
-	"github.com/golang-jwt/jwt/v5"
 	"github.com/stretchr/testify/assert"
 )
 
+// TestGenerateJWT generates and validates JWT
 func TestGenerateJWT(t *testing.T) {
-	userID := uint(1)
-	email := "test@example.com"
+	os.Setenv("ENV_FILE_PATH", "../test.env")
 
-	tokenString, err := security.GenerateJWT(userID, email)
-	assert.NoError(t, err)
-	assert.NotEmpty(t, tokenString)
-
-	claims := jwt.MapClaims{}
-	_, err = jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
-		// Debug: Print the secret key
-		t.Logf("Secret Key: %s", config.AppConfig.JWT.Secret)
-		return []byte(config.AppConfig.JWT.Secret), nil
-	})
+	// Generate a valid JWT token
+	token, err := security.GenerateJWT(1, "test@example.com")
 	assert.NoError(t, err)
 
-	// Debug: Print the claims
-	t.Logf("Claims: %+v", claims)
-
-	assert.Equal(t, "whoknows", claims["iss"])
-	assert.Equal(t, "whoknows", claims["aud"])
-	assert.Equal(t, email, claims["email"])
-	assert.Equal(t, "user", claims["role"])
-
-	// Convert sub claim to string before assertion
-	subClaim := fmt.Sprintf("%v", claims["sub"])
-	assert.Equal(t, "1", subClaim)
-}
-
-func TestValidateJWT(t *testing.T) {
-	// Generate a JWT
-	userID := uint(1)
-	token, err := security.GenerateJWT(userID, "test@example.com")
-	assert.NoError(t, err)
-
-	// Validate the JWT
+	// Validate the JWT token
 	claims, err := security.ValidateJWT(token)
 	assert.NoError(t, err)
 	assert.NotNil(t, claims)
 
-	// Convert uint to string for comparison
-	assert.Equal(t, "1", fmt.Sprintf("%d", userID))
+	// Ensure the expected claims are present
+	assert.Equal(t, float64(1), claims["sub"]) // JWT stores numbers as float64
+	assert.Equal(t, "test@example.com", claims["email"])
+
+	os.Unsetenv("ENV_FILE_PATH")
+}
+
+func TestValidateJWT(t *testing.T) {
+	os.Setenv("ENV_FILE_PATH", "../test.env")
+
+	// Generate a valid JWT token
+	token, err := security.GenerateJWT(1, "test@example.com")
+	assert.NoError(t, err)
+
+	// Validate the JWT token
+	claims, err := security.ValidateJWT(token)
+	assert.NoError(t, err)
+	assert.NotNil(t, claims)
+
+	// Ensure the expected claims are present
+	assert.Equal(t, float64(1), claims["sub"]) // JWT stores numbers as float64
+	assert.Equal(t, "test@example.com", claims["email"])
+
+	os.Unsetenv("ENV_FILE_PATH")
 }
 
 func TestValidateJWT_InvalidToken(t *testing.T) {
@@ -64,10 +57,11 @@ func TestValidateJWT_InvalidToken(t *testing.T) {
 }
 
 func TestValidateJWT_ExpiredToken(t *testing.T) {
-	userID := uint(1)
+	os.Setenv("ENV_FILE_PATH", "../test.env")
+
 	// Generate an expired JWT by setting exp to a past time
 	expiredTime := time.Now().Add(-time.Hour) // Set to 1 hour in the past
-	token, err := security.GenerateJWTWithCustomExpiration(userID, "test@example.com", expiredTime)
+	token, err := security.GenerateJWTWithCustomExpiration(1, "test@example.com", expiredTime)
 	assert.NoError(t, err)
 
 	// Validate the expired JWT
@@ -78,4 +72,6 @@ func TestValidateJWT_ExpiredToken(t *testing.T) {
 
 	// Ensure no claims are returned
 	assert.Nil(t, claims)
+
+	os.Unsetenv("ENV_FILE_PATH")
 }

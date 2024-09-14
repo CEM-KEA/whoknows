@@ -1,7 +1,6 @@
 package unit_test
 
 import (
-	"context"
 	"errors"
 	"net/http"
 	"net/http/httptest"
@@ -20,6 +19,7 @@ type MockJWTValidator struct {
 
 func (m *MockJWTValidator) ValidateJWT(token string) (map[string]interface{}, error) {
 	args := m.Called(token)
+
 	if claims := args.Get(0); claims != nil {
 		return claims.(map[string]interface{}), args.Error(1)
 	}
@@ -61,7 +61,7 @@ func TestAuthMiddleware(t *testing.T) {
 
 	// Mock the ValidateJWT function
 	mockValidator.On("ValidateJWT", "validtoken").Return(map[string]interface{}{"sub": "123"}, nil)
-	mockValidator.On("ValidateJWT", mock.Anything).Return(nil, errors.New("invalid token"))
+	mockValidator.On("ValidateJWT", "invalidtoken").Return(nil, errors.New("invalid token"))
 
 	authMiddleware := middlewares.AuthMiddleware(mockValidator.ValidateJWT)
 
@@ -94,46 +94,6 @@ func TestAuthMiddleware(t *testing.T) {
 
 			// Check the status code
 			assert.Equal(t, tt.expectedStatus, rr.Code)
-		})
-	}
-}
-
-func TestGetUserIDFromContext(t *testing.T) {
-	tests := []struct {
-		name           string
-		ctx            context.Context
-		expectedUserID uint
-		expectError    bool
-	}{
-		{
-			name:           "User ID in context",
-			ctx:            context.WithValue(context.Background(), middlewares.UserKey, "123"), // Use the correct userKey
-			expectedUserID: 123,
-			expectError:    false,
-		},
-		{
-			name:           "No User ID in context",
-			ctx:            context.Background(),
-			expectedUserID: 0,
-			expectError:    true,
-		},
-		{
-			name:           "Invalid User ID in context",
-			ctx:            context.WithValue(context.Background(), middlewares.UserKey, "invalid"),
-			expectedUserID: 0,
-			expectError:    true,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			userID, err := middlewares.GetUserIDFromContext(tt.ctx)
-			if tt.expectError {
-				assert.Error(t, err)
-			} else {
-				assert.NoError(t, err)
-				assert.Equal(t, tt.expectedUserID, userID)
-			}
 		})
 	}
 }

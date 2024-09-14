@@ -6,6 +6,8 @@ type Config struct {
 	JWT         JWTConfig
 	Server      ServerConfig
 	Database    DatabaseConfig
+	Pagination  PaginationConfig
+	Log         LogConfig
 }
 
 // Environment is the struct that holds the environment configuration
@@ -30,6 +32,18 @@ type DatabaseConfig struct {
 	Migrate      bool
 	Seed         bool
 	SeedFilePath string
+}
+
+// PaginationConfig holds the pagination-related configuration
+type PaginationConfig struct {
+	Limit  int
+	Offset int
+}
+
+// LogConfig holds the logging configuration
+type LogConfig struct {
+	Level  string
+	Format string
 }
 
 // AppConfig is the variable that holds the application configuration

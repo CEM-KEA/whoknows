@@ -2,68 +2,103 @@ package config
 
 import (
 	"fmt"
-	"strings"
+	"os"
+	"strconv"
+
+	"github.com/joho/godotenv"
 )
 
-// LoadEnv loads the .env file into the viper configuration
-func LoadEnv(v ViperConfig) error {
-	v.SetConfigFile(".env")
-	err := v.ReadInConfig()
+// LoadEnv loads the .env file using godotenv and populates AppConfig
+func LoadEnv() error {
+	envFilePath := os.Getenv("ENV_FILE_PATH")
 
+	// If the ENV_FILE_PATH environment variable is not set, default to .env in the current working directory
+	if envFilePath == "" {
+		envFilePath = ".env" // Default to .env in the current working directory
+	}
+
+	// Load the .env file
+	err := godotenv.Load(envFilePath)
 	if err != nil {
 		return fmt.Errorf("error reading .env file - %s", err)
 	}
 
-	return nil
-}
-
-// LoadYaml loads the config.yaml file into the viper configuration
-func LoadYaml(v ViperConfig) error {
-	v.SetConfigName("config")
-	v.SetConfigType("yaml")
-	v.AddConfigPath("./internal/config")
-	err := v.ReadInConfig()
-
+	// Populate AppConfig from environment variables
+	err = loadConfigFromEnv()
 	if err != nil {
-		return fmt.Errorf("error reading config.yaml file - %s", err)
+		return fmt.Errorf("error loading configuration from env - %s", err)
 	}
 
 	return nil
 }
 
-// LoadConfig loads the configuration from the config file and environment variables
-func LoadConfig(v ViperConfig) error {
-	// Load the .env file
-	err := LoadEnv(v)
+// loadConfigFromEnv maps environment variables to AppConfig
+func loadConfigFromEnv() error {
+	// Server configuration
+	port, err := strconv.Atoi(getEnv("API_SERVER_PORT", "8080"))
+
 	if err != nil {
-		return err
+		return fmt.Errorf("invalid SERVER_PORT value")
 	}
 
-	// Load the config.yaml file
-	err = LoadYaml(v)
+	AppConfig.Server.Port = port
+
+	// Database configuration
+	AppConfig.Database.FilePath = getEnv("API_DATABASE_FILE_PATH", "./internal/database/whoknows.db")
+	AppConfig.Database.Migrate = getEnvAsBool("API_DATABASE_MIGRATE", false)
+	AppConfig.Database.Seed = getEnvAsBool("API_DATABASE_SEED", false)
+	AppConfig.Database.SeedFilePath = getEnv("API_DATABASE_SEED_FILE_PATH", "./internal/database/pages.json")
+
+	// JWT configuration
+	AppConfig.JWT.Secret = getEnv("API_JWT_SECRET", "")
+	expiration, err := strconv.Atoi(getEnv("API_JWT_EXPIRATION", "3600"))
+
 	if err != nil {
-		return err
+		return fmt.Errorf("invalid JWT_EXPIRATION value")
 	}
 
-	// Enable viper to read environment variables
-	v.AutomaticEnv()
+	AppConfig.JWT.Expiration = expiration
 
-	// Set the environment prefix
-	v.SetEnvPrefix("API")
+	// Environment configuration
+	AppConfig.Environment.Environment = getEnv("API_APP_ENVIRONMENT", "development")
 
-	// Replace the - and . in the environment variables with _
-	v.SetEnvKeyReplacer(strings.NewReplacer(".", "_", "-", "_"))
+	// Pagination configuration
+	limit, err := strconv.Atoi(getEnv("API_PAGINATION_LIMIT", "10"))
 
-	// Set the default values
-	v.SetDefault("server.port", 8080)
-
-	// Load the config into the AppConfig struct
-	err = v.Unmarshal(&AppConfig)
 	if err != nil {
-		return fmt.Errorf("error unmarshalling configuration - %s", err)
+		return fmt.Errorf("invalid PAGINATION_LIMIT value")
 	}
 
-	fmt.Printf("Configuration loaded successfully: %+v\n", AppConfig)
+	offset, err := strconv.Atoi(getEnv("API_PAGINATION_OFFSET", "0"))
+
+	if err != nil {
+		return fmt.Errorf("invalid PAGINATION_OFFSET value")
+	}
+
+	AppConfig.Pagination.Limit = limit
+	AppConfig.Pagination.Offset = offset
+
+	// Log configuration
+	AppConfig.Log.Level = getEnv("API_LOG_LEVEL", "debug")
+	AppConfig.Log.Format = getEnv("API_LOG_FORMAT", "text")
 
 	return nil
+}
+
+// Helper function to get a string environment variable with a fallback value
+func getEnv(key string, fallback string) string {
+	if value, exists := os.LookupEnv(key); exists {
+		return value
+	}
+
+	return fallback
+}
+
+// Helper function to get a boolean environment variable
+func getEnvAsBool(key string, fallback bool) bool {
+	if value, exists := os.LookupEnv(key); exists {
+		return value == "true" || value == "1"
+	}
+
+	return fallback
 }
