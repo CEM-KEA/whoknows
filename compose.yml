@@ -1,8 +1,9 @@
 volumes:
   sqlite_data: # Define a volume for the SQLite database
-
+    external: true # Volume is created outside of the Compose file and is reused across multiple services
+    
 networks:
-  default:
+  CEM-KEA:
     driver: bridge # Define a bridge network for the services
 
 services:
@@ -28,8 +29,11 @@ services:
     volumes:
       - ./.env:/app/.env
       - sqlite_data:/app/internal/database  # Mount the database directory to a persisted volume
+      - ./backend/internal/database/pages.json:/app/internal/database/pages.json # Mount the pages.json file to the database directory
     ports:
       - "8080:8080"
+    networks: 
+      - CEM-KEA
     restart: unless-stopped
 
   frontend:
@@ -41,6 +45,8 @@ services:
       - VITE_API_URL=${VITE_API_URL}
     ports:
       - "80:80"
+    networks: 
+      - CEM-KEA
     depends_on:
       - backend
     restart: unless-stopped
