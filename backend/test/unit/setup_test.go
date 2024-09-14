@@ -11,7 +11,7 @@ import (
 func setupTestDB(t *testing.T) {
 	config.AppConfig = config.Config{
 		JWT: config.JWTConfig{
-			Secret:     "testsecret",
+			Secret:     "testsecret", // Ensure the same secret is used consistently
 			Expiration: 3600,
 		},
 		Server: config.ServerConfig{
