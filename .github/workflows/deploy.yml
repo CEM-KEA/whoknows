@@ -37,8 +37,9 @@ jobs:
       run: |
         # Replace / with - in the branch name for valid Docker tags
         BRANCH_TAG=$(echo "${GITHUB_REF_NAME}" | sed -E 's/[^0-9.]+//g')
-        
-        echo "Branch tag: $BRANCH_TAG"
+
+        # Echo the extracted BRANCH_TAG to debug
+        echo "BRANCH_TAG: ${BRANCH_TAG}"
 
         # Build the backend and frontend images using Docker Compose
         docker compose -f ./compose.yml build backend
