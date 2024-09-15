@@ -17,7 +17,7 @@ COPY . .
 ARG VITE_API_URL
 
 # Expose environment variable
-ENV VITE_API_URL=${VITE_API_URL}
+ENV VITE_API_URL=http://backend:8080/api
 
 # Build the Vite React app
 RUN npm run build
