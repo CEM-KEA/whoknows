@@ -85,7 +85,7 @@ jobs:
 
           # Pull the latest Docker images and start the services
           echo "DEBUG: Pulling the latest Docker images and starting the services..."
-          docker-compose down
-          docker-compose pull
-          docker-compose up -d
+          docker compose down
+          docker compose pull
+          docker compose up -d
         EOF
