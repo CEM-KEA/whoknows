@@ -41,9 +41,11 @@ jobs:
             git pull origin ${{ github.ref_name }}
           fi
 
+          echo "navigate to the project directory"
           cd /home/azureuser/whoknows || exit
 
           # Generate the root .env file
+          echo "Generating the root .env file"
           cat <<EOT > .env
           API_SERVER_PORT=${{ secrets.API_SERVER_PORT }}
           API_DATABASE_FILE_PATH=./app/internal/database/whoknows.db
@@ -62,6 +64,7 @@ jobs:
           EOT
 
           # Generate the backend .env file
+          echo "Generating the backend .env file"
           cat <<EOT > backend/.env
           API_SERVER_PORT=${{ secrets.API_SERVER_PORT }}
           API_DATABASE_FILE_PATH=./internal/database/whoknows.db
@@ -78,14 +81,17 @@ jobs:
           EOT
 
           # Generate the frontend .env file
+          echo "Generating the frontend .env file"
           cat <<EOT > frontend/.env
           VITE_API_URL=${{ secrets.VITE_API_URL }}
           EOT
 
           # Log into Docker Hub
+          echo "Logging into Docker Hub"
           docker login -u ${{ secrets.DOCKER_HUB_USERNAME }} -p ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
 
           # Pull the latest Docker images and start the services
+          echo "Pulling the latest Docker images and starting the services"
           docker-compose down
           docker-compose pull
           docker-compose up -d
