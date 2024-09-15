@@ -6,13 +6,13 @@ import (
 )
 
 func NewRouter() *mux.Router {
-    router := mux.NewRouter()
+	router := mux.NewRouter()
 
-    router.HandleFunc("/api/search", handlers.Search).Methods("POST")
-	router.HandleFunc("/api/weather", nil).Methods("GET") // Add the weather handler here
-	router.HandleFunc("/api/register", nil).Methods("POST") // Add the register handler here
-	router.HandleFunc("/api/login", nil).Methods("POST") // Add the login handler here
-	router.HandleFunc("/api/logout", nil).Methods("GET") // Add the logout handler here
+	router.HandleFunc("/api/search", handlers.Search).Methods("POST")
+	router.HandleFunc("/api/weather", handlers.Weather).Methods("GET") // Add the weather handler here
+	router.HandleFunc("/api/register", nil).Methods("POST")            // Add the register handler here
+	router.HandleFunc("/api/login", nil).Methods("POST")               // Add the login handler here
+	router.HandleFunc("/api/logout", nil).Methods("GET")               // Add the logout handler here
 
-    return router
+	return router
 }
