@@ -41,7 +41,6 @@ jobs:
             git pull origin main
           fi
 
-          echo "navigate to the project directory"
           cd /home/azureuser/whoknows || exit
 
           # Generate the root .env file
@@ -62,21 +61,6 @@ jobs:
           echo "IMAGE_TAG=$IMAGE_TAG" >> .env
 
           # Generate the backend .env file
-          echo "Generating the backend .env file"
-          cat <<EOT > backend/.env
-          API_SERVER_PORT=${{ secrets.API_SERVER_PORT }}
-          API_DATABASE_FILE_PATH=./internal/database/whoknows.db
-          API_DATABASE_MIGRATE=${{ secrets.API_DATABASE_MIGRATE }}
-          API_DATABASE_SEED=${{ secrets.API_DATABASE_SEED }}
-          API_DATABASE_SEED_FILE_PATH=./internal/database/pages.json
-          API_JWT_SECRET=${{ secrets.API_JWT_SECRET }}
-          API_JWT_EXPIRATION=${{ secrets.API_JWT_EXPIRATION }}
-          API_APP_ENVIRONMENT=development
-          API_PAGINATION_LIMIT=${{ secrets.API_PAGINATION_LIMIT }}
-          API_PAGINATION_OFFSET=${{ secrets.API_PAGINATION_OFFSET }}
-          API_LOG_LEVEL=${{ secrets.API_LOG_LEVEL }}
-          API_LOG_FORMAT=${{ secrets.API_LOG_FORMAT }}
-          EOT
           echo "DEBUG: Generating the backend .env file..."
           echo "API_SERVER_PORT=${{ secrets.API_SERVER_PORT }}" > backend/.env
           echo "API_DATABASE_FILE_PATH=./internal/database/whoknows.db" >> backend/.env
@@ -92,12 +76,10 @@ jobs:
           echo "API_LOG_FORMAT=${{ secrets.API_LOG_FORMAT }}" >> backend/.env
 
           # Generate the frontend .env file
-          echo "Generating the frontend .env file"
           echo "DEBUG: Generating the frontend .env file..."
           echo "VITE_API_URL=${{ secrets.VITE_API_URL }}" > frontend/.env
 
           # Log into Docker Hub
-          echo "Logging into Docker Hub"
           echo "DEBUG: Logging into Docker Hub..."
           docker login -u ${{ secrets.DOCKER_HUB_USERNAME }} -p ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
 
