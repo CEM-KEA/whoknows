@@ -1,13 +1,14 @@
 volumes:
   sqlite_data: # Define a volume for the SQLite database
     external: true # Volume is created outside of the Compose file and is reused across multiple services
-    
+
 networks:
   CEM-KEA:
     driver: bridge # Define a bridge network for the services
 
 services:
   backend:
+    image: chso0002/whoknows-backend:v${IMAGE_TAG}
     build:
       context: ./backend
       dockerfile: Dockerfile
@@ -37,6 +38,7 @@ services:
     restart: unless-stopped
 
   frontend:
+    image: chso0002/whoknows-frontend:v${IMAGE_TAG}
     build:
       context: ./frontend
       dockerfile: Dockerfile

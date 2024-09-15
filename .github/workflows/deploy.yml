@@ -1,4 +1,4 @@
-name: Build and Deploy
+name: Deploy to Azure VM
 
 on:
   push:
@@ -9,51 +9,8 @@ on:
       - release/[0-9]+.[0-9]+
 
 jobs:
-  build-and-push:
-    runs-on: ubuntu-latest
-
-    steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
-
-    - name: Log in to Docker Hub
-      run: echo "${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}" | docker login -u "${{ secrets.DOCKER_HUB_USERNAME }}" --password-stdin
-
-    - name: Build and tag Docker images
-      env: 
-        API_SERVER_PORT: ${{ secrets.API_SERVER_PORT }}
-        API_DATABASE_FILE_PATH: ${{ secrets.API_DATABASE_FILE_PATH }}
-        API_DATABASE_MIGRATE: ${{ secrets.API_DATABASE_MIGRATE }}
-        API_DATABASE_SEED: ${{ secrets.API_DATABASE_SEED }}
-        API_DATABASE_SEED_FILE_PATH: ${{ secrets.API_DATABASE_SEED_FILE_PATH }}
-        API_JWT_SECRET: ${{ secrets.API_JWT_SECRET }}
-        API_JWT_EXPIRATION: ${{ secrets.API_JWT_EXPIRATION }}
-        API_APP_ENVIRONMENT: ${{ secrets.API_APP_ENVIRONMENT }}
-        API_PAGINATION_LIMIT: ${{ secrets.API_PAGINATION_LIMIT }}
-        API_PAGINATION_OFFSET: ${{ secrets.API_PAGINATION_OFFSET }}
-        API_LOG_LEVEL: ${{ secrets.API_LOG_LEVEL }}
-        API_LOG_FORMAT: ${{ secrets.API_LOG_FORMAT }}
-        VITE_API_URL: ${{ secrets.VITE_API_URL }}
-        VERSION_TAG: 1.0
-      run: |
-        
-        # Build the backend and frontend images using Docker Compose
-        docker compose -f ./compose.yml build backend
-        docker compose -f ./compose.yml build frontend
-        
-        # Tag the images correctly to match the Docker Hub repositories
-        docker tag whoknows-backend ${{ secrets.DOCKER_HUB_USERNAME }}/whoknows-backend:${VERSION_TAG}
-        docker tag whoknows-frontend ${{ secrets.DOCKER_HUB_USERNAME }}/whoknows-frontend:${VERSION_TAG}
-
-    - name: Push Docker images to Docker Hub
-      run: |
-        docker push ${{ secrets.DOCKER_HUB_USERNAME }}/whoknows-backend:${VERSION_TAG}
-        docker push ${{ secrets.DOCKER_HUB_USERNAME }}/whoknows-frontend:${VERSION_TAG}
-
-
   deploy:
     runs-on: ubuntu-latest
-    needs: build-and-push
 
     steps:
     - name: Set up SSH
@@ -64,15 +21,68 @@ jobs:
     - name: Deploy to Azure VM
       run: |
         ssh -o StrictHostKeyChecking=no ${{ secrets.AZURE_VM_USER }}@${{ secrets.AZURE_VM_IP }} << 'EOF'
+        docker volume inspect sqlite_data >/dev/null 2>&1 || docker volume create sqlite_data
+        EOF
+        
+        # Extract version number from branch name (e.g., release/1.0 -> 1.0)
+        IMAGE_TAG=$(echo "${{ github.ref_name }}" | sed 's/release\///')
+        echo "Using IMAGE_TAG: $IMAGE_TAG"
+          
+        ssh -o StrictHostKeyChecking=no ${{ secrets.AZURE_VM_USER }}@${{ secrets.AZURE_VM_IP }} << 'EOF'
           cd /home/azureuser
-          if [ ! -d "myapp" ]; then
-            git clone https://github.com/yourusername/yourrepo.git myapp
+          if [ ! -d "CEMKEA" ]; then
+            git clone https://github.com/CEM-KEA/whoknows.git CEMKEA
           else
-            cd myapp
+            cd CEMKEA
             git pull origin main
           fi
-          cd myapp
+
+          cd CEMKEA
+
+          # Generate the root .env file
+          cat <<EOT > .env
+          API_SERVER_PORT=${{ secrets.API_SERVER_PORT }}
+          API_DATABASE_FILE_PATH=./app/internal/database/whoknows.db
+          API_DATABASE_MIGRATE=${{ secrets.API_DATABASE_MIGRATE }}
+          API_DATABASE_SEED=${{ secrets.API_DATABASE_SEED }}
+          API_DATABASE_SEED_FILE_PATH=./app/internal/database/pages.json
+          API_JWT_SECRET=${{ secrets.API_JWT_SECRET }}
+          API_JWT_EXPIRATION=${{ secrets.API_JWT_EXPIRATION }}
+          API_APP_ENVIRONMENT=${{ secrets.API_APP_ENVIRONMENT }}
+          API_PAGINATION_LIMIT=${{ secrets.API_PAGINATION_LIMIT }}
+          API_PAGINATION_OFFSET=${{ secrets.API_PAGINATION_OFFSET }}
+          API_LOG_LEVEL=${{ secrets.API_LOG_LEVEL }}
+          API_LOG_FORMAT=${{ secrets.API_LOG_FORMAT }}
+          VITE_API_URL=${{ secrets.VITE_API_URL }}
+          IMAGE_TAG=$IMAGE_TAG  # Use the extracted version as the IMAGE_TAG
+          EOT
+
+          # Generate the backend .env file
+          cat <<EOT > backend/.env
+          API_SERVER_PORT=${{ secrets.API_SERVER_PORT }}
+          API_DATABASE_FILE_PATH=./internal/database/whoknows.db
+          API_DATABASE_MIGRATE=${{ secrets.API_DATABASE_MIGRATE }}
+          API_DATABASE_SEED=${{ secrets.API_DATABASE_SEED }}
+          API_DATABASE_SEED_FILE_PATH=./internal/database/pages.json
+          API_JWT_SECRET=${{ secrets.API_JWT_SECRET }}
+          API_JWT_EXPIRATION=${{ secrets.API_JWT_EXPIRATION }}
+          API_APP_ENVIRONMENT=development
+          API_PAGINATION_LIMIT=${{ secrets.API_PAGINATION_LIMIT }}
+          API_PAGINATION_OFFSET=${{ secrets.API_PAGINATION_OFFSET }}
+          API_LOG_LEVEL=${{ secrets.API_LOG_LEVEL }}
+          API_LOG_FORMAT=${{ secrets.API_LOG_FORMAT }}
+          EOT
+
+          # Generate the frontend .env file
+          cat <<EOT > frontend/.env
+          VITE_API_URL=${{ secrets.VITE_API_URL }}
+          EOT
+
+          # Log into Docker Hub
           docker login -u ${{ secrets.DOCKER_HUB_USERNAME }} -p ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
+
+          # Pull the latest Docker images and start the services
+          docker-compose down
           docker-compose pull
           docker-compose up -d
         EOF
