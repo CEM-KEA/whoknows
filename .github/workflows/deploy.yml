@@ -33,65 +33,57 @@ jobs:
         ssh -o StrictHostKeyChecking=no ${{ secrets.AZURE_VM_USER }}@${{ secrets.AZURE_VM_IP }} << EOF
           cd /home/azureuser
           if [ ! -d "whoknows" ]; then
-            git clone https://github.com/CEM-KEA/whoknows.git whoknows
+            git clone https://github.com/CEM-KEA/whoknows.git
           else
             cd whoknows
-            echo "Pulling the latest changes from the repository"
-            echo "Current branch: ${{ github.ref_name }}"
-            git pull origin ${{ github.ref_name }}
+            git pull origin main
           fi
 
-          echo "navigate to the project directory"
           cd /home/azureuser/whoknows || exit
 
           # Generate the root .env file
-          echo "Generating the root .env file"
           cat <<EOT > .env
-          API_SERVER_PORT=${{ secrets.API_SERVER_PORT }}
-          API_DATABASE_FILE_PATH=./app/internal/database/whoknows.db
-          API_DATABASE_MIGRATE=${{ secrets.API_DATABASE_MIGRATE }}
-          API_DATABASE_SEED=${{ secrets.API_DATABASE_SEED }}
-          API_DATABASE_SEED_FILE_PATH=./app/internal/database/pages.json
-          API_JWT_SECRET=${{ secrets.API_JWT_SECRET }}
-          API_JWT_EXPIRATION=${{ secrets.API_JWT_EXPIRATION }}
-          API_APP_ENVIRONMENT=${{ secrets.API_APP_ENVIRONMENT }}
-          API_PAGINATION_LIMIT=${{ secrets.API_PAGINATION_LIMIT }}
-          API_PAGINATION_OFFSET=${{ secrets.API_PAGINATION_OFFSET }}
-          API_LOG_LEVEL=${{ secrets.API_LOG_LEVEL }}
-          API_LOG_FORMAT=${{ secrets.API_LOG_FORMAT }}
-          VITE_API_URL=${{ secrets.VITE_API_URL }}
-          IMAGE_TAG=$IMAGE_TAG  # Use the extracted version as the IMAGE_TAG
-          EOT
+API_SERVER_PORT=${{ secrets.API_SERVER_PORT }}
+API_DATABASE_FILE_PATH=./app/internal/database/whoknows.db
+API_DATABASE_MIGRATE=${{ secrets.API_DATABASE_MIGRATE }}
+API_DATABASE_SEED=${{ secrets.API_DATABASE_SEED }}
+API_DATABASE_SEED_FILE_PATH=./app/internal/database/pages.json
+API_JWT_SECRET=${{ secrets.API_JWT_SECRET }}
+API_JWT_EXPIRATION=${{ secrets.API_JWT_EXPIRATION }}
+API_APP_ENVIRONMENT=${{ secrets.API_APP_ENVIRONMENT }}
+API_PAGINATION_LIMIT=${{ secrets.API_PAGINATION_LIMIT }}
+API_PAGINATION_OFFSET=${{ secrets.API_PAGINATION_OFFSET }}
+API_LOG_LEVEL=${{ secrets.API_LOG_LEVEL }}
+API_LOG_FORMAT=${{ secrets.API_LOG_FORMAT }}
+VITE_API_URL=${{ secrets.VITE_API_URL }}
+IMAGE_TAG=$IMAGE_TAG  # Use the extracted version as the IMAGE_TAG
+EOT
 
           # Generate the backend .env file
-          echo "Generating the backend .env file"
           cat <<EOT > backend/.env
-          API_SERVER_PORT=${{ secrets.API_SERVER_PORT }}
-          API_DATABASE_FILE_PATH=./internal/database/whoknows.db
-          API_DATABASE_MIGRATE=${{ secrets.API_DATABASE_MIGRATE }}
-          API_DATABASE_SEED=${{ secrets.API_DATABASE_SEED }}
-          API_DATABASE_SEED_FILE_PATH=./internal/database/pages.json
-          API_JWT_SECRET=${{ secrets.API_JWT_SECRET }}
-          API_JWT_EXPIRATION=${{ secrets.API_JWT_EXPIRATION }}
-          API_APP_ENVIRONMENT=development
-          API_PAGINATION_LIMIT=${{ secrets.API_PAGINATION_LIMIT }}
-          API_PAGINATION_OFFSET=${{ secrets.API_PAGINATION_OFFSET }}
-          API_LOG_LEVEL=${{ secrets.API_LOG_LEVEL }}
-          API_LOG_FORMAT=${{ secrets.API_LOG_FORMAT }}
-          EOT
+API_SERVER_PORT=${{ secrets.API_SERVER_PORT }}
+API_DATABASE_FILE_PATH=./internal/database/whoknows.db
+API_DATABASE_MIGRATE=${{ secrets.API_DATABASE_MIGRATE }}
+API_DATABASE_SEED=${{ secrets.API_DATABASE_SEED }}
+API_DATABASE_SEED_FILE_PATH=./internal/database/pages.json
+API_JWT_SECRET=${{ secrets.API_JWT_SECRET }}
+API_JWT_EXPIRATION=${{ secrets.API_JWT_EXPIRATION }}
+API_APP_ENVIRONMENT=development
+API_PAGINATION_LIMIT=${{ secrets.API_PAGINATION_LIMIT }}
+API_PAGINATION_OFFSET=${{ secrets.API_PAGINATION_OFFSET }}
+API_LOG_LEVEL=${{ secrets.API_LOG_LEVEL }}
+API_LOG_FORMAT=${{ secrets.API_LOG_FORMAT }}
+EOT
 
           # Generate the frontend .env file
-          echo "Generating the frontend .env file"
           cat <<EOT > frontend/.env
-          VITE_API_URL=${{ secrets.VITE_API_URL }}
-          EOT
+VITE_API_URL=${{ secrets.VITE_API_URL }}
+EOT
 
           # Log into Docker Hub
-          echo "Logging into Docker Hub"
           docker login -u ${{ secrets.DOCKER_HUB_USERNAME }} -p ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
 
           # Pull the latest Docker images and start the services
-          echo "Pulling the latest Docker images and starting the services"
           docker-compose down
           docker-compose pull
           docker-compose up -d
