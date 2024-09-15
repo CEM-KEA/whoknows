@@ -8,7 +8,7 @@ networks:
 
 services:
   backend:
-    image: chso0002/whoknows-backend:latest
+    image: chso0002/whoknows-backend:${IMAGE_TAG}
     build:
       context: ./backend
       dockerfile: Dockerfile
@@ -38,7 +38,7 @@ services:
     restart: unless-stopped
 
   frontend:
-    image: chso0002/whoknows-frontend:latest
+    image: chso0002/whoknows-frontend:${IMAGE_TAG}
     build:
       context: ./frontend
       dockerfile: Dockerfile
