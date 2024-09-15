@@ -13,6 +13,12 @@ RUN npm install
 # Copy the rest of the application code
 COPY . .
 
+# Build-time argument
+ARG VITE_API_URL
+
+# Expose environment variable
+ENV VITE_API_URL=${VITE_API_URL}
+
 # Build the Vite React app
 RUN npm run build
 
