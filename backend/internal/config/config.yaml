@@ -1,6 +1,0 @@
-Server:
-  Port: 8080
-Database:
-  FilePath: ./internal/database/whoknows.db
-  Migrate: false
-  Seed: false

@@ -1,0 +1,54 @@
+volumes:
+  sqlite_data: # Define a volume for the SQLite database
+    external: true # Volume is created outside of the Compose file and is reused across multiple services
+
+networks:
+  CEM-KEA:
+    driver: bridge # Define a bridge network for the services
+
+services:
+  backend:
+    image: chso0002/whoknows-backend:v${IMAGE_TAG}
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: backend
+    environment:
+      - API_SERVER_PORT=${API_SERVER_PORT}
+      - API_DATABASE_FILE_PATH=${API_DATABASE_FILE_PATH}
+      - API_DATABASE_MIGRATE=${API_DATABASE_MIGRATE}
+      - API_DATABASE_SEED=${API_DATABASE_SEED}
+      - API_DATABASE_SEED_FILE_PATH=${API_DATABASE_SEED_FILE_PATH}
+      - API_JWT_SECRET=${API_JWT_SECRET}
+      - API_JWT_EXPIRATION=${API_JWT_EXPIRATION}
+      - API_APP_ENVIRONMENT=${API_APP_ENVIRONMENT}
+      - API_PAGINATION_LIMIT=${API_PAGINATION_LIMIT}
+      - API_PAGINATION_OFFSET=${API_PAGINATION_OFFSET}
+      - API_LOG_LEVEL=${API_LOG_LEVEL}
+      - API_LOG_FORMAT=${API_LOG_FORMAT}
+      - ENV_FILE_PATH=/app/.env # Path to the .env file in the container
+    volumes:
+      - ./.env:/app/.env
+      - sqlite_data:/app/internal/database  # Mount the database directory to a persisted volume
+      - ./backend/internal/database/pages.json:/app/internal/database/pages.json # Mount the pages.json file to the database directory
+    ports:
+      - "8080:8080"
+    networks: 
+      - CEM-KEA
+    restart: unless-stopped
+
+  frontend:
+    image: chso0002/whoknows-frontend:v${IMAGE_TAG}
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: frontend
+    environment:
+      - VITE_API_URL=${VITE_API_URL}
+    ports:
+      - "80:80"
+    networks: 
+      - CEM-KEA
+    depends_on:
+      - backend
+    restart: unless-stopped

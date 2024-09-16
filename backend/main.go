@@ -2,16 +2,17 @@ package main
 
 import (
 	"fmt"
-	"github.com/CEM-KEA/whoknows/backend/internal/config"
-	"github.com/CEM-KEA/whoknows/backend/internal/database"
-	"github.com/CEM-KEA/whoknows/backend/internal/api"
 	"net/http"
 	"time"
+
+	"github.com/CEM-KEA/whoknows/backend/internal/api"
+	"github.com/CEM-KEA/whoknows/backend/internal/config"
+	"github.com/CEM-KEA/whoknows/backend/internal/database"
 )
 
 func main() {
-	// Load application configuration
-	err := config.LoadConfig(&config.ViperConfigWrapper{})
+	// Load application configuration from the .env file
+	err := config.LoadEnv()
 	if err != nil {
 		fmt.Printf("Error loading configuration: %s\n", err)
 		return
@@ -35,7 +36,7 @@ func main() {
 
 	// Seed the database with initial data if the seed flag is set to true
 	if config.AppConfig.Database.Seed {
-		err = database.SeedData(database.DB)
+		err = database.SeedData(database.DB, config.AppConfig.Database.SeedFilePath)
 		if err != nil {
 			fmt.Printf("Error seeding database: %s\n", err)
 			return

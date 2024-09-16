@@ -1,0 +1,91 @@
+name: Deploy to Azure VM
+
+on:
+  push:
+    branches:
+      - release/[0-9]+.[0-9]+
+  pull_request:
+    branches:
+      - release/[0-9]+.[0-9]+
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Set up SSH
+      uses: webfactory/ssh-agent@v0.9.0
+      with:
+        ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+    - name: Deploy to Azure VM
+      run: |
+        # Ensure the Docker volume exists
+        ssh -o StrictHostKeyChecking=no ${{ secrets.AZURE_VM_USER }}@${{ secrets.AZURE_VM_IP }} << 'EOF'
+          docker volume inspect sqlite_data >/dev/null 2>&1 || docker volume create sqlite_data
+        EOF
+
+        # Extract version number from branch name (e.g., release/1.0 -> 1.0)
+        IMAGE_TAG=$(echo "${{ github.ref_name }}" | sed 's/release\///')
+        echo "Using IMAGE_TAG: $IMAGE_TAG"
+
+        # Log in to the Azure VM and set up the environment
+        ssh -o StrictHostKeyChecking=no ${{ secrets.AZURE_VM_USER }}@${{ secrets.AZURE_VM_IP }} << EOF
+          cd /home/azureuser
+          if [ ! -d "whoknows" ]; then
+            echo "DEBUG: Cloning the repository..."
+            git clone https://github.com/CEM-KEA/whoknows.git
+          else
+            cd whoknows
+            echo "DEBUG: Pulling the latest changes..."
+            git pull origin main
+          fi
+
+          cd /home/azureuser/whoknows || exit
+
+          # Generate the root .env file
+          echo "DEBUG: Generating the root .env file..."
+          echo "API_SERVER_PORT=${{ secrets.API_SERVER_PORT }}" > .env
+          echo "API_DATABASE_FILE_PATH=./app/internal/database/whoknows.db" >> .env
+          echo "API_DATABASE_MIGRATE=${{ secrets.API_DATABASE_MIGRATE }}" >> .env
+          echo "API_DATABASE_SEED=${{ secrets.API_DATABASE_SEED }}" >> .env
+          echo "API_DATABASE_SEED_FILE_PATH=./app/internal/database/pages.json" >> .env
+          echo "API_JWT_SECRET=${{ secrets.API_JWT_SECRET }}" >> .env
+          echo "API_JWT_EXPIRATION=${{ secrets.API_JWT_EXPIRATION }}" >> .env
+          echo "API_APP_ENVIRONMENT=${{ secrets.API_APP_ENVIRONMENT }}" >> .env
+          echo "API_PAGINATION_LIMIT=${{ secrets.API_PAGINATION_LIMIT }}" >> .env
+          echo "API_PAGINATION_OFFSET=${{ secrets.API_PAGINATION_OFFSET }}" >> .env
+          echo "API_LOG_LEVEL=${{ secrets.API_LOG_LEVEL }}" >> .env
+          echo "API_LOG_FORMAT=${{ secrets.API_LOG_FORMAT }}" >> .env
+          echo "VITE_API_URL=${{ secrets.VITE_API_URL }}" >> .env
+          echo "IMAGE_TAG=$IMAGE_TAG" >> .env
+
+          # Generate the backend .env file
+          echo "DEBUG: Generating the backend .env file..."
+          echo "API_SERVER_PORT=${{ secrets.API_SERVER_PORT }}" > backend/.env
+          echo "API_DATABASE_FILE_PATH=./internal/database/whoknows.db" >> backend/.env
+          echo "API_DATABASE_MIGRATE=${{ secrets.API_DATABASE_MIGRATE }}" >> backend/.env
+          echo "API_DATABASE_SEED=${{ secrets.API_DATABASE_SEED }}" >> backend/.env
+          echo "API_DATABASE_SEED_FILE_PATH=./internal/database/pages.json" >> backend/.env
+          echo "API_JWT_SECRET=${{ secrets.API_JWT_SECRET }}" >> backend/.env
+          echo "API_JWT_EXPIRATION=${{ secrets.API_JWT_EXPIRATION }}" >> backend/.env
+          echo "API_APP_ENVIRONMENT=development" >> backend/.env
+          echo "API_PAGINATION_LIMIT=${{ secrets.API_PAGINATION_LIMIT }}" >> backend/.env
+          echo "API_PAGINATION_OFFSET=${{ secrets.API_PAGINATION_OFFSET }}" >> backend/.env
+          echo "API_LOG_LEVEL=${{ secrets.API_LOG_LEVEL }}" >> backend/.env
+          echo "API_LOG_FORMAT=${{ secrets.API_LOG_FORMAT }}" >> backend/.env
+
+          # Generate the frontend .env file
+          echo "DEBUG: Generating the frontend .env file..."
+          echo "VITE_API_URL=${{ secrets.VITE_API_URL }}" > frontend/.env
+
+          # Log into Docker Hub
+          echo "DEBUG: Logging into Docker Hub..."
+          docker login -u ${{ secrets.DOCKER_HUB_USERNAME }} -p ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
+
+          # Pull the latest Docker images and start the services
+          echo "DEBUG: Pulling the latest Docker images and starting the services..."
+          docker compose down
+          docker compose pull
+          docker compose up -d
+        EOF
