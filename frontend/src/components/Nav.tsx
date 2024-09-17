@@ -1,5 +1,5 @@
 import { PropsWithChildren } from "react";
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 
 interface NavProps {
   loggedIn: boolean;
@@ -7,6 +7,13 @@ interface NavProps {
 }
 
 function Nav(props: NavProps) {
+  const navigate = useNavigate();
+
+  function logOut() {
+    props.onLogOut();
+    navigate("/login");
+  }
+
   return (
     <nav className="flex w-full justify-between px-2 pt-3 bg-blue-200">
       <div className="flex">
@@ -16,12 +23,13 @@ function Nav(props: NavProps) {
       <div className="flex">
         <CustomNavLink to="/register">Register</CustomNavLink>
         <CustomNavLink
+          id="login-logout-nav"
           to="/login"
           onClick={() => {
-            if (props.loggedIn) props.onLogOut();
+            if (props.loggedIn) logOut();
           }}
         >
-          {props.loggedIn ? "Log out" : "Login"}
+          {props.loggedIn ? "Log out" : "Log in"}
         </CustomNavLink>
       </div>
     </nav>
@@ -31,6 +39,7 @@ function Nav(props: NavProps) {
 interface CustomNavLinkProps extends PropsWithChildren {
   to: string;
   onClick?: () => void;
+  id?: string;
 }
 
 function CustomNavLink(props: CustomNavLinkProps) {
@@ -38,6 +47,7 @@ function CustomNavLink(props: CustomNavLinkProps) {
     "p-2 hover:bg-white rounded-t-lg border-t border-x border-blue-200 font-semibold w-48 text-center hover:border-white transition-colors duration-500";
   return (
     <NavLink
+      id={props.id}
       to={props.to}
       className={({ isActive }) => {
         return isActive ? `${baseClassname} bg-white border-white` : baseClassname;

@@ -5,7 +5,7 @@ import { apiPost } from "../utils/apiUtils";
 import { useNavigate } from "react-router-dom";
 
 interface LoginProps {
-  onLogIn: (token: string, username: string) => void;
+  onLogIn: (token: string) => void;
 }
 
 function Login(props: LoginProps) {
@@ -16,7 +16,7 @@ function Login(props: LoginProps) {
   function handleLogin() {
     apiPost<ILoginRequest, ILoginResponse>("/login", { username, password })
       .then((data) => {
-        props.onLogIn(data.token, username);
+        props.onLogIn(data.token);
         navigate("/");
       })
       .catch((error) => {
