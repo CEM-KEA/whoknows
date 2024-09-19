@@ -48,7 +48,7 @@ function Search() {
             >
               {searchResponse.data.map((result, i) => (
                 <li
-                  key={i}
+                  key={result.title + i}
                   className="list-none border-b p-1"
                 >
                   <a

@@ -8,7 +8,7 @@ interface LoginProps {
   onLogIn: (token: string) => void;
 }
 
-function Login(props: LoginProps) {
+function Login(props: Readonly<LoginProps>) {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const navigate = useNavigate();

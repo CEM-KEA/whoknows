@@ -6,7 +6,7 @@ interface NavProps {
   onLogOut: () => void;
 }
 
-function Nav(props: NavProps) {
+function Nav(props: Readonly<NavProps>) {
   const navigate = useNavigate();
 
   function logOut() {
@@ -42,7 +42,7 @@ interface CustomNavLinkProps extends PropsWithChildren {
   id?: string;
 }
 
-function CustomNavLink(props: CustomNavLinkProps) {
+function CustomNavLink(props: Readonly<CustomNavLinkProps>) {
   const baseClassname =
     "p-2 hover:bg-white rounded-t-lg border-t border-x border-blue-200 font-semibold w-48 text-center hover:border-white transition-colors duration-500";
   return (

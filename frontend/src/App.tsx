@@ -19,32 +19,30 @@ function App() {
   }
 
   return (
-    <>
-      <BrowserRouter>
-        <Nav
-          loggedIn={loggedIn}
-          onLogOut={logOut}
+    <BrowserRouter>
+      <Nav
+        loggedIn={loggedIn}
+        onLogOut={logOut}
+      />
+      <Routes>
+        <Route
+          path="/"
+          element={<Search />}
         />
-        <Routes>
-          <Route
-            path="/"
-            element={<Search />}
-          />
-          <Route
-            path="/weather"
-            element={<div />}
-          />
-          <Route
-            path="/register"
-            element={<div />}
-          />
-          <Route
-            path="/login"
-            element={<Login onLogIn={logIn} />}
-          />
-        </Routes>
-      </BrowserRouter>
-    </>
+        <Route
+          path="/weather"
+          element={<div />}
+        />
+        <Route
+          path="/register"
+          element={<div />}
+        />
+        <Route
+          path="/login"
+          element={<Login onLogIn={logIn} />}
+        />
+      </Routes>
+    </BrowserRouter>
   );
 }
 
