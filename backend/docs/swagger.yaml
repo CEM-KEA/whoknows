@@ -1,0 +1,157 @@
+basePath: /api
+definitions:
+  handlers.LoginRequest:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  handlers.LoginResponse:
+    properties:
+      token:
+        type: string
+    type: object
+  handlers.RegisterRequest:
+    properties:
+      email:
+        type: string
+      password:
+        minLength: 6
+        type: string
+      username:
+        maxLength: 100
+        minLength: 3
+        type: string
+    required:
+    - email
+    - password
+    - username
+    type: object
+  handlers.SearchBody:
+    properties:
+      language:
+        type: string
+      q:
+        type: string
+    type: object
+  handlers.SearchResponse:
+    properties:
+      data:
+        items:
+          additionalProperties: true
+          type: object
+        type: array
+    type: object
+  handlers.WeatherResponse:
+    properties:
+      data:
+        additionalProperties: true
+        type: object
+    type: object
+host: http://52.169.32.176:8080
+info:
+  contact: {}
+  description: This is the API for the WhoKnows application
+  title: WhoKnows API
+  version: "1.0"
+paths:
+  /api/login:
+    post:
+      consumes:
+      - application/json
+      description: Login with email and password
+      parameters:
+      - description: Login credentials
+        in: body
+        name: login
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.LoginResponse'
+        "400":
+          description: Invalid request body
+          schema:
+            type: string
+        "401":
+          description: Invalid email or password
+          schema:
+            type: string
+  /api/register:
+    post:
+      consumes:
+      - application/json
+      description: Register a new user
+      parameters:
+      - description: User data
+        in: body
+        name: register
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.RegisterRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: User created successfully
+          schema:
+            type: string
+        "400":
+          description: Validation error
+          schema:
+            type: string
+        "500":
+          description: Failed to create user
+          schema:
+            type: string
+  /api/search:
+    post:
+      consumes:
+      - application/json
+      description: Search for pages by content
+      parameters:
+      - description: Search query
+        in: body
+        name: search
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.SearchBody'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.SearchResponse'
+        "400":
+          description: Search query (q) is required
+          schema:
+            type: string
+        "500":
+          description: Search query failed
+          schema:
+            type: string
+  /api/weather:
+    get:
+      description: Get weather information
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.WeatherResponse'
+        "500":
+          description: Failed to fetch weather data
+          schema:
+            type: string
+swagger: "2.0"

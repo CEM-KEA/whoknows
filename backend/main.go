@@ -8,6 +8,7 @@ import (
 	"github.com/CEM-KEA/whoknows/backend/internal/api"
 	"github.com/CEM-KEA/whoknows/backend/internal/config"
 	"github.com/CEM-KEA/whoknows/backend/internal/database"
+	"github.com/CEM-KEA/whoknows/backend/internal/utils"
 )
 
 func main() {
@@ -42,6 +43,9 @@ func main() {
 			return
 		}
 	}
+
+	// initalize utils
+	utils.InitValidator()
 
 	// Create the router from the api package
 	router := api.NewRouter()
