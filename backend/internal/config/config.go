@@ -82,6 +82,9 @@ func loadConfigFromEnv() error {
 	AppConfig.Log.Level = getEnv("API_LOG_LEVEL", "debug")
 	AppConfig.Log.Format = getEnv("API_LOG_FORMAT", "text")
 
+	// Weather API configuration
+	AppConfig.WeatherAPI.OpenWeatherAPIKey = getEnv("API_WEATHER_API_KEY", "")
+
 	return nil
 }
 
