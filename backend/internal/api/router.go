@@ -15,8 +15,8 @@ func NewRouter() http.Handler {
 	router.HandleFunc("/api/search", handlers.Search).Methods("POST")
 	router.HandleFunc("/api/weather", handlers.WeatherHandler).Methods("GET")
 	router.HandleFunc("/api/register", nil).Methods("POST") // Add the register handler here
-	router.HandleFunc("/api/login", nil).Methods("POST")    // Add the login handler here
-	router.HandleFunc("/api/logout", nil).Methods("GET")    // Add the logout handler here
+	router.HandleFunc("/api/login", handlers.Login).Methods("POST")
+	router.HandleFunc("/api/logout", nil).Methods("GET") // Add the logout handler here
 
 	// if environment is not production, allow all origins (*)
 	var allowedOrigins []string
@@ -24,7 +24,7 @@ func NewRouter() http.Handler {
 	if config.AppConfig.Environment.Environment != "production" {
 		allowedOrigins = []string{"*"}
 	} else {
-		allowedOrigins = []string{"http://frontend", "http://localhost:80", "http://localhost", "http://localhost:5173" , "http://52.169.32.176", "http://52.169.32.176:80"} // CHANGE THIS TO THE FRONTEND URL
+		allowedOrigins = []string{"http://frontend", "http://localhost:80", "http://localhost", "http://localhost:5173", "http://52.169.32.176", "http://52.169.32.176:80"} // CHANGE THIS TO THE FRONTEND URL
 	}
 
 	c := cors.New(cors.Options{
