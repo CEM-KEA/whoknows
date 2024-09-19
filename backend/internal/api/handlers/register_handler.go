@@ -17,6 +17,15 @@ type RegisterRequest struct {
 	Password string `json:"password" validate:"required,min=6"`
 }
 
+// RegisterRequest represents the registration request payload
+// @Description Register a new user
+// @Accept json
+// @Produce json
+// @Param register body RegisterRequest true "User data"
+// @Success 201 {string} string "User created successfully"
+// @Failure 400 {string} string "Validation error"
+// @Failure 500 {string} string "Failed to create user"
+// @Router /api/register [post]
 // RegisterHandler handles the registration of a new user
 func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 

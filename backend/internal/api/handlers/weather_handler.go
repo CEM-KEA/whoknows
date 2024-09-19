@@ -18,6 +18,12 @@ type WeatherResponse struct {
 	Data map[string]interface{} `json:"data"`
 }
 
+// WeatherResponse represents the weather response payload
+// @Description Get weather information
+// @Produce json
+// @Success 200 {object} WeatherResponse
+// @Failure 500 {string} string "Failed to fetch weather data"
+// @Router /api/weather [get]
 // handler for GET request to /api/weather
 func WeatherHandler(w http.ResponseWriter, r *http.Request) {
 	data, err := GetWeatherData();

@@ -19,6 +19,15 @@ type LoginResponse struct {
 	Token string `json:"token"`
 }
 
+// LoginRequest represents the login request payload
+// @Description Login with email and password
+// @Accept json
+// @Produce json
+// @Param login body LoginRequest true "Login credentials"
+// @Success 200 {object} LoginResponse
+// @Failure 400 {string} string "Invalid request body"
+// @Failure 401 {string} string "Invalid email or password"
+// @Router /api/login [post]
 // Handler for login
 func Login(w http.ResponseWriter, r *http.Request) {
 	var request LoginRequest
