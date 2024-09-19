@@ -24,6 +24,15 @@ type RequestValidationError struct {
 	Message    *string `json:"message,omitempty"`
 }
 
+// SearchBody represents the search request payload
+// @Description Search for pages by content
+// @Accept json
+// @Produce json
+// @Param search body SearchBody true "Search query"
+// @Success 200 {object} SearchResponse
+// @Failure 400 {string} string "Search query (q) is required"
+// @Failure 500 {string} string "Search query failed"
+// @Router /api/search [post]
 // Search is the handler for the search API
 func Search(w http.ResponseWriter, r *http.Request) {
 	var body SearchBody
