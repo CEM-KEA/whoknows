@@ -14,7 +14,7 @@ func NewRouter() http.Handler {
 
 	router.HandleFunc("/api/search", handlers.Search).Methods("POST")
 	router.HandleFunc("/api/weather", handlers.WeatherHandler).Methods("GET")
-	router.HandleFunc("/api/register", nil).Methods("POST") // Add the register handler here
+	router.HandleFunc("/api/register", handlers.RegisterHandler).Methods("POST") // Add the register handler here
 	router.HandleFunc("/api/login", handlers.Login).Methods("POST")
 	router.HandleFunc("/api/logout", nil).Methods("GET") // Add the logout handler here
 
