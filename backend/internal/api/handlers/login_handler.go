@@ -7,6 +7,7 @@ import (
 	"github.com/CEM-KEA/whoknows/backend/internal/database"
 	"github.com/CEM-KEA/whoknows/backend/internal/security"
 	"github.com/CEM-KEA/whoknows/backend/internal/services"
+	"github.com/CEM-KEA/whoknows/backend/internal/utils"
 )
 
 type LoginRequest struct {
@@ -26,6 +27,13 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	err := json.NewDecoder(r.Body).Decode(&request)
 	if err != nil {
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+
+	//Validate the request
+	err = utils.Validate(request)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
