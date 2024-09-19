@@ -1,3 +1,4 @@
+// openweathermap.org API response
 export interface IWeatherData {
   base: string;
   clouds: {
