@@ -6,8 +6,7 @@ import type { ISearchRequest, ISearchResponse } from "../types/types";
 function Search() {
   const [search, setSearch] = useState("");
   const [searchResponse, setSearchResponse] = useState<ISearchResponse | null>(null);
-  console.log(searchResponse);
-  
+
   const handleSearch = () => {
     const searchBody: ISearchRequest = {
       q: search,
@@ -49,7 +48,7 @@ function Search() {
             >
               {searchResponse.data.map((result, i) => (
                 <li
-                  key={i}
+                  key={result.title + i}
                   className="list-none border-b p-1"
                 >
                   <a
