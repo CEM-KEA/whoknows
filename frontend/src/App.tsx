@@ -2,24 +2,11 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 import Nav from "./components/Nav";
 import Search from "./views/Search";
 import Login from "./views/Login";
-import { useEffect, useState } from "react";
-import {
-  getUserCookieAccept,
-  removeJWTTokenFromCookies,
-  setJWTTokenInCookies,
-  setUserCookieAccept
-} from "./helpers/cookieHelpers";
-import CookieBanner from "./components/CookieBanner";
+import { useState } from "react";
+import { removeJWTTokenFromCookies, setJWTTokenInCookies } from "./helpers/cookieHelpers";
 
 function App() {
   const [loggedIn, setLoggedIn] = useState<boolean>(false);
-  const [showCookieBanner, setShowCookieBanner] = useState<boolean>(true);
-
-  useEffect(() => {
-    if (getUserCookieAccept()) {
-      setShowCookieBanner(false);
-    }
-  }, []);
 
   function logOut() {
     setLoggedIn(false);
@@ -56,14 +43,6 @@ function App() {
             element={<Login onLogIn={logIn} />}
           />
         </Routes>
-        {showCookieBanner && (
-          <CookieBanner
-            onChoice={(choice) => {
-              setShowCookieBanner(false);
-              setUserCookieAccept(choice);
-            }}
-          />
-        )}
       </BrowserRouter>
     </>
   );
