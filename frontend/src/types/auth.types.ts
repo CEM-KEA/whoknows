@@ -15,3 +15,9 @@ export interface ILoginSession {
 export interface ILoginResponse {
   token: string;
 }
+
+export interface IRegisterRequest {
+  username: string;
+  email: string;
+  password: string;
+}

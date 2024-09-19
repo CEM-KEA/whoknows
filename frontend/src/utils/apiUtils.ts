@@ -40,6 +40,9 @@ export async function apiPost<TReqBody, TResBody>(
   if (!res.ok) {
     throw new Error(res.statusText);
   }
+  if (res.status === 204 || res.status === 201) {
+    return {} as TResBody;
+  }
   return await res.json();
 }
 
