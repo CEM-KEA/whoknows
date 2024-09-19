@@ -38,6 +38,7 @@ export default defineConfig({
       use: { ...devices["Desktop Chrome"] }
     },
 
+    /* Disabling Firefox as it is bugged. See  */
     // {
     //   name: 'firefox',
     //   use: { ...devices['Desktop Firefox'] },

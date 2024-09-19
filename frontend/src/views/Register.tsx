@@ -44,7 +44,7 @@ function Register() {
         {!loading && (
           <form
             onSubmit={handleSubmit}
-            className="flex flex-col gap-4 border-2 px-20 py-8 rounded bg-blue-200 bg-opacity-40"
+            className="flex flex-col gap-12 lg:w-1/2 border-2 px-20 py-8 rounded bg-blue-200 bg-opacity-40"
           >
             <h1 className="text-2xl font-semibold">Register new user</h1>
             <input
@@ -74,7 +74,7 @@ function Register() {
               onChange={(e) => setPassword(e.target.value)}
               required
             />
-            <div className="flex gap-1 w-full justify-between">
+            <div className="flex gap-1 w-full justify-between mt-8">
               <button
                 className="border rounded bg-blue-50 text-blue-500 hover:bg-blue-100 font-semibold p-2"
                 onClick={() => {
