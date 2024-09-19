@@ -8,6 +8,7 @@ type Config struct {
 	Database    DatabaseConfig
 	Pagination  PaginationConfig
 	Log         LogConfig
+	WeatherAPI 	WeatherAPIConfig
 }
 
 // Environment is the struct that holds the environment configuration
@@ -44,6 +45,10 @@ type PaginationConfig struct {
 type LogConfig struct {
 	Level  string
 	Format string
+}
+
+type WeatherAPIConfig struct {
+	OpenWeatherAPIKey string
 }
 
 // AppConfig is the variable that holds the application configuration
