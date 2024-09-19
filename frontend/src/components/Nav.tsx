@@ -21,7 +21,7 @@ function Nav(props: Readonly<NavProps>) {
         <CustomNavLink to="/weather">Weather</CustomNavLink>
       </div>
       <div className="flex">
-        <CustomNavLink to="/register">Register</CustomNavLink>
+        {!props.loggedIn && <CustomNavLink to="/register">Register</CustomNavLink>}
         <CustomNavLink
           id="login-logout-nav"
           to="/login"

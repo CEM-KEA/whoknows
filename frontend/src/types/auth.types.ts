@@ -4,12 +4,12 @@ export interface IAuthResponse {
 }
 
 export interface ILoginRequest {
-  username: string;
+  email: string;
   password: string;
 }
 
 export interface ILoginSession {
-  username: string;
+  email: string;
 }
 
 export interface ILoginResponse {
