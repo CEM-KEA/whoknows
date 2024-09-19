@@ -4,6 +4,7 @@ import Search from "./views/Search";
 import Login from "./views/Login";
 import { useState } from "react";
 import { removeJWTTokenFromCookies, setJWTTokenInCookies } from "./helpers/cookieHelpers";
+import Weather from "./views/Weather";
 
 function App() {
   const [loggedIn, setLoggedIn] = useState<boolean>(false);
@@ -31,7 +32,7 @@ function App() {
         />
         <Route
           path="/weather"
-          element={<div />}
+          element={<Weather />}
         />
         <Route
           path="/register"

@@ -1,38 +1,8 @@
-export interface ISearchRequest {
-  q: string;
-  language: string | null; // language code e.g. en
-}
-
-export interface ISearchResponse {
-  data: {
-    title: string;
-    url: string;
-  }[];
-}
-
-export interface IStandardResponse {
-  data: object;
+export interface IStandardResponse<T> {
+  data: T;
 }
 
 export interface IRequestValidationError {
   statusCode: 422;
   message: string | null;
-}
-
-export interface IAuthResponse {
-  statusCode: number;
-  message: string;
-}
-
-export interface ILoginRequest {
-  username: string;
-  password: string;
-}
-
-export interface ILoginSession {
-  username: string;
-}
-
-export interface ILoginResponse {
-  token: string;
 }

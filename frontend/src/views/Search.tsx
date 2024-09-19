@@ -1,10 +1,12 @@
 import { useState } from "react";
 import PageLayout from "../components/PageLayout";
 import { apiPost } from "../utils/apiUtils";
-import type { ISearchRequest, ISearchResponse } from "../types/types";
+import type { ISearchRequest, ISearchResponse } from "../types/search.types";
+import LoadingSpinner from "../components/LoadingSpinner";
 
 function Search() {
   const [search, setSearch] = useState("");
+  const [loading, setLoading] = useState(false);
   const [searchResponse, setSearchResponse] = useState<ISearchResponse | null>(null);
 
   const handleSearch = () => {
@@ -12,13 +14,15 @@ function Search() {
       q: search,
       language: "en"
     };
+    setLoading(true);
     apiPost<ISearchRequest, ISearchResponse>("/search", searchBody)
       .then((response) => {
         setSearchResponse(response);
       })
       .catch((error) => {
         console.error(error);
-      });
+      })
+      .finally(() => setLoading(false));
   };
 
   return (
@@ -41,6 +45,11 @@ function Search() {
         </button>
       </div>
       <div>
+        {loading && (
+          <div className="mt-32 w-full flex justify-center">
+            <LoadingSpinner size={100} />
+          </div>
+        )}
         {searchResponse?.data && searchResponse.data.length > 0 && (
           <div className="mt-4">
             <ul
