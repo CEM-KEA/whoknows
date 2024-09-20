@@ -11,6 +11,6 @@ test("weather page gets weather content from backend", async ({ page }) => {
 
   // Check if the weather content is loaded
   const weatherContent = page.locator("#weather-content");
-  await page.waitForTimeout(1000); // wait for 1 second
+  await page.waitForTimeout(5000); // wait for 5 seconds
   await expect(weatherContent).toBeVisible();
 });

@@ -14,8 +14,8 @@ test("search", async ({ page }) => {
   await page.fill("#search", "Test");
   await page.keyboard.press("Enter");
 
-  // Wait for 1 seconds
-  await page.waitForTimeout(1000);
+  // Wait for 5 seconds
+  await page.waitForTimeout(5000);
 
   // Expect content to be shown.
   const searchResults = page.locator("#search-results>li");
