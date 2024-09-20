@@ -109,13 +109,13 @@ jobs:
           docker save whoknows-frontend:${{ env.IMAGE_TAG }} -o whoknows-frontend.tar
     
       - name: Upload Backend Docker Image as Artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: whoknows-backend
           path: whoknows-backend.tar
     
       - name: Upload Frontend Docker Image as Artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: whoknows-frontend
           path: whoknows-frontend.tar
@@ -176,16 +176,20 @@ jobs:
           ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
       - name: Download Backend Docker Image
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: whoknows-backend
           path: whoknows-backend.tar
     
       - name: Download Frontend Docker Image
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: whoknows-frontend
           path: whoknows-frontend.tar
+
+      - name: Transfer Docker Images to Azure VM
+        run: |
+          scp -o StrictHostKeyChecking=no whoknows-backend.tar whoknows-frontend.tar ${{ secrets.AZURE_VM_USER }}@${{ secrets.AZURE_VM_IP }}:/home/azureuser/
 
       - name: Deploy to Azure VM
         run: |
@@ -214,8 +218,8 @@ jobs:
 
             # Load local Docker images
             echo "Loading Docker images..."
-            docker load -i whoknows-backend.tar
-            docker load -i whoknows-frontend.tar
+            docker load -i /home/azureuser/whoknows-backend.tar
+            docker load -i /home/azureuser/whoknows-frontend.tar
 
             # Update Docker images and restart services
             echo "Pulling and starting Docker services..."
