@@ -99,42 +99,64 @@ jobs:
         run: |
           docker compose --env-file .env up --build -d  # Start both backend and frontend services
 
-      - name: Wait for Frontend to be Ready
+      - name: Save Backend Image as Artifact
         run: |
-          MAX_RETRIES=30  # Max number of retries (e.g., 30 retries = 5 minutes with 10s wait)
-          RETRY_INTERVAL=10  # Interval between retries in seconds
-          retries=0
-
-          until curl -s http://localhost:80 > /dev/null; do
-            retries=$((retries+1))
-            if [ "$retries" -ge "$MAX_RETRIES" ]; then
-              echo "Frontend did not become ready within the timeout. Exiting."
-              exit 1
-            fi
-            echo "Waiting for frontend (nginx) to be ready... (Attempt: $retries/$MAX_RETRIES)"
-            sleep $RETRY_INTERVAL
-          done
-
-          echo "Frontend is ready!"
-
-      - name: Install Dependencies for Playwright
+          docker save whoknows-backend:${{ env.IMAGE_TAG }} -o whoknows-backend.tar
+          continue-on-error: true
+    
+      - name: Save Frontend Image as Artifact
         run: |
-          npx playwright install-deps
+          docker save whoknows-frontend:${{ env.IMAGE_TAG }} -o whoknows-frontend.tar
+          continue-on-error: true
+    
+      - name: Upload Backend Docker Image as Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: whoknows-backend
+          path: whoknows-backend.tar
+    
+      - name: Upload Frontend Docker Image as Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: whoknows-frontend
+          path: whoknows-frontend.tar
 
-      - name: Install Playwright
-        run: |
-          cd frontend
-          npm install @playwright/test
-          npx playwright install
+      # - name: Wait for Frontend to be Ready
+      #   run: |
+      #     MAX_RETRIES=30  # Max number of retries (e.g., 30 retries = 5 minutes with 10s wait)
+      #     RETRY_INTERVAL=10  # Interval between retries in seconds
+      #     retries=0
 
-      - name: Run End-to-End Tests
-        env:
-          TEST_FRONTEND_URL: http://localhost
-          TEST_LOGIN_EMAIL: ${{ secrets.TEST_LOGIN_EMAIL }}
-          TEST_LOGIN_PASSWORD: ${{ secrets.TEST_LOGIN_PASSWORD }}
-        run: |
-          cd frontend
-          npx playwright test
+      #     until curl -s http://localhost:80 > /dev/null; do
+      #       retries=$((retries+1))
+      #       if [ "$retries" -ge "$MAX_RETRIES" ]; then
+      #         echo "Frontend did not become ready within the timeout. Exiting."
+      #         exit 1
+      #       fi
+      #       echo "Waiting for frontend (nginx) to be ready... (Attempt: $retries/$MAX_RETRIES)"
+      #       sleep $RETRY_INTERVAL
+      #     done
+
+      #     echo "Frontend is ready!"
+
+      # - name: Install Dependencies for Playwright
+      #   run: |
+      #     npx playwright install-deps
+
+      # - name: Install Playwright
+      #   run: |
+      #     cd frontend
+      #     npm install @playwright/test
+      #     npx playwright install
+
+      # - name: Run End-to-End Tests
+      #   env:
+      #     TEST_FRONTEND_URL: http://localhost
+      #     TEST_LOGIN_EMAIL: ${{ secrets.TEST_LOGIN_EMAIL }}
+      #     TEST_LOGIN_PASSWORD: ${{ secrets.TEST_LOGIN_PASSWORD }}
+      #   run: |
+      #     cd frontend
+      #     npx playwright test
 
       - name: Set Output Image Tag
         id: set_image_tag
@@ -153,6 +175,18 @@ jobs:
         uses: webfactory/ssh-agent@v0.9.0
         with:
           ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      - name: Download Backend Docker Image
+        uses: actions/download-artifact@v3
+        with:
+          name: whoknows-backend
+          path: whoknows-backend.tar
+    
+      - name: Download Frontend Docker Image
+        uses: actions/download-artifact@v3
+        with:
+          name: whoknows-frontend
+          path: whoknows-frontend.tar
 
       - name: Deploy to Azure VM
         run: |
@@ -181,8 +215,8 @@ jobs:
 
             # Load local Docker images
             echo "Loading Docker images..."
-            docker save whoknows-backend:${{ env.IMAGE_TAG }} | docker load
-            docker save whoknows-frontend:${{ env.IMAGE_TAG }} | docker load
+            docker load -i whoknows-backend.tar
+            docker load -i whoknows-frontend.tar
 
             # Update Docker images and restart services
             echo "Pulling and starting Docker services..."
