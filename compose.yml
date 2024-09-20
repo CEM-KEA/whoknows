@@ -1,16 +1,17 @@
 volumes:
-  sqlite_data: # Define a volume for the SQLite database
-    external: true # Volume is created outside of the Compose file and is reused across multiple services
+  sqlite_data:
+    external: true  # Use an external volume for SQLite database
 
 networks:
   CEM-KEA:
-    driver: bridge # Define a bridge network for the services
+    driver: bridge  # Define a bridge network for the services
 
 services:
   backend:
     build:
       context: ./backend
       dockerfile: Dockerfile
+    image: whoknows-backend:${IMAGE_TAG}  # Tag the image after building it
     container_name: backend
     environment:
       - API_SERVER_PORT=${API_SERVER_PORT}
@@ -26,7 +27,7 @@ services:
       - API_LOG_LEVEL=${API_LOG_LEVEL}
       - API_LOG_FORMAT=${API_LOG_FORMAT}
       - API_WEATHER_API_KEY=${API_WEATHER_API_KEY}
-      - ENV_FILE_PATH=/app/.env # Path to the .env file in the container
+      - ENV_FILE_PATH=/app/.env
     volumes:
       - ./.env:/app/.env
       - sqlite_data:/app/internal/database  # Mount the database directory to a persisted volume
@@ -41,6 +42,7 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+    image: whoknows-frontend:${IMAGE_TAG}  # Tag the image after building it
     container_name: frontend
     environment:
       - VITE_API_URL=${VITE_API_URL}

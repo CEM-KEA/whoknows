@@ -7,6 +7,7 @@ on:
   pull_request:
     branches:
       - main
+
 jobs:
   get_version:
     runs-on: ubuntu-latest
@@ -97,31 +98,29 @@ jobs:
 
       - name: Start Docker Compose (Backend + Frontend)
         run: |
-          docker compose --env-file .env up --build -d  # Start both backend and frontend services
+          docker compose --env-file .env up -d  # Start both backend and frontend services
 
       - name: Save Backend Image as Artifact
         run: |
           docker save whoknows-backend:${{ env.IMAGE_TAG }} -o whoknows-backend.tar
-          continue-on-error: true
     
       - name: Save Frontend Image as Artifact
         run: |
           docker save whoknows-frontend:${{ env.IMAGE_TAG }} -o whoknows-frontend.tar
-          continue-on-error: true
     
       - name: Upload Backend Docker Image as Artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v3
         with:
           name: whoknows-backend
           path: whoknows-backend.tar
     
       - name: Upload Frontend Docker Image as Artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v3
         with:
           name: whoknows-frontend
           path: whoknows-frontend.tar
 
-      # - name: Wait for Frontend to be Ready
+      #    # - name: Wait for Frontend to be Ready
       #   run: |
       #     MAX_RETRIES=30  # Max number of retries (e.g., 30 retries = 5 minutes with 10s wait)
       #     RETRY_INTERVAL=10  # Interval between retries in seconds
