@@ -229,7 +229,7 @@ jobs:
 
       - name: Create New Tag
         env:
-          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           # Configure git user for tagging
           git config --global user.name "GitHub Actions"
@@ -241,7 +241,7 @@ jobs:
 
       - name: Create Release with GitHub CLI
         env:
-          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           echo "Creating release for tag: ${{ env.IMAGE_TAG }}"
           gh release create ${{ env.IMAGE_TAG }} \
@@ -251,7 +251,7 @@ jobs:
 
       - name: Upload Assets to Release
         env:
-          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           echo "Uploading assets to release: ${{ env.IMAGE_TAG }}"
           gh release upload ${{ env.IMAGE_TAG }} path/to/your/asset.zip
