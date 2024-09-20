@@ -22,6 +22,7 @@ jobs:
         run: |
           VERSION=$(git describe --tags --abbrev=0 || echo "v0.0.0")
           echo "VERSION=$VERSION" >> $GITHUB_ENV
+          echo "DEBUG: Got version: $VERSION"
 
       - name: Set Output
         id: set_output
@@ -160,6 +161,9 @@ jobs:
       - name: Set Output Image Tag
         id: set_image_tag
         run: echo "image_tag=${{ env.IMAGE_TAG }}" >> $GITHUB_OUTPUT
+      
+      - name: Print Image Tag
+        run: "echo 'Built with IMAGE_TAG: ${{ env.IMAGE_TAG }}'"
 
   deploy:
     runs-on: ubuntu-latest
@@ -189,7 +193,8 @@ jobs:
 
       - name: Transfer Docker Images to Azure VM
         run: |
-          scp -o StrictHostKeyChecking=no whoknows-backend.tar whoknows-frontend.tar ${{ secrets.AZURE_VM_USER }}@${{ secrets.AZURE_VM_IP }}:/home/azureuser/
+          scp -o StrictHostKeyChecking=no whoknows-backend.tar ${{ secrets.AZURE_VM_USER }}@${{ secrets.AZURE_VM_IP }}:/home/azureuser/
+          scp -o StrictHostKeyChecking=no whoknows-frontend.tar ${{ secrets.AZURE_VM_USER }}@${{ secrets.AZURE_VM_IP }}:/home/azureuser/
 
       - name: Deploy to Azure VM
         run: |
@@ -235,6 +240,9 @@ jobs:
     runs-on: ubuntu-latest
     needs: deploy
     steps:
+      - name: Print Deploy Image Tag
+        run: "echo 'Deployed with IMAGE_TAG: ${{ needs.deploy.outputs.image_tag }}'"
+
       - name: Create Release with GitHub CLI
         env:
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
