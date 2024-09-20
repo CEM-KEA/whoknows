@@ -1,7 +1,6 @@
-import Cookies from "universal-cookie";
+import { getJWTTokenFromCookies } from "../helpers/cookieHelpers";
 
 const apiUrl = import.meta.env.VITE_API_URL;
-const cookies = new Cookies();
 
 /**
  * Sends a GET request to the API, url is the path to the endpoint and should start with a /.
@@ -11,7 +10,7 @@ const cookies = new Cookies();
 export async function apiGet<TResBody>(url: string, requireAuth?: boolean): Promise<TResBody> {
   const res = await fetch(apiUrl + url, {
     headers: {
-      Authorization: requireAuth ? `Bearer ${cookies.get("jwt_authorization")}` : ""
+      Authorization: requireAuth ? `Bearer ${getJWTTokenFromCookies()}` : ""
     }
   });
   if (!res.ok) {
@@ -34,12 +33,15 @@ export async function apiPost<TReqBody, TResBody>(
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      Authorization: requireAuth ? `Bearer ${cookies.get("jwt_authorization")}` : ""
+      Authorization: requireAuth ? `Bearer ${getJWTTokenFromCookies()}` : ""
     },
     body: JSON.stringify(data)
   });
   if (!res.ok) {
     throw new Error(res.statusText);
+  }
+  if (res.status === 204 || res.status === 201) {
+    return {} as TResBody;
   }
   return await res.json();
 }
@@ -58,7 +60,7 @@ export async function apiPut<TReqBody, TResBody>(
     method: "PUT",
     headers: {
       "Content-Type": "application/json",
-      Authorization: requireAuth ? `Bearer ${cookies.get("jwt_authorization")}` : ""
+      Authorization: requireAuth ? `Bearer ${getJWTTokenFromCookies()}` : ""
     },
     body: JSON.stringify(data)
   });
@@ -77,7 +79,7 @@ export async function apiDelete<TResBody>(url: string, requireAuth?: boolean): P
   const res = await fetch(apiUrl + url, {
     method: "DELETE",
     headers: {
-      Authorization: requireAuth ? `Bearer ${cookies.get("jwt_authorization")}` : ""
+      Authorization: requireAuth ? `Bearer ${getJWTTokenFromCookies()}` : ""
     }
   });
   if (!res.ok) {
