@@ -2,11 +2,28 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 import Nav from "./components/Nav";
 import Search from "./views/Search";
 import Login from "./views/Login";
-import { useState } from "react";
-import { removeJWTTokenFromCookies, setJWTTokenInCookies } from "./helpers/cookieHelpers";
+import { useEffect, useState } from "react";
+import {
+  getJWTTokenFromCookies,
+  removeJWTTokenFromCookies,
+  setJWTTokenInCookies
+} from "./helpers/cookieHelpers";
+import Weather from "./views/Weather";
+import Register from "./views/Register";
 
 function App() {
   const [loggedIn, setLoggedIn] = useState<boolean>(false);
+
+  // right now, as the jwt token is not really used, we just check if it exists to see if the user is logged in
+  // ideally, we would also check if the token is still valid with the backend
+  useEffect(() => {
+    const jwt_token = getJWTTokenFromCookies();
+    if (!jwt_token || jwt_token === "") {
+      setLoggedIn(false);
+    } else {
+      setLoggedIn(true);
+    }
+  }, []);
 
   function logOut() {
     setLoggedIn(false);
@@ -31,16 +48,20 @@ function App() {
         />
         <Route
           path="/weather"
-          element={<div />}
+          element={<Weather />}
         />
-        <Route
-          path="/register"
-          element={<div />}
-        />
-        <Route
-          path="/login"
-          element={<Login onLogIn={logIn} />}
-        />
+        {!loggedIn && (
+          <>
+            <Route
+              path="/register"
+              element={<Register />}
+            />
+            <Route
+              path="/login"
+              element={<Login onLogIn={logIn} />}
+            />
+          </>
+        )}
       </Routes>
     </BrowserRouter>
   );
