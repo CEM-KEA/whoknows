@@ -28,6 +28,12 @@ FROM nginx:alpine
 # Copy the built files from the previous stage
 COPY --from=builder /app/dist /usr/share/nginx/html
 
+# Remove the default Nginx configuration file
+RUN rm /etc/nginx/conf.d/default.conf
+
+# Copy the custom Nginx configuration file
+COPY nginx.conf /etc/nginx/conf.d
+
 # Expose port 80 to the outside world
 EXPOSE 80
 
