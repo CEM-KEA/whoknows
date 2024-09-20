@@ -29,22 +29,22 @@ jobs:
           echo "VERSION=$VERSION" >> $GITHUB_ENV
           echo "DEBUG: Got version: $VERSION"
 
-          - name: Increment Minor Version Tag
-          id: set_output
-          run: |
-            # Extract the version numbers
-            CURRENT_TAG=${{ env.VERSION }}
-            MAJOR=$(echo $CURRENT_TAG | cut -d'.' -f1 | sed 's/v//')
-            MINOR=$(echo $CURRENT_TAG | cut -d'.' -f2)
+      - name: Increment Minor Version Tag
+        id: set_output
+        run: |
+          # Extract the version numbers
+          CURRENT_TAG=${{ env.VERSION }}
+          MAJOR=$(echo $CURRENT_TAG | cut -d'.' -f1 | sed 's/v//')
+          MINOR=$(echo $CURRENT_TAG | cut -d'.' -f2)
   
-            # Increment the minor version
-            NEW_MINOR=$((MINOR+1))
-            NEW_TAG="v$MAJOR.$NEW_MINOR"
+          # Increment the minor version
+          NEW_MINOR=$((MINOR+1))
+          NEW_TAG="v$MAJOR.$NEW_MINOR"
   
-            # Output the new tag
-            echo "New tag will be: $NEW_TAG"
-            echo "version=$NEW_TAG" >> $GITHUB_OUTPUT
-            echo "DEBUG: New version tag: $NEW_TAG"
+          # Output the new tag
+          echo "New tag will be: $NEW_TAG"
+          echo "version=$NEW_TAG" >> $GITHUB_OUTPUT
+          echo "DEBUG: New version tag: $NEW_TAG"
 
   build_and_test:
     runs-on: ubuntu-latest
