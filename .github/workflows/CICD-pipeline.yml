@@ -78,6 +78,10 @@ jobs:
           cd frontend
           docker build -t whoknows-frontend:${{ env.IMAGE_TAG }} .
       
+      - name: Refresh package index
+        run: |
+          sudo apt-get update
+      
       - name: Install Dependencies for Playwright
         run: |
           sudo apt-get update && sudo apt-get install -y \
