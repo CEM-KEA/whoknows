@@ -49,7 +49,7 @@ func GetWeatherData() (weatherData map[string]interface{}, err error) {
     }
 
     apiKey := config.AppConfig.WeatherAPI.OpenWeatherAPIKey
-    url := fmt.Sprintf("http://api.openweathermap.org/data/2.5/weather?q=Copenhagen&appid=%s", apiKey)
+    url := fmt.Sprintf("https://api.openweathermap.org/data/2.5/weather?q=Copenhagen&appid=%s", apiKey)
     res, err := http.Get(url)
     if err != nil {
         fmt.Println("Error fetching weather data:", err)

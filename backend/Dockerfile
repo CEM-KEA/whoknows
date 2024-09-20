@@ -17,7 +17,10 @@ COPY . .
 RUN go build -o main .
 
 # Start a new stage from scratch
-FROM ubuntu:latest
+FROM ubuntu:24.10
+
+# Install CA certificates
+RUN apt-get update && apt-get install -y ca-certificates && rm -rf /var/lib/apt/lists/*
 
 # Set environment variables
 ENV PORT=8080
