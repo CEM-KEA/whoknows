@@ -58,7 +58,7 @@ jobs:
         with:
           args: >
             -Dsonar.projectKey=CEM-KEA_whoknows
-            -Dsonar.organization=$SONAR_ORGANIZATION
+            -Dsonar.organization=a7g2y93pq4-kj5f6g66-k835-j2412-99props
             -Dsonar.login=$SONAR_TOKEN
             -Dsonar.sources=./backend,./frontend,./legacy,./compose.yml
             -Dsonar.exclusions=**/node_modules/**,**/test/**,**/legacy/**
