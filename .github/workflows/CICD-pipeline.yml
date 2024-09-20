@@ -68,19 +68,18 @@ jobs:
           cd backend
           go test ./...
 
-      - name: Build Backend Docker Image
+      - name: Create External Volume
         run: |
-          cd backend
-          docker build -t whoknows-backend:${{ env.IMAGE_TAG }} .
-
-      - name: Build Frontend Docker Image
-        run: |
-          cd frontend
-          docker build -t whoknows-frontend:${{ env.IMAGE_TAG }} .
+          if ! docker volume ls --format '{{.Name}}' | grep -q "^sqlite_data$"; then
+            echo "Creating external volume 'sqlite_data'..."
+            docker volume create sqlite_data
+          else
+            echo "Volume 'sqlite_data' already exists."
+          fi
 
       - name: Start Docker Compose (Backend + Frontend)
         run: |
-          docker compose up -d  # Start both backend and frontend services
+          docker compose up --build -d  # Start both backend and frontend services
 
       - name: Wait for Frontend to be Ready
         run: |
