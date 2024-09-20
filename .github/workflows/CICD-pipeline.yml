@@ -80,7 +80,7 @@ jobs:
 
       - name: Start Docker Compose (Backend + Frontend)
         run: |
-          docker-compose up -d  # Start both backend and frontend services
+          docker compose up -d  # Start both backend and frontend services
 
       - name: Wait for Frontend to be Ready
         run: |
