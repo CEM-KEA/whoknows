@@ -16,11 +16,16 @@ jobs:
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Fetch all history and tags
+
+      - name: Verify Git Tags
+        run: git tag
 
       - name: Get Current Tag
         id: get_tag
         run: |
-          VERSION=$(git describe --tags --abbrev=0 || echo "v0.0.0")
+          VERSION=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
           echo "VERSION=$VERSION" >> $GITHUB_ENV
           echo "DEBUG: Got version: $VERSION"
 
@@ -70,56 +75,36 @@ jobs:
           cd backend
           go test ./...
 
-      - name: Generate .env file for Docker Compose
-        run: |
-          echo "API_SERVER_PORT=${{ secrets.API_SERVER_PORT }}" > .env
-          echo "API_DATABASE_FILE_PATH=./app/internal/database/whoknows.db" >> .env
-          echo "API_DATABASE_MIGRATE=${{ secrets.API_DATABASE_MIGRATE }}" >> .env
-          echo "API_DATABASE_SEED=${{ secrets.API_DATABASE_SEED }}" >> .env
-          echo "API_DATABASE_SEED_FILE_PATH=./app/internal/database/pages.json" >> .env
-          echo "API_JWT_SECRET=${{ secrets.API_JWT_SECRET }}" >> .env
-          echo "API_JWT_EXPIRATION=${{ secrets.API_JWT_EXPIRATION }}" >> .env
-          echo "API_APP_ENVIRONMENT=${{ secrets.API_APP_ENVIRONMENT }}" >> .env
-          echo "API_PAGINATION_LIMIT=${{ secrets.API_PAGINATION_LIMIT }}" >> .env
-          echo "API_PAGINATION_OFFSET=${{ secrets.API_PAGINATION_OFFSET }}" >> .env
-          echo "API_LOG_LEVEL=${{ secrets.API_LOG_LEVEL }}" >> .env
-          echo "API_LOG_FORMAT=${{ secrets.API_LOG_FORMAT }}" >> .env
-          echo "VITE_API_URL=${{ secrets.VITE_API_URL }}" >> .env
-          echo "API_WEATHER_API_KEY=${{ secrets.API_WEATHER_API_KEY }}" >> .env
-          echo "IMAGE_TAG=${{ env.IMAGE_TAG }}" >> .env
+      # - name: Generate .env file for Docker Compose
+      #   run: |
+      #     echo "API_SERVER_PORT=${{ secrets.API_SERVER_PORT }}" > .env
+      #     echo "API_DATABASE_FILE_PATH=./app/internal/database/whoknows.db" >> .env
+      #     echo "API_DATABASE_MIGRATE=${{ secrets.API_DATABASE_MIGRATE }}" >> .env
+      #     echo "API_DATABASE_SEED=${{ secrets.API_DATABASE_SEED }}" >> .env
+      #     echo "API_DATABASE_SEED_FILE_PATH=./app/internal/database/pages.json" >> .env
+      #     echo "API_JWT_SECRET=${{ secrets.API_JWT_SECRET }}" >> .env
+      #     echo "API_JWT_EXPIRATION=${{ secrets.API_JWT_EXPIRATION }}" >> .env
+      #     echo "API_APP_ENVIRONMENT=${{ secrets.API_APP_ENVIRONMENT }}" >> .env
+      #     echo "API_PAGINATION_LIMIT=${{ secrets.API_PAGINATION_LIMIT }}" >> .env
+      #     echo "API_PAGINATION_OFFSET=${{ secrets.API_PAGINATION_OFFSET }}" >> .env
+      #     echo "API_LOG_LEVEL=${{ secrets.API_LOG_LEVEL }}" >> .env
+      #     echo "API_LOG_FORMAT=${{ secrets.API_LOG_FORMAT }}" >> .env
+      #     echo "VITE_API_URL=${{ secrets.VITE_API_URL }}" >> .env
+      #     echo "API_WEATHER_API_KEY=${{ secrets.API_WEATHER_API_KEY }}" >> .env
+      #     echo "IMAGE_TAG=${{ env.IMAGE_TAG }}" >> .env
 
-      - name: Create External Volume
-        run: |
-          if ! docker volume ls --format '{{.Name}}' | grep -q "^sqlite_data$"; then
-            echo "Creating external volume 'sqlite_data'..."
-            docker volume create sqlite_data
-          else
-            echo "Volume 'sqlite_data' already exists."
-          fi
+      # - name: Create External Volume
+      #   run: |
+      #     if ! docker volume ls --format '{{.Name}}' | grep -q "^sqlite_data$"; then
+      #       echo "Creating external volume 'sqlite_data'..."
+      #       docker volume create sqlite_data
+      #     else
+      #       echo "Volume 'sqlite_data' already exists."
+      #     fi
 
-      - name: Start Docker Compose (Backend + Frontend)
-        run: |
-          docker compose --env-file .env up -d  # Start both backend and frontend services
-
-      - name: Save Backend Image as Artifact
-        run: |
-          docker save whoknows-backend:${{ env.IMAGE_TAG }} -o whoknows-backend.tar
-    
-      - name: Save Frontend Image as Artifact
-        run: |
-          docker save whoknows-frontend:${{ env.IMAGE_TAG }} -o whoknows-frontend.tar
-    
-      - name: Upload Backend Docker Image as Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: whoknows-backend
-          path: whoknows-backend.tar
-    
-      - name: Upload Frontend Docker Image as Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: whoknows-frontend
-          path: whoknows-frontend.tar
+      # - name: Start Docker Compose (Backend + Frontend)
+      #   run: |
+      #     docker compose --env-file .env up -d  # Start both backend and frontend services
 
       #    # - name: Wait for Frontend to be Ready
       #   run: |
@@ -174,67 +159,49 @@ jobs:
       IMAGE_TAG: ${{ needs.build_and_test.outputs.image_tag }}
 
     steps:
-      - name: Set up SSH
-        uses: webfactory/ssh-agent@v0.9.0
-        with:
-          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+    - name: Set up SSH
+      uses: webfactory/ssh-agent@v0.9.0
+      with:
+        ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
-      - name: Download Backend Docker Image
-        uses: actions/download-artifact@v4
-        with:
-          name: whoknows-backend
-          path: whoknows-backend.tar
-    
-      - name: Download Frontend Docker Image
-        uses: actions/download-artifact@v4
-        with:
-          name: whoknows-frontend
-          path: whoknows-frontend.tar
+    - name: Deploy to Azure VM
+      run: |
+        echo "Deploying with IMAGE_TAG: ${{ env.IMAGE_TAG }}"
 
-      - name: Transfer Docker Images to Azure VM
-        run: |
-          scp -o StrictHostKeyChecking=no whoknows-backend.tar ${{ secrets.AZURE_VM_USER }}@${{ secrets.AZURE_VM_IP }}:/home/azureuser/
-          scp -o StrictHostKeyChecking=no whoknows-frontend.tar ${{ secrets.AZURE_VM_USER }}@${{ secrets.AZURE_VM_IP }}:/home/azureuser/
+        # SSH into the Azure VM and deploy
+        ssh -o StrictHostKeyChecking=no ${{ secrets.AZURE_VM_USER }}@${{ secrets.AZURE_VM_IP }} << EOF
+          cd /home/azureuser/whoknows || exit
 
-      - name: Deploy to Azure VM
-        run: |
-          echo "Deploying with IMAGE_TAG: ${{ env.IMAGE_TAG }}"
+          # Pull the latest code
+          git pull origin main
 
-          # SSH into the Azure VM and deploy
-          ssh -o StrictHostKeyChecking=no ${{ secrets.AZURE_VM_USER }}@${{ secrets.AZURE_VM_IP }} << EOF
-            cd /home/azureuser/whoknows || exit
+          # Generate the .env file
+          echo "API_SERVER_PORT=${{ secrets.API_SERVER_PORT }}" > .env
+          echo "API_DATABASE_FILE_PATH=./app/internal/database/whoknows.db" >> .env
+          echo "API_DATABASE_MIGRATE=${{ secrets.API_DATABASE_MIGRATE }}" >> .env
+          echo "API_DATABASE_SEED=${{ secrets.API_DATABASE_SEED }}" >> .env
+          echo "API_DATABASE_SEED_FILE_PATH=./app/internal/database/pages.json" >> .env
+          echo "API_JWT_SECRET=${{ secrets.API_JWT_SECRET }}" >> .env
+          echo "API_JWT_EXPIRATION=${{ secrets.API_JWT_EXPIRATION }}" >> .env
+          echo "API_APP_ENVIRONMENT=${{ secrets.API_APP_ENVIRONMENT }}" >> .env
+          echo "API_PAGINATION_LIMIT=${{ secrets.API_PAGINATION_LIMIT }}" >> .env
+          echo "API_PAGINATION_OFFSET=${{ secrets.API_PAGINATION_OFFSET }}" >> .env
+          echo "API_LOG_LEVEL=${{ secrets.API_LOG_LEVEL }}" >> .env
+          echo "API_LOG_FORMAT=${{ secrets.API_LOG_FORMAT }}" >> .env
+          echo "VITE_API_URL=${{ secrets.VITE_API_URL }}" >> .env
+          echo "API_WEATHER_API_KEY=${{ secrets.API_WEATHER_API_KEY }}" >> .env
+          echo "IMAGE_TAG=${{ env.IMAGE_TAG }}" >> .env
 
-            # Generate the .env file
-            echo "API_SERVER_PORT=${{ secrets.API_SERVER_PORT }}" > .env
-            echo "API_DATABASE_FILE_PATH=./app/internal/database/whoknows.db" >> .env
-            echo "API_DATABASE_MIGRATE=${{ secrets.API_DATABASE_MIGRATE }}" >> .env
-            echo "API_DATABASE_SEED=${{ secrets.API_DATABASE_SEED }}" >> .env
-            echo "API_DATABASE_SEED_FILE_PATH=./app/internal/database/pages.json" >> .env
-            echo "API_JWT_SECRET=${{ secrets.API_JWT_SECRET }}" >> .env
-            echo "API_JWT_EXPIRATION=${{ secrets.API_JWT_EXPIRATION }}" >> .env
-            echo "API_APP_ENVIRONMENT=${{ secrets.API_APP_ENVIRONMENT }}" >> .env
-            echo "API_PAGINATION_LIMIT=${{ secrets.API_PAGINATION_LIMIT }}" >> .env
-            echo "API_PAGINATION_OFFSET=${{ secrets.API_PAGINATION_OFFSET }}" >> .env
-            echo "API_LOG_LEVEL=${{ secrets.API_LOG_LEVEL }}" >> .env
-            echo "API_LOG_FORMAT=${{ secrets.API_LOG_FORMAT }}" >> .env
-            echo "VITE_API_URL=${{ secrets.VITE_API_URL }}" >> .env
-            echo "API_WEATHER_API_KEY=${{ secrets.API_WEATHER_API_KEY }}" >> .env
-            echo "IMAGE_TAG=${{ env.IMAGE_TAG }}" >> .env
+          # Build and start Docker services
+          echo "Building and starting Docker services..."
+          docker compose down
+          docker compose up --build -d
+        EOF
 
-            # Load local Docker images
-            echo "Loading Docker images..."
-            docker load -i /home/azureuser/whoknows-backend.tar
-            docker load -i /home/azureuser/whoknows-frontend.tar
+    - name: Set Deploy Image Tag
+      id: set_deploy_image_tag
+      run: echo "image_tag=${{ env.IMAGE_TAG }}" >> $GITHUB_OUTPUT
 
-            # Update Docker images and restart services
-            echo "Pulling and starting Docker services..."
-            docker compose down
-            docker compose up -d
-          EOF
-
-      - name: Set Deploy Image Tag
-        id: set_deploy_image_tag
-        run: echo "image_tag=${{ env.IMAGE_TAG }}" >> $GITHUB_OUTPUT
 
   create_release:
     runs-on: ubuntu-latest
