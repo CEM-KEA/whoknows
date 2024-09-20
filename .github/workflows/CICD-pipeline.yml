@@ -57,7 +57,7 @@ jobs:
         uses: sonarsource/sonarcloud-github-action@v3
         with:
           args: >
-            -Dsonar.projectKey=whoknows
+            -Dsonar.projectKey=CEM-KEA_whoknows
             -Dsonar.organization=$SONAR_ORGANIZATION
             -Dsonar.login=$SONAR_TOKEN
             -Dsonar.sources=./backend,./frontend,./legacy,./compose.yml
