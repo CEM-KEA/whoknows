@@ -58,6 +58,7 @@ jobs:
           echo "API_LOG_LEVEL=${{ secrets.API_LOG_LEVEL }}" >> .env
           echo "API_LOG_FORMAT=${{ secrets.API_LOG_FORMAT }}" >> .env
           echo "VITE_API_URL=${{ secrets.VITE_API_URL }}" >> .env
+          echo "API_WEATHER_API_KEY=${{ secrets.API_WEATHER_API_KEY }}" >> .env
           echo "IMAGE_TAG=$IMAGE_TAG" >> .env
 
           # Generate the backend .env file
@@ -74,6 +75,7 @@ jobs:
           echo "API_PAGINATION_OFFSET=${{ secrets.API_PAGINATION_OFFSET }}" >> backend/.env
           echo "API_LOG_LEVEL=${{ secrets.API_LOG_LEVEL }}" >> backend/.env
           echo "API_LOG_FORMAT=${{ secrets.API_LOG_FORMAT }}" >> backend/.env
+          echo "API_WEATHER_API_KEY=${{ secrets.API_WEATHER_API_KEY }}" >> .env
 
           # Generate the frontend .env file
           echo "DEBUG: Generating the frontend .env file..."
