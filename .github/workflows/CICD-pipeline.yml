@@ -56,6 +56,10 @@ jobs:
         uses: sonarsource/sonarcloud-github-action@v3
         with:
           args: |
+            -Dsonar.projectKey=${{ env.SONAR_PROJECT_KEY }}
+            -Dsonar.organization=${{ env.SONAR_ORGANIZATION }}
+            -Dsonar.login=${{ env.SONAR_TOKEN }}
+            -Dsonar.host.url=${{ env.SONAR_HOST_URL }}
             -Dsonar.sources=./backend,./frontend,./legacy,./compose.yml
             -Dsonar.exclusions=**/node_modules/**,**/test/**,**/legacy/**
 
