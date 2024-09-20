@@ -68,6 +68,24 @@ jobs:
           cd backend
           go test ./...
 
+      - name: Generate .env file for Docker Compose
+        run: |
+          echo "API_SERVER_PORT=${{ secrets.API_SERVER_PORT }}" > .env
+          echo "API_DATABASE_FILE_PATH=./app/internal/database/whoknows.db" >> .env
+          echo "API_DATABASE_MIGRATE=${{ secrets.API_DATABASE_MIGRATE }}" >> .env
+          echo "API_DATABASE_SEED=${{ secrets.API_DATABASE_SEED }}" >> .env
+          echo "API_DATABASE_SEED_FILE_PATH=./app/internal/database/pages.json" >> .env
+          echo "API_JWT_SECRET=${{ secrets.API_JWT_SECRET }}" >> .env
+          echo "API_JWT_EXPIRATION=${{ secrets.API_JWT_EXPIRATION }}" >> .env
+          echo "API_APP_ENVIRONMENT=${{ secrets.API_APP_ENVIRONMENT }}" >> .env
+          echo "API_PAGINATION_LIMIT=${{ secrets.API_PAGINATION_LIMIT }}" >> .env
+          echo "API_PAGINATION_OFFSET=${{ secrets.API_PAGINATION_OFFSET }}" >> .env
+          echo "API_LOG_LEVEL=${{ secrets.API_LOG_LEVEL }}" >> .env
+          echo "API_LOG_FORMAT=${{ secrets.API_LOG_FORMAT }}" >> .env
+          echo "VITE_API_URL=${{ secrets.VITE_API_URL }}" >> .env
+          echo "API_WEATHER_API_KEY=${{ secrets.API_WEATHER_API_KEY }}" >> .env
+          echo "IMAGE_TAG=${{ env.IMAGE_TAG }}" >> .env
+
       - name: Create External Volume
         run: |
           if ! docker volume ls --format '{{.Name}}' | grep -q "^sqlite_data$"; then
@@ -79,7 +97,7 @@ jobs:
 
       - name: Start Docker Compose (Backend + Frontend)
         run: |
-          docker compose up --build -d  # Start both backend and frontend services
+          docker compose --env-file .env up --build -d  # Start both backend and frontend services
 
       - name: Wait for Frontend to be Ready
         run: |
@@ -98,7 +116,7 @@ jobs:
           done
 
           echo "Frontend is ready!"
-      
+
       - name: Install Dependencies for Playwright
         run: |
           npx playwright install-deps
