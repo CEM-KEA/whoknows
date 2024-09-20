@@ -68,11 +68,6 @@ jobs:
           cd backend
           go test ./...
 
-      - name: Get cert for OpenWeatherMap API
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y ca-certificates
-
       - name: Generate .env file for Docker Compose
         run: |
           echo "API_SERVER_PORT=${{ secrets.API_SERVER_PORT }}" > .env
