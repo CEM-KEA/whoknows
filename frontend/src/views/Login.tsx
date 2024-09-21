@@ -10,7 +10,7 @@ interface LoginProps {
 }
 
 function Login(props: Readonly<LoginProps>) {
-  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
@@ -18,7 +18,7 @@ function Login(props: Readonly<LoginProps>) {
   const handleLogin: FormEventHandler = (e) => {
     e.preventDefault();
     setLoading(true);
-    apiPost<ILoginRequest, ILoginResponse>("/login", { email, password })
+    apiPost<ILoginRequest, ILoginResponse>("/login", { username: username, password })
       .then((data) => {
         setLoading(false);
         props.onLogIn(data.token);
@@ -42,12 +42,12 @@ function Login(props: Readonly<LoginProps>) {
           >
             <h2 className="text-2xl font-semibold">Log in</h2>
             <input
-              id="login-email"
-              type="email"
-              placeholder="Email"
+              id="login-username"
+              type="text"
+              placeholder="Username"
               className="border-2 p-2 w-full rounded outline-none caret-blue-500 text-xl"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
               required
             />
             <input
