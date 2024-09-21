@@ -14,7 +14,7 @@ func TestCreateUser(t *testing.T) {
 	setupTestDB(t)
 
 	// Create a new user object
-	user := &models.User{Email: "test@example.com"}
+	user := &models.User{Username: "test_user"}
 
 	// Call the CreateUser service to create the user
 	err := services.CreateUser(database.DB, user)
@@ -25,25 +25,25 @@ func TestCreateUser(t *testing.T) {
 	// Fetch the user from the database to verify it was created
 	var result models.User
 
-	database.DB.Where("email = ?", user.Email).First(&result)
+	database.DB.Where("username = ?", user.Username).First(&result)
 
 	// Validate the result
-	assert.Equal(t, user.Email, result.Email)
+	assert.Equal(t, user.Username, result.Username)
 }
 
-func TestGetUserByEmail(t *testing.T) {
+func TestGetUserByUsername(t *testing.T) {
 	// Set up the test database
 	setupTestDB(t)
 
 	// Insert a user into the in-memory database
-	email := "test@example.com"
-	expectedUser := &models.User{Email: email}
+	username := "test_user"
+	expectedUser := &models.User{Username: username}
 	database.DB.Create(expectedUser)
 
 	// Call the actual service method
-	result, err := services.GetUserByEmail(database.DB, email)
+	result, err := services.GetUserByUsername(database.DB, username)
 
 	// Validate the results
 	assert.NoError(t, err)
-	assert.Equal(t, expectedUser.Email, result.Email)
+	assert.Equal(t, expectedUser.Username, result.Username)
 }
