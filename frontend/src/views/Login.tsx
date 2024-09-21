@@ -27,7 +27,6 @@ function Login(props: Readonly<LoginProps>) {
       .catch((error) => {
         setLoading(false);
         console.error(error);
-        // Maybe do a toast here
       });
   };
 
