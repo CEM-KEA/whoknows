@@ -100,23 +100,24 @@ const docTemplate = `{
             }
         },
         "/api/search": {
-            "post": {
+            "get": {
                 "description": "Search for pages by content",
-                "consumes": [
-                    "application/json"
-                ],
                 "produces": [
                     "application/json"
                 ],
                 "parameters": [
                     {
+                        "type": "string",
                         "description": "Search query",
-                        "name": "search",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/handlers.SearchBody"
-                        }
+                        "name": "q",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Language filter",
+                        "name": "language",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -210,17 +211,6 @@ const docTemplate = `{
                 }
             }
         },
-        "handlers.SearchBody": {
-            "type": "object",
-            "properties": {
-                "language": {
-                    "type": "string"
-                },
-                "q": {
-                    "type": "string"
-                }
-            }
-        },
         "handlers.SearchResponse": {
             "type": "object",
             "properties": {
@@ -247,12 +237,12 @@ const docTemplate = `{
 
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
-	Version:          "1.0",
-	Host:             "http://52.169.32.176:8080",
-	BasePath:         "/api",
+	Version:          "",
+	Host:             "",
+	BasePath:         "",
 	Schemes:          []string{},
-	Title:            "WhoKnows API",
-	Description:      "This is the API for the WhoKnows application",
+	Title:            "",
+	Description:      "",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
 	LeftDelim:        "{{",

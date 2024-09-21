@@ -1,7 +1,7 @@
 import { useState } from "react";
 import PageLayout from "../components/PageLayout";
-import { apiPost } from "../utils/apiUtils";
-import type { ISearchRequest, ISearchResponse } from "../types/search.types";
+import { apiGet } from "../utils/apiUtils";
+import type { ISearchResponse } from "../types/search.types";
 import LoadingSpinner from "../components/LoadingSpinner";
 
 function Search() {
@@ -10,12 +10,8 @@ function Search() {
   const [searchResponse, setSearchResponse] = useState<ISearchResponse | null>(null);
 
   const handleSearch = () => {
-    const searchBody: ISearchRequest = {
-      q: search,
-      language: "en"
-    };
     setLoading(true);
-    apiPost<ISearchRequest, ISearchResponse>("/search", searchBody)
+    apiGet<ISearchResponse>("/search?q=" + search)
       .then((response) => {
         setSearchResponse(response);
       })

@@ -1,13 +1,8 @@
 {
     "swagger": "2.0",
     "info": {
-        "description": "This is the API for the WhoKnows application",
-        "title": "WhoKnows API",
-        "contact": {},
-        "version": "1.0"
+        "contact": {}
     },
-    "host": "http://52.169.32.176:8080",
-    "basePath": "/api",
     "paths": {
         "/api/login": {
             "post": {
@@ -94,23 +89,24 @@
             }
         },
         "/api/search": {
-            "post": {
+            "get": {
                 "description": "Search for pages by content",
-                "consumes": [
-                    "application/json"
-                ],
                 "produces": [
                     "application/json"
                 ],
                 "parameters": [
                     {
+                        "type": "string",
                         "description": "Search query",
-                        "name": "search",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/handlers.SearchBody"
-                        }
+                        "name": "q",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Language filter",
+                        "name": "language",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -201,17 +197,6 @@
                     "type": "string",
                     "maxLength": 100,
                     "minLength": 3
-                }
-            }
-        },
-        "handlers.SearchBody": {
-            "type": "object",
-            "properties": {
-                "language": {
-                    "type": "string"
-                },
-                "q": {
-                    "type": "string"
                 }
             }
         },
