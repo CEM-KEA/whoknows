@@ -82,11 +82,15 @@ jobs:
             -Dsonar.host.url=${{ env.SONAR_HOST_URL }}
             -Dsonar.sources=./backend,./frontend,./legacy,./compose.yml
             -Dsonar.exclusions=**/node_modules/**,**/test/**,**/legacy/**
+            -Dsonar.tests=./backend,./frontend
+            -Dsonar.test.inclusions=**/*.spec.ts,**/*.spec.ts,**/*_test.go
+            -Dsonar.go.coverage.reportPaths=**/coverage.out
+            -Dsonar.go.tests.reportPaths=**/report.json
 
       - name: Run Backend Tests
         run: |
           cd backend
-          go test ./...
+          go test -coverprofile=coverage.out -covermode=count -json > report.json ./...
 
       # - name: Generate .env file for Docker Compose
       #   run: |
