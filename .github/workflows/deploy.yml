@@ -166,6 +166,7 @@ jobs:
       - name: Create Release with GitHub CLI
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          IMAGE_TAG: ${{ env.IMAGE_TAG }}
         run: |
           echo "Creating release for tag: ${{ env.IMAGE_TAG }}"
           gh release create ${{ env.IMAGE_TAG }} \
