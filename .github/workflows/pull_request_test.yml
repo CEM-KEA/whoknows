@@ -1,0 +1,108 @@
+name: Pull Request Workflow
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches:
+      - main
+
+jobs:
+  build_and_test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Fetch all history and tags
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.23"
+
+      - name: SonarQube Scan Monorepo
+        uses: sonarsource/sonarcloud-github-action@v3
+        with:
+          args: |
+            -Dsonar.projectKey=${{ secrets.SONAR_PROJECT_KEY }}
+            -Dsonar.organization=${{ secrets.SONAR_ORGANIZATION }}
+            -Dsonar.token=${{ secrets.SONAR_TOKEN }}
+            -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }}
+            -Dsonar.sources=./backend,./frontend,./legacy,./compose.yml
+            -Dsonar.exclusions=**/node_modules/**,**/test/**,**/legacy/**
+
+      - name: Run Backend Tests
+        run: |
+          cd backend
+          go test ./...
+
+      - name: Generate .env file for Docker Compose
+        run: |
+          echo "API_SERVER_PORT=${{ secrets.API_SERVER_PORT }}" > .env
+          echo "API_DATABASE_FILE_PATH=./app/internal/database/whoknows.db" >> .env
+          echo "API_DATABASE_MIGRATE=${{ secrets.API_DATABASE_MIGRATE }}" >> .env
+          echo "API_DATABASE_SEED=${{ secrets.API_DATABASE_SEED }}" >> .env
+          echo "API_DATABASE_SEED_FILE_PATH=./app/internal/database/pages.json" >> .env
+          echo "API_JWT_SECRET=${{ secrets.API_JWT_SECRET }}" >> .env
+          echo "API_JWT_EXPIRATION=${{ secrets.API_JWT_EXPIRATION }}" >> .env
+          echo "API_APP_ENVIRONMENT=${{ secrets.API_APP_ENVIRONMENT }}" >> .env
+          echo "API_PAGINATION_LIMIT=${{ secrets.API_PAGINATION_LIMIT }}" >> .env
+          echo "API_PAGINATION_OFFSET=${{ secrets.API_PAGINATION_OFFSET }}" >> .env
+          echo "API_LOG_LEVEL=${{ secrets.API_LOG_LEVEL }}" >> .env
+          echo "API_LOG_FORMAT=${{ secrets.API_LOG_FORMAT }}" >> .env
+          echo "VITE_API_URL=${{ secrets.VITE_API_URL }}" >> .env
+          echo "API_WEATHER_API_KEY=${{ secrets.API_WEATHER_API_KEY }}" >> .env
+
+      - name: Create External Volume
+        run: |
+          if ! docker volume ls --format '{{.Name}}' | grep -q "^sqlite_data$"; then
+            echo "Creating external volume 'sqlite_data'..."
+            docker volume create sqlite_data
+          else
+            echo "Volume 'sqlite_data' already exists."
+          fi
+
+      - name: Start Docker Compose (Backend + Frontend)
+        run: |
+          docker compose --env-file .env up -d  # Start both backend and frontend services
+
+      - name: Wait for Frontend to be Ready
+        run: |
+          MAX_RETRIES=30
+          RETRY_INTERVAL=10
+          retries=0
+
+          until curl -s http://localhost:80 > /dev/null; do
+            retries=$((retries+1))
+            if [ "$retries" -ge "$MAX_RETRIES" ]; then
+              echo "Frontend did not become ready within the timeout. Exiting."
+              exit 1
+            fi
+            echo "Waiting for frontend (nginx) to be ready... (Attempt: $retries/$MAX_RETRIES)"
+            sleep $RETRY_INTERVAL
+          done
+
+          echo "Frontend is ready!"
+
+      - name: Install Dependencies for Playwright
+        run: npx playwright install-deps
+
+      - name: Install Playwright
+        run: |
+          cd frontend
+          npm install @playwright/test
+          npx playwright install
+
+      - name: Run End-to-End Tests
+        env:
+          TEST_FRONTEND_URL: http://localhost
+          TEST_LOGIN_USERNAME: ${{ secrets.TEST_LOGIN_USERNAME }}
+          TEST_LOGIN_PASSWORD: ${{ secrets.TEST_LOGIN_PASSWORD }}
+        run: |
+          cd frontend
+          npx playwright test
