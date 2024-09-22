@@ -36,7 +36,7 @@ jobs:
             echo "merge_required=false" >> $GITHUB_ENV
 
       - name: Merge Base Branch if Required
-        if: env.merge_required == 'true'
+        if: ${{ env.merge_required == 'true' }}
         run: |
           git merge origin/main
 
