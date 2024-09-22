@@ -9,6 +9,12 @@ on:
 jobs:
   build_and_test:
     runs-on: ubuntu-latest
+    env:
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+      SONAR_ORGANIZATION: ${{ secrets.SONAR_ORGANIZATION }}
+      SONAR_PROJECT_KEY: ${{ secrets.SONAR_PROJECT_KEY }}
+
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -29,10 +35,10 @@ jobs:
         uses: sonarsource/sonarcloud-github-action@v3
         with:
           args: |
-            -Dsonar.projectKey=${{ secrets.SONAR_PROJECT_KEY }}
-            -Dsonar.organization=${{ secrets.SONAR_ORGANIZATION }}
-            -Dsonar.token=${{ secrets.SONAR_TOKEN }}
-            -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }}
+            -Dsonar.projectKey=${{ env.SONAR_PROJECT_KEY }}
+            -Dsonar.organization=${{ env.SONAR_ORGANIZATION }}
+            -Dsonar.token=${{ env.SONAR_TOKEN }}
+            -Dsonar.host.url=${{ env.SONAR_HOST_URL }}
             -Dsonar.sources=./backend,./frontend,./legacy,./compose.yml
             -Dsonar.exclusions=**/node_modules/**,**/test/**,**/legacy/**
 
