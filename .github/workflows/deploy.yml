@@ -65,15 +65,22 @@ jobs:
       - name: Log into GitHub Container Registry
         run: echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
+      - name: Set Repository Name to Lowercase
+        id: set_repo_name
+        run: |
+          REPO_NAME=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
+          echo "repo_name=$REPO_NAME" >> $GITHUB_ENV
+      
       - name: Build and Push Backend Image
         run: |
-          docker build -t ghcr.io/${{ github.repository }}/backend:${{ env.IMAGE_TAG }} ./backend
-          docker push ghcr.io/${{ github.repository }}/backend:${{ env.IMAGE_TAG }}
-
+          docker build -t ghcr.io/${{ env.repo_name }}/backend:v0.1 ./backend
+          docker push ghcr.io/${{ env.repo_name }}/backend:v0.1
+      
       - name: Build and Push Frontend Image
         run: |
-          docker build -t ghcr.io/${{ github.repository }}/frontend:${{ env.IMAGE_TAG }} ./frontend
-          docker push ghcr.io/${{ github.repository }}/frontend:${{ env.IMAGE_TAG }}
+          docker build -t ghcr.io/${{ env.repo_name }}/frontend:v0.1 ./frontend
+          docker push ghcr.io/${{ env.repo_name }}/frontend:v0.1
+      
 
       - name: Set Build Image Tag
         id: set_build_image_tag
