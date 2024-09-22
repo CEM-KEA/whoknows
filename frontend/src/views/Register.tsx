@@ -5,6 +5,7 @@ import { apiPost } from "../utils/apiUtils";
 import { useNavigate } from "react-router-dom";
 import LoadingSpinner from "../components/LoadingSpinner";
 import toast from "react-hot-toast";
+import validator from "validator";
 
 function Register() {
   const navigate = useNavigate();
@@ -31,8 +32,7 @@ function Register() {
   };
 
   const validateEmail = (email: string) => {
-    const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return regex.test(email);
+    return validator.isEmail(email);
   };
 
   const handleSubmit: FormEventHandler = async (e) => {
