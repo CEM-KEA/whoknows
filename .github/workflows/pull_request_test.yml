@@ -7,6 +7,42 @@ on:
       - main
 
 jobs:
+  check_branch_status:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Fetch all history and tags
+
+      - name: Check if Branch is Behind Base Branch
+        id: check_branch
+        run: |
+          git fetch origin main
+          BEHIND_COMMITS=$(git rev-list --count HEAD..origin/main)
+          echo "Commits behind main: $BEHIND_COMMITS"
+          if [ "$BEHIND_COMMITS" -gt 0 ]; then
+            echo "Branch is behind main. Setting merge_required=true."
+            echo "merge_required=true" >> $GITHUB_ENV
+          else
+            echo "Branch is up-to-date with main. No merge needed."
+            echo "merge_required=false" >> $GITHUB_ENV
+          fi
+
+      - name: Check for Merge Conflicts
+        run: |
+          git fetch origin main
+          if ! git merge --no-commit --no-ff origin/main; then
+            echo "Merge conflict detected! Please resolve conflicts before proceeding."
+            exit 1
+          fi
+
+      - name: Merge Base Branch if Required
+        if: ${{ env.merge_required == 'true' }}
+        run: |
+          git merge origin/main
+
+
   build_and_test:
     runs-on: ubuntu-latest
     env:
