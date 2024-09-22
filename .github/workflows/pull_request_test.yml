@@ -14,7 +14,6 @@ jobs:
       SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
       SONAR_ORGANIZATION: ${{ secrets.SONAR_ORGANIZATION }}
       SONAR_PROJECT_KEY: ${{ secrets.SONAR_PROJECT_KEY }}
-      IMAGE_TAG: "test"
 
     steps:
       - name: Checkout Code
@@ -76,7 +75,7 @@ jobs:
 
       - name: Start Docker Compose (Backend + Frontend)
         run: |
-          docker compose --env-file .env up -d  # Start both backend and frontend services
+          docker compose --env-file .env up --build -d  # Start both backend and frontend services
 
       - name: Wait for Frontend to be Ready
         run: |
