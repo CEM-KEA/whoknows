@@ -34,6 +34,7 @@ jobs:
           else
             echo "Branch is up-to-date with main. No merge needed."
             echo "merge_required=false" >> $GITHUB_ENV
+          fi
 
       - name: Merge Base Branch if Required
         if: ${{ env.merge_required == 'true' }}
