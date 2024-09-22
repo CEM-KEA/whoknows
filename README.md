@@ -1,5 +1,5 @@
 # whoknows
-KEA DevOps Fall 2024 group project  
+### KEA DevOps Fall 2024 group project  
 
 To build DEV environment, run
 ```bash
