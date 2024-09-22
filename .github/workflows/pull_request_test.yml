@@ -38,6 +38,8 @@ jobs:
           fi
 
       - name: Merge Base Branch if Required
+        env:
+          merge_required: ${{ env.merge_required }}
         if: ${{ env.merge_required == 'true' }}
         run: |
           git merge origin/main
