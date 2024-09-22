@@ -17,7 +17,7 @@ const docTemplate = `{
     "paths": {
         "/api/login": {
             "post": {
-                "description": "Login with email and password",
+                "description": "Login with username and password",
                 "consumes": [
                     "application/json"
                 ],
@@ -49,7 +49,7 @@ const docTemplate = `{
                         }
                     },
                     "401": {
-                        "description": "Invalid email or password",
+                        "description": "Invalid username or password",
                         "schema": {
                             "type": "string"
                         }
@@ -169,14 +169,14 @@ const docTemplate = `{
         "handlers.LoginRequest": {
             "type": "object",
             "required": [
-                "email",
-                "password"
+                "password",
+                "username"
             ],
             "properties": {
-                "email": {
+                "password": {
                     "type": "string"
                 },
-                "password": {
+                "username": {
                     "type": "string"
                 }
             }

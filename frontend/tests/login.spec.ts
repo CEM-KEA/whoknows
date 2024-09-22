@@ -4,7 +4,7 @@ import { config } from "dotenv";
 config();
 
 const baseUrl = process.env.TEST_FRONTEND_URL;
-const testUserEmail = process.env.TEST_LOGIN_EMAIL ?? "";
+const testUserUsername = process.env.TEST_LOGIN_USERNAME ?? "";
 const testUserPassword = process.env.TEST_LOGIN_PASSWORD ?? "";
 
 test("can login", async ({ page }) => {
@@ -12,7 +12,7 @@ test("can login", async ({ page }) => {
   await page.goto(`${baseUrl}/login`, { timeout: 10000 });
 
   // fill in form
-  await page.fill("#login-email", testUserEmail);
+  await page.fill("#login-username", testUserUsername);
   await page.fill("#login-password", testUserPassword);
   await page.click("#login-button");
 
@@ -30,7 +30,7 @@ test("can log in and then log out", async ({ page }) => {
   await page.goto(`${baseUrl}/login`, { timeout: 10000 });
 
   // fill in the form and submit it.
-  await page.fill("#login-email", testUserEmail);
+  await page.fill("#login-username", testUserUsername);
   await page.fill("#login-password", testUserPassword);
   await page.click("#login-button");
 

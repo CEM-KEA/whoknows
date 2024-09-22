@@ -9,13 +9,13 @@ import (
 	"github.com/pkg/errors"
 )
 
-// GenerateJWT generates a JWT token for a given user ID and email
-func GenerateJWT(userID uint, email string) (string, error) {
+// GenerateJWT generates a JWT token for a given user ID and username
+func GenerateJWT(userID uint, username string) (string, error) {
 	claims := jwt.MapClaims{
 		"iss":   "whoknows",
 		"sub":   userID,
 		"aud":   "whoknows",
-		"email": email,
+		"username": username,
 		"role":  "user",
 		"iat":   time.Now().Unix(),
 		"exp":   time.Now().Add(time.Hour * 24).Unix(),
@@ -32,13 +32,13 @@ func GenerateJWT(userID uint, email string) (string, error) {
 	return tokenString, nil
 }
 
-// GenerateJWTWithCustomExpiration generates a JWT token for a given user ID and email, with a custom expiration time
-func GenerateJWTWithCustomExpiration(userID uint, email string, expTime time.Time) (string, error) {
+// GenerateJWTWithCustomExpiration generates a JWT token for a given user ID and username, with a custom expiration time
+func GenerateJWTWithCustomExpiration(userID uint, username string, expTime time.Time) (string, error) {
 	claims := jwt.MapClaims{
 		"iss":   "whoknows",
 		"sub":   userID,
 		"aud":   "whoknows",
-		"email": email,
+		"username": username,
 		"role":  "user",
 		"iat":   time.Now().Unix(),
 		"exp":   expTime.Unix(),

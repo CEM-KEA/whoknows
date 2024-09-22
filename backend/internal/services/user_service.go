@@ -11,13 +11,13 @@ func CreateUser(db *gorm.DB, user *models.User) error {
 	return db.Create(user).Error
 }
 
-// GetUserByEmail retrieves a user from the database by email.
-func GetUserByEmail(db *gorm.DB, email string) (*models.User, error) {
+// GetUserByUsername retrieves a user from the database by username.
+func GetUserByUsername(db *gorm.DB, username string) (*models.User, error) {
 	user := &models.User{}
-	err := db.Where("email = ?", email).First(user).Error
+	err := db.Where("username = ?", username).First(user).Error
 
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to get user by email")
+		return nil, errors.Wrap(err, "failed to get user by username")
 	}
 
 	return user, nil

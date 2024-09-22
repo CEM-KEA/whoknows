@@ -11,7 +11,7 @@ import (
 )
 
 type LoginRequest struct {
-	Email    string `json:"email" validate:"required,email"`
+	Username    string `json:"username" validate:"required"`
 	Password string `json:"password" validate:"required"`
 }
 
@@ -20,13 +20,13 @@ type LoginResponse struct {
 }
 
 // LoginRequest represents the login request payload
-// @Description Login with email and password
+// @Description Login with username and password
 // @Accept json
 // @Produce json
 // @Param login body LoginRequest true "Login credentials"
 // @Success 200 {object} LoginResponse
 // @Failure 400 {string} string "Invalid request body"
-// @Failure 401 {string} string "Invalid email or password"
+// @Failure 401 {string} string "Invalid username or password"
 // @Router /api/login [post]
 // Handler for login
 func Login(w http.ResponseWriter, r *http.Request) {
@@ -46,11 +46,11 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	//Retrieve the user from the database by email
-	user, err := services.GetUserByEmail(database.DB, request.Email)
+	//Retrieve the user from the database by username
+	user, err := services.GetUserByUsername(database.DB, request.Username)
 
 	if err != nil {
-		http.Error(w, "Invalid email", http.StatusUnauthorized)
+		http.Error(w, "Invalid username", http.StatusUnauthorized)
 		return
 	}
 
@@ -61,7 +61,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	//Generate a JWT token for the user
-	token, err := security.GenerateJWT(user.ID, user.Email)
+	token, err := security.GenerateJWT(user.ID, user.Username)
 
 	if err != nil {
 		http.Error(w, "Failed to generate token", http.StatusInternalServerError)

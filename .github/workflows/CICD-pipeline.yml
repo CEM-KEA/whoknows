@@ -154,7 +154,7 @@ jobs:
       # - name: Run End-to-End Tests
       #   env:
       #     TEST_FRONTEND_URL: http://localhost
-      #     TEST_LOGIN_EMAIL: ${{ secrets.TEST_LOGIN_EMAIL }}
+      #     TEST_LOGIN_USERNAME: ${{ secrets.TEST_LOGIN_USERNAME }}
       #     TEST_LOGIN_PASSWORD: ${{ secrets.TEST_LOGIN_PASSWORD }}
       #   run: |
       #     cd frontend

@@ -1,13 +1,13 @@
 definitions:
   handlers.LoginRequest:
     properties:
-      email:
-        type: string
       password:
         type: string
+      username:
+        type: string
     required:
-    - email
     - password
+    - username
     type: object
   handlers.LoginResponse:
     properties:
@@ -51,7 +51,7 @@ paths:
     post:
       consumes:
       - application/json
-      description: Login with email and password
+      description: Login with username and password
       parameters:
       - description: Login credentials
         in: body
@@ -71,7 +71,7 @@ paths:
           schema:
             type: string
         "401":
-          description: Invalid email or password
+          description: Invalid username or password
           schema:
             type: string
   /api/register:
