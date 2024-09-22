@@ -7,15 +7,8 @@ on:
       - main
 
 jobs:
-  build_and_test:
+  check_branch_status:
     runs-on: ubuntu-latest
-    env:
-      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-      SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
-      SONAR_ORGANIZATION: ${{ secrets.SONAR_ORGANIZATION }}
-      SONAR_PROJECT_KEY: ${{ secrets.SONAR_PROJECT_KEY }}
-      IMAGE_TAG: ${{ github.sha }}
-
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -36,10 +29,34 @@ jobs:
             echo "merge_required=false" >> $GITHUB_ENV
           fi
 
+      - name: Check for Merge Conflicts
+        run: |
+          git fetch origin main
+          if ! git merge --no-commit --no-ff origin/main; then
+            echo "Merge conflict detected! Please resolve conflicts before proceeding."
+            exit 1
+          fi
+
       - name: Merge Base Branch if Required
         if: ${{ env.merge_required == 'true' }}
         run: |
           git merge origin/main
+
+
+  build_and_test:
+    runs-on: ubuntu-latest
+    env:
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+      SONAR_ORGANIZATION: ${{ secrets.SONAR_ORGANIZATION }}
+      SONAR_PROJECT_KEY: ${{ secrets.SONAR_PROJECT_KEY }}
+      IMAGE_TAG: ${{ github.sha }}
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Fetch all history and tags
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
