@@ -22,6 +22,24 @@ jobs:
         with:
           fetch-depth: 0  # Fetch all history and tags
 
+      - name: Check if Branch is Behind Base Branch
+        id: check_branch
+        run: |
+          git fetch origin main
+          BEHIND_COMMITS=$(git rev-list --count HEAD..origin/main)
+          echo "Commits behind main: $BEHIND_COMMITS"
+          if [ "$BEHIND_COMMITS" -gt 0 ]; then
+            echo "Branch is behind main. Setting merge_required=true."
+            echo "merge_required=true" >> $GITHUB_ENV
+          else
+            echo "Branch is up-to-date with main. No merge needed."
+            echo "merge_required=false" >> $GITHUB_ENV
+
+      - name: Merge Base Branch if Required
+        if: env.merge_required == 'true'
+        run: |
+          git merge origin/main
+
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:

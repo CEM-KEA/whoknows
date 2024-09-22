@@ -86,7 +86,6 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     needs: build_and_push
-    if: github.event_name == 'push' # Only run on push events
     outputs:
       image_tag: ${{ steps.set_deploy_image_tag.outputs.image_tag }}
     env:
@@ -139,14 +138,13 @@ jobs:
   create_release:
     runs-on: ubuntu-latest
     needs: deploy
-    if: github.event_name == 'push' # Only run on push events
     env:
       IMAGE_TAG: ${{ needs.deploy.outputs.image_tag }}
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0 # Fetch all history and tags
+          fetch-depth: 0 # Fetch all history and tags in order to push a new tag and generate a release
 
       - name: Create New Tag
         env:
