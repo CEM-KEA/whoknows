@@ -1,78 +1,67 @@
-import test, { expect } from "@playwright/test";
+import test, { expect, Page } from "@playwright/test";
 import { config } from "dotenv";
 
 config();
 
 const baseUrl = process.env.TEST_FRONTEND_URL;
 
-test("Register button enabled for valid inputs", async ({ page }) => {
-  await page.goto(`${baseUrl}/register`);
+const validUsername = "test";
+const validEmail = "test@test.com";
+const validPassword = "password";
 
-  await page.fill('input[name="username"]', "test");
-  await page.fill('input[name="email"]', "test@test.com");
-  await page.fill('input[name="password"]', "password");
-  await page.fill('input[name="repeat-password"]', "password");
+const invalidUsername = "ab";
+const invalidEmail = "test";
+const invalidPassword = "pass";
 
-  // test that the submit button is not disabled
+async function fillRegisterForm(
+  page: Page,
+  username: string,
+  email: string,
+  password: string,
+  repeatPassword: string
+) {
+  await page.fill('input[name="username"]', username);
+  await page.fill('input[name="email"]', email);
+  await page.fill('input[name="password"]', password);
+  await page.fill('input[name="repeat-password"]', repeatPassword);
+}
+
+async function checkRegisterButtonState(page: Page, shouldBeEnabled: boolean) {
   const registerButton = page.locator("#register-button");
   expect(await registerButton?.isVisible()).toBe(true);
-  expect(await registerButton?.isEnabled()).toBe(true);
+  if (shouldBeEnabled) {
+    expect(await registerButton?.isEnabled()).toBe(true);
+  } else {
+    expect(await registerButton?.isDisabled()).toBe(true);
+  }
+}
+
+test("Register button enabled for valid inputs", async ({ page }) => {
+  await page.goto(`${baseUrl}/register`);
+  await fillRegisterForm(page, validUsername, validEmail, validPassword, validPassword);
+  await checkRegisterButtonState(page, true);
 });
 
 test("Register button disabled for invalid username", async ({ page }) => {
   await page.goto(`${baseUrl}/register`);
-
-  // username must be between 3 and 100 characters
-  await page.fill('input[name="username"]', "ab");
-  await page.fill('input[name="email"]', "test@test.com");
-  await page.fill('input[name="password"]', "password");
-  await page.fill('input[name="repeat-password"]', "password");
-
-  // test that the submit button is disabled
-  const registerButton = page.locator("#register-button");
-  expect(await registerButton?.isVisible()).toBe(true);
-  expect(await registerButton?.isDisabled()).toBe(true);
+  await fillRegisterForm(page, invalidUsername, validEmail, validPassword, validPassword);
+  await checkRegisterButtonState(page, false);
 });
 
 test("Register button disabled for invalid email", async ({ page }) => {
   await page.goto(`${baseUrl}/register`);
-
-  await page.fill('input[name="username"]', "test");
-  await page.fill('input[name="email"]', "test");
-  await page.fill('input[name="password"]', "password");
-  await page.fill('input[name="repeat-password"]', "password");
-
-  // test that the submit button is disabled
-  const registerButton = page.locator("#register-button");
-  expect(await registerButton?.isVisible()).toBe(true);
-  expect(await registerButton?.isDisabled()).toBe(true);
+  await fillRegisterForm(page, validUsername, invalidEmail, validPassword, validPassword);
+  await checkRegisterButtonState(page, false);
 });
 
 test("Register button disabled for invalid password", async ({ page }) => {
   await page.goto(`${baseUrl}/register`);
-
-  await page.fill('input[name="username"]', "test");
-  await page.fill('input[name="email"]', "test@test.com");
-  // password must be at least 6 characters
-  await page.fill('input[name="password"]', "pass");
-  await page.fill('input[name="repeat-password"]', "pass");
-
-  // test that the submit button is disabled
-  const registerButton = page.locator("#register-button");
-  expect(await registerButton?.isVisible()).toBe(true);
-  expect(await registerButton?.isDisabled()).toBe(true);
+  await fillRegisterForm(page, validUsername, validEmail, invalidPassword, invalidPassword);
+  await checkRegisterButtonState(page, false);
 });
 
-test("Register button disabled for passwords that do not match", async ({ page }) => {
+test("Register button disabled for mismatched passwords", async ({ page }) => {
   await page.goto(`${baseUrl}/register`);
-
-  await page.fill('input[name="username"]', "test");
-  await page.fill('input[name="email"]', "test@test.com");
-  await page.fill('input[name="password"]', "password");
-  await page.fill('input[name="repeat-password"]', "password2");
-
-  // test that the submit button is disabled
-  const registerButton = page.locator("#register-button");
-  expect(await registerButton?.isVisible()).toBe(true);
-  expect(await registerButton?.isDisabled()).toBe(true);
+  await fillRegisterForm(page, validUsername, validEmail, validPassword, invalidPassword);
+  await checkRegisterButtonState(page, false);
 });
