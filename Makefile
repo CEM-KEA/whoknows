@@ -26,7 +26,6 @@ dev:
 	@$(MAKE) backend-dev &
 	@$(MAKE) frontend-dev
 
-
 # Stops the backend and frontend containers
 compose-down:
 	@echo "Stopping backend and frontend..."
