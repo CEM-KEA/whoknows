@@ -21,7 +21,7 @@ test("can login", async ({ page }) => {
 
   // expect to be redirected to the search page.
   expect(page.url()).toBe(`${baseUrl}/`);
-  const logoutButton = await page.$("#login-logout-nav");
+  const logoutButton = page.locator("#login-logout-nav");
   expect(await logoutButton?.innerText()).toBe("Log out");
 });
 

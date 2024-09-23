@@ -15,27 +15,34 @@ function Register() {
   const [password, setPassword] = useState("");
   const [repeatPassword, setRepeatPassword] = useState("");
 
-  const disableSubmit = useMemo(() => {
-    return (
-      username.length === 0 ||
-      email.length === 0 ||
-      password.length === 0 ||
-      repeatPassword.length === 0 ||
-      password !== repeatPassword
-    );
-  }, [username, email, password, repeatPassword]);
-
   const passwordMatch = useMemo(() => password === repeatPassword, [password, repeatPassword]);
 
-  const validateUsername = (username: string) => {
+  const disableSubmit = useMemo(() => {
+    return (
+      !validateUsername(username) ||
+      !validateEmail(email) ||
+      !validatePassword(password) ||
+      !passwordMatch
+    );
+  }, [username, email, password, passwordMatch]);
+
+  function validateUsername(username: string) {
     return username.length >= 3 && username.length <= 100;
-  };
+  }
 
-  const validateEmail = (email: string) => {
+  function validateEmail(email: string) {
     return validator.isEmail(email);
-  };
+  }
 
-  const handleSubmit: FormEventHandler = async (e) => {
+  function validatePassword(password: string) {
+    return password.length >= 6;
+  }
+
+  function validateRepeatPassword(repeatPassword: string) {
+    return passwordMatch && validatePassword(repeatPassword);
+  }
+
+  const handleSubmit: FormEventHandler = (e) => {
     e.preventDefault();
     if (disableSubmit) return;
     const registerData: IRegisterRequest = {
@@ -57,6 +64,14 @@ function Register() {
       });
   };
 
+  const getInputClassName = (value: string, validator: (value: string) => boolean) => {
+    const base = "border-2 p-2 w-full rounded outline-2 caret-blue-500 text-xl";
+    if (value.length === 0) return base;
+    return validator(value)
+      ? `border-green-500 outline-green-500 ${base}`
+      : `border-red-500 outline-red-500 ${base}`;
+  };
+
   return (
     <PageLayout>
       <div className="flex items-center justify-center mt-20 p-8">
@@ -72,8 +87,9 @@ function Register() {
           >
             <h1 className="text-2xl font-semibold">Register new user</h1>
             <label>
+              <span className="text-sm">Username</span>
               <input
-                className={`${username.length === 0 ? "" : !validateUsername(username) ? "border-red-500 outline-red-500" : "border-green-500 outline-green-500"} border-2 p-2 w-full rounded outline-2 caret-blue-500 text-xl`}
+                className={getInputClassName(username, validateUsername)}
                 type="text"
                 placeholder="Username"
                 value={username}
@@ -81,6 +97,7 @@ function Register() {
                 max={100}
                 onChange={(e) => setUsername(e.target.value)}
                 required
+                name="username"
               />
               {username.length > 0 && !validateUsername(username) && (
                 <span className="text-red-500 text-xs">
@@ -91,12 +108,13 @@ function Register() {
             <label>
               <span className="text-sm">Email</span>
               <input
-                className={`${email.length === 0 ? "" : !validateEmail(email) ? "border-red-500 outline-red-500" : "border-green-500 outline-green-500"} border-2 p-2 w-full rounded outline-2 caret-blue-500 text-xl`}
+                className={getInputClassName(email, validateEmail)}
                 type="email"
                 placeholder="Email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
+                name="email"
               />
               {!validateEmail(email) && email.length > 0 && (
                 <span className="text-red-500 text-xs">Invalid email address</span>
@@ -105,13 +123,14 @@ function Register() {
             <label>
               <span className="text-sm">Password</span>
               <input
-                className={`${password.length === 0 ? "" : password.length < 6 ? "border-red-500 outline-red-500" : "border-green-500 outline-green-500"} border-2 outline-2 p-2 w-full rounded caret-blue-500 text-xl`}
+                className={getInputClassName(password, validatePassword)}
                 type="password"
                 placeholder="Password"
                 value={password}
                 minLength={6}
                 onChange={(e) => setPassword(e.target.value)}
                 required
+                name="password"
               />
               {password.length > 0 && password.length < 6 && (
                 <span className="text-red-500 text-xs">Password must be at least 6 characters</span>
@@ -121,13 +140,14 @@ function Register() {
               <span className="text-sm">Repeat password</span>
               <input
                 title={!passwordMatch ? "Passwords do not match" : ""}
-                className={`${password.length === 0 ? "" : !passwordMatch ? "outline-red-500 border-red-500" : "outline-green-500 border-green-500"} border-2 p-2 w-full rounded outline-2 caret-blue-500 text-xl`}
+                className={getInputClassName(repeatPassword, validateRepeatPassword)}
                 type="password"
                 placeholder="Repeat password"
                 value={repeatPassword}
                 minLength={6}
                 onChange={(e) => setRepeatPassword(e.target.value)}
                 required
+                name="repeat-password"
               />
               {!passwordMatch && (
                 <span className="text-red-500 text-xs">Passwords do not match</span>
@@ -149,6 +169,7 @@ function Register() {
                 title={disableSubmit ? "Please fill out all fields" : ""}
                 className={`${disableSubmit ? "grayscale-[0.5] cursor-not-allowed" : "hover:brightness-90 cursor-pointer"} border rounded bg-blue-500  text-white font-semibold p-2`}
                 disabled={disableSubmit}
+                id="register-button"
               >
                 Register
               </button>
