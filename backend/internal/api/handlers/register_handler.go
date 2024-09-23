@@ -4,17 +4,20 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/CEM-KEA/whoknows/backend/internal/database"
 	"github.com/CEM-KEA/whoknows/backend/internal/models"
+	"github.com/CEM-KEA/whoknows/backend/internal/security"
 	"github.com/CEM-KEA/whoknows/backend/internal/services"
 	"github.com/CEM-KEA/whoknows/backend/internal/utils"
-	"github.com/CEM-KEA/whoknows/backend/internal/security"
-	"github.com/CEM-KEA/whoknows/backend/internal/database"
 )
 
 type RegisterRequest struct {
 	Username string `json:"username" validate:"required,min=3,max=100"`
 	Email    string `json:"email" validate:"required,email"`
 	Password string `json:"password" validate:"required,min=6"`
+	// Password2 is used to confirm the password, it is optional, so it is omitted if it is not provided or an empty string
+	// If it is provided, it must be equal to the Password field
+	Password2 string `json:"password2" validate:"omitempty,eqfield=Password"` 
 }
 
 // RegisterRequest represents the registration request payload
