@@ -3,6 +3,7 @@ import PageLayout from "../components/PageLayout";
 import { apiGet } from "../utils/apiUtils";
 import type { ISearchResponse } from "../types/search.types";
 import LoadingSpinner from "../components/LoadingSpinner";
+import toast from "react-hot-toast";
 
 function Search() {
   const [search, setSearch] = useState("");
@@ -16,7 +17,7 @@ function Search() {
         setSearchResponse(response);
       })
       .catch((error) => {
-        console.error(error);
+        toast.error(error.message);
       })
       .finally(() => setLoading(false));
   };

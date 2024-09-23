@@ -204,6 +204,10 @@ const docTemplate = `{
                     "type": "string",
                     "minLength": 6
                 },
+                "password2": {
+                    "description": "Password2 is used to confirm the password, it is optional, so it is omitted if it is not provided or an empty string\nIf it is provided, it must be equal to the Password field",
+                    "type": "string"
+                },
                 "username": {
                     "type": "string",
                     "maxLength": 100,

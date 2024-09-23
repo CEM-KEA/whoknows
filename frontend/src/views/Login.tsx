@@ -4,6 +4,7 @@ import { ILoginRequest, ILoginResponse } from "../types/auth.types";
 import { apiPost } from "../utils/apiUtils";
 import { useNavigate } from "react-router-dom";
 import LoadingSpinner from "../components/LoadingSpinner";
+import toast from "react-hot-toast";
 
 interface LoginProps {
   onLogIn: (token: string) => void;
@@ -22,11 +23,12 @@ function Login(props: Readonly<LoginProps>) {
       .then((data) => {
         setLoading(false);
         props.onLogIn(data.token);
+        toast.success("Logged in successfully.");
         navigate("/");
       })
       .catch((error) => {
+        toast.error(error.message);
         setLoading(false);
-        console.error(error);
       });
   };
 

@@ -10,6 +10,7 @@ import {
 } from "./helpers/cookieHelpers";
 import Weather from "./views/Weather";
 import Register from "./views/Register";
+import { Toaster } from "react-hot-toast";
 
 function App() {
   const [loggedIn, setLoggedIn] = useState<boolean>(false);
@@ -63,6 +64,7 @@ function App() {
           </>
         )}
       </Routes>
+      <Toaster position="bottom-left" />
     </BrowserRouter>
   );
 }
