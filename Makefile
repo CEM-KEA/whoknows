@@ -20,18 +20,12 @@ frontend-dev:
 	@echo "Starting frontend in development mode..."
 	@$(FRONTEND_DEV_CMD)
 
-# Runs the backend tests
-backend-test:
-	@echo "Running backend tests..."
-	@$(BACKEND_TEST_CMD)
+# Runs the backend and frontend in development mode
+dev:
+	@echo "Starting development mode..."
+	@$(MAKE) backend-dev &
+	@$(MAKE) frontend-dev
 
-# Runs docker compose to start the backend and frontend containers in detached mode
-# Then runs the frontend/end-2-end tests
-# Finally, runs docker compose down to stop the containers
-frontend-test: compose-detach
-	@echo "Running frontend tests..."
-	@$(FRONTEND_TEST_CMD)
-	@$(DOCKER_COMPOSE_DOWN_CMD)
 
 # Stops the backend and frontend containers
 compose-down:
@@ -57,11 +51,18 @@ compose-detach: build-images
 	@echo "Composing backend and frontend in detached mode..."
 	@$(DOCKER_COMPOSE_CMD) -d
 
-# Runs the backend and frontend in development mode
-dev:
-	@echo "Starting development mode..."
-	@$(MAKE) backend-dev &
-	@$(MAKE) frontend-dev
+# Runs the backend tests
+backend-test:
+	@echo "Running backend tests..."
+	@$(BACKEND_TEST_CMD)
+
+# Runs docker compose to start the backend and frontend containers in detached mode
+# Then runs the frontend/end-2-end tests
+# Finally, runs docker compose down to stop the containers
+frontend-test: compose-detach
+	@echo "Running frontend tests..."
+	@$(FRONTEND_TEST_CMD)
+	@$(DOCKER_COMPOSE_DOWN_CMD)
 
 # Runs the backend and frontend tests
 test:backend-test frontend-test
