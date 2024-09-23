@@ -20,7 +20,7 @@ func NewRouter() http.Handler {
 	router := mux.NewRouter()
 
 	// Swagger API documentation route - http://localhost:8080/swagger/index.html
-	router.PathPrefix("/swagger/").Handler(httpSwagger.WrapHandler)
+	router.PathPrefix("/api/swagger/").Handler(httpSwagger.WrapHandler)
 
 	router.HandleFunc("/api/search", handlers.Search).Methods("GET")
 	router.HandleFunc("/api/weather", handlers.WeatherHandler).Methods("GET")
