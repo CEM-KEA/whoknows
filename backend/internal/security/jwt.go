@@ -5,20 +5,23 @@ import (
 	"time"
 
 	"github.com/CEM-KEA/whoknows/backend/internal/config"
+	"github.com/CEM-KEA/whoknows/backend/internal/database"
+	"github.com/CEM-KEA/whoknows/backend/internal/models"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/pkg/errors"
+	"gorm.io/gorm"
 )
 
 // GenerateJWT generates a JWT token for a given user ID and username
 func GenerateJWT(userID uint, username string) (string, error) {
 	claims := jwt.MapClaims{
-		"iss":   "whoknows",
-		"sub":   userID,
-		"aud":   "whoknows",
+		"iss":      "whoknows",
+		"sub":      userID,
+		"aud":      "whoknows",
 		"username": username,
-		"role":  "user",
-		"iat":   time.Now().Unix(),
-		"exp":   time.Now().Add(time.Hour * 24).Unix(),
+		"role":     "user",
+		"iat":      time.Now().Unix(),
+		"exp":      time.Now().Add(time.Hour * 24).Unix(),
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
@@ -29,19 +32,32 @@ func GenerateJWT(userID uint, username string) (string, error) {
 		return "", err
 	}
 
+	jwtModel := models.JWT{
+		UserID:    userID,
+		Token:     tokenString,
+		ExpiresAt: time.Now().Add(time.Hour * 24),
+		CreatedAt: time.Now(),
+		RevokedAt: nil,
+	}
+
+	err = database.DB.Create(&jwtModel).Error
+	if err != nil {
+		return "", errors.Wrap(err, "failed to add jwt token to database")
+	}
+
 	return tokenString, nil
 }
 
 // GenerateJWTWithCustomExpiration generates a JWT token for a given user ID and username, with a custom expiration time
 func GenerateJWTWithCustomExpiration(userID uint, username string, expTime time.Time) (string, error) {
 	claims := jwt.MapClaims{
-		"iss":   "whoknows",
-		"sub":   userID,
-		"aud":   "whoknows",
+		"iss":      "whoknows",
+		"sub":      userID,
+		"aud":      "whoknows",
 		"username": username,
-		"role":  "user",
-		"iat":   time.Now().Unix(),
-		"exp":   expTime.Unix(),
+		"role":     "user",
+		"iat":      time.Now().Unix(),
+		"exp":      expTime.Unix(),
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
@@ -78,7 +94,31 @@ func ValidateJWT(tokenString string) (jwt.MapClaims, error) {
 		return nil, errors.New("invalid token")
 	}
 
+	var jwtModel models.JWT
+	db := database.DB
+	if err := db.Where("token = ?", tokenString).First(&jwtModel).Error; err != nil {
+		return nil, errors.Wrap(err, "failed to query token")
+	}
+
+	if jwtModel.RevokedAt != nil {
+		return nil, errors.New("token has been revoked")
+	}
+
 	fmt.Println("JWT token validated successfully")
 
 	return claims, nil
+}
+
+func RevokeJWT(db *gorm.DB, jwt string) error {
+	var jwtModel models.JWT
+	if err := db.Where("token = ?", jwt).First(&jwtModel).Error; err != nil {
+		return errors.Wrap(err, "failed to query token")
+	}
+
+	jwtModel.RevokedAt = &time.Time{}
+	if err := db.Save(&jwtModel).Error; err != nil {
+		return errors.Wrap(err, "failed to update token")
+	}
+
+	return nil
 }
