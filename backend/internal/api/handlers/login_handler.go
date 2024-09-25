@@ -3,8 +3,10 @@ package handlers
 import (
 	"encoding/json"
 	"net/http"
+	"time"
 
 	"github.com/CEM-KEA/whoknows/backend/internal/database"
+	"github.com/CEM-KEA/whoknows/backend/internal/models"
 	"github.com/CEM-KEA/whoknows/backend/internal/security"
 	"github.com/CEM-KEA/whoknows/backend/internal/services"
 	"github.com/CEM-KEA/whoknows/backend/internal/utils"
@@ -65,6 +67,20 @@ func Login(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		http.Error(w, "Failed to generate token", http.StatusInternalServerError)
+		return
+	}
+
+	jwtModel := models.JWT{
+		UserID:    user.ID,
+		Token:     token,
+		ExpiresAt: time.Now().Add(time.Hour * 24),
+		CreatedAt: time.Now(),
+		RevokedAt: nil,
+	}
+
+	err = database.DB.Create(&jwtModel).Error
+	if err != nil {
+		http.Error(w, "Failed to save token", http.StatusInternalServerError)
 		return
 	}
 

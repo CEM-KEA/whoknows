@@ -32,19 +32,6 @@ func GenerateJWT(userID uint, username string) (string, error) {
 		return "", err
 	}
 
-	jwtModel := models.JWT{
-		UserID:    userID,
-		Token:     tokenString,
-		ExpiresAt: time.Now().Add(time.Hour * 24),
-		CreatedAt: time.Now(),
-		RevokedAt: nil,
-	}
-
-	err = database.DB.Create(&jwtModel).Error
-	if err != nil {
-		return "", errors.Wrap(err, "failed to add jwt token to database")
-	}
-
 	return tokenString, nil
 }
 
