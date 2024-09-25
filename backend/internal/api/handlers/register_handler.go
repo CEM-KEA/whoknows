@@ -9,6 +9,7 @@ import (
 	"github.com/CEM-KEA/whoknows/backend/internal/security"
 	"github.com/CEM-KEA/whoknows/backend/internal/services"
 	"github.com/CEM-KEA/whoknows/backend/internal/utils"
+	"github.com/go-playground/validator/v10"
 )
 
 type RegisterRequest struct {
@@ -42,6 +43,14 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 
 	// validate the request
 	if err := utils.Validate(req); err != nil {
+		if validationErrors, ok := err.(validator.ValidationErrors); ok {
+			for _, ve := range validationErrors {
+				if ve.StructField() == "Password2" && ve.Tag() == "eqfield" {
+					http.Error(w, "Password confirmation does not match", http.StatusBadRequest)
+					return
+				}
+			}
+		}
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
