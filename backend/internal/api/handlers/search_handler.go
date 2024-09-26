@@ -52,7 +52,7 @@ func Search(w http.ResponseWriter, r *http.Request) {
 	// Perform the search using Gorm
 	var pages []models.Page
 
-	query := database.DB.Where("content LIKE ?", "%"+q+"%")
+	query := database.DB.Where("content LIKE ?", "%"+q+"%").Order("title ASC")
 
 	// Optional language filter
 	if language != "" {
