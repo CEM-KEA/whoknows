@@ -33,13 +33,15 @@ jobs:
           CURRENT_TAG=$VERSION
           MAJOR=$(echo $CURRENT_TAG | cut -d'.' -f1 | sed 's/v//')
           MINOR=$(echo $CURRENT_TAG | cut -d'.' -f2)
+          PATCH=$(echo $CURRENT_TAG | cut -d'.' -f3)
 
           # Increment the minor version and check if the tag exists
           NEW_MINOR=$((MINOR+1))
-          NEW_TAG="v$MAJOR.$NEW_MINOR"
+          NEW_TAG="v$MAJOR.$NEW_MINOR.$PATCH"
           while git rev-parse "$NEW_TAG" >/dev/null 2>&1; do
             NEW_MINOR=$((NEW_MINOR+1))
-            NEW_TAG="v$MAJOR.$NEW_MINOR"
+            NEW_TAG="v$MAJOR.$NEW_MINOR.$PATCH" 
+
           done
 
           # Output the new tag
