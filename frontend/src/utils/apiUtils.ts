@@ -19,6 +19,17 @@ export async function apiGet<TResBody>(url: string, requireAuth?: boolean): Prom
   return await res.json();
 }
 
+export async function apiGetVoid(url: string, requireAuth?: boolean): Promise<void> {
+  const res = await fetch(apiUrl + url, {
+    headers: {
+      Authorization: requireAuth ? `Bearer ${getJWTTokenFromCookies()}` : ""
+    }
+  });
+  if (!res.ok) {
+    throw new Error(res.statusText);
+  }
+}
+
 /**
  * Sends a POST request to the API, url is the path to the endpoint and should start with a /.
  *
