@@ -26,7 +26,7 @@ func NewRouter() http.Handler {
 	router.HandleFunc("/api/weather", handlers.WeatherHandler).Methods("GET")
 	router.HandleFunc("/api/register", handlers.RegisterHandler).Methods("POST") // Add the register handler here
 	router.HandleFunc("/api/login", handlers.Login).Methods("POST")
-	router.HandleFunc("/api/logout", nil).Methods("GET") // Add the logout handler here
+	router.HandleFunc("/api/logout", handlers.LogoutHandler).Methods("GET")
 
 	// if environment is not production, allow all origins (*)
 	var allowedOrigins []string
