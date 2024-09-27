@@ -20,6 +20,23 @@ export async function apiGet<TResBody>(url: string, requireAuth?: boolean): Prom
 }
 
 /**
+ * Sends a GET request to the API, url is the path to the endpoint and should start with a /.
+ * This function does not expect a response body, but will not fail if there is one.
+ *
+ * Example: apiGetVoid("/logout", true) will send a GET request to /api/logout with the Authorization header set.
+ */
+export async function apiGetVoid(url: string, requireAuth?: boolean): Promise<void> {
+  const res = await fetch(apiUrl + url, {
+    headers: {
+      Authorization: requireAuth ? `Bearer ${getJWTTokenFromCookies()}` : ""
+    }
+  });
+  if (!res.ok) {
+    throw new Error(res.statusText);
+  }
+}
+
+/**
  * Sends a POST request to the API, url is the path to the endpoint and should start with a /.
  *
  * Example: apiPost("/users", {name: "John Doe"}) will send a POST request to /api/users with the body {name: "John Doe"}
