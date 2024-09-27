@@ -19,6 +19,12 @@ export async function apiGet<TResBody>(url: string, requireAuth?: boolean): Prom
   return await res.json();
 }
 
+/**
+ * Sends a GET request to the API, url is the path to the endpoint and should start with a /.
+ * This function does not expect a response body, but will not fail if there is one.
+ *
+ * Example: apiGetVoid("/logout", true) will send a GET request to /api/logout with the Authorization header set.
+ */
 export async function apiGetVoid(url: string, requireAuth?: boolean): Promise<void> {
   const res = await fetch(apiUrl + url, {
     headers: {
