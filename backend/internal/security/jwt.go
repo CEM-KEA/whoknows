@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/CEM-KEA/whoknows/backend/internal/config"
-	"github.com/CEM-KEA/whoknows/backend/internal/database"
 	"github.com/CEM-KEA/whoknows/backend/internal/models"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/pkg/errors"
@@ -79,17 +78,6 @@ func ValidateJWT(tokenString string) (jwt.MapClaims, error) {
 	// Check if the token is valid
 	if !token.Valid {
 		return nil, errors.New("invalid token")
-	}
-
-	// Check if the token is revoked
-	var jwtModel models.JWT
-	db := database.DB
-	if err := db.Where("token = ?", tokenString).First(&jwtModel).Error; err != nil {
-		return nil, errors.Wrap(err, "failed to query token")
-	}
-
-	if jwtModel.RevokedAt != nil {
-		return nil, errors.New("token has been revoked")
 	}
 
 	fmt.Println("JWT token validated successfully")
