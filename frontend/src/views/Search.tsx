@@ -12,6 +12,11 @@ function Search() {
 
   const handleSearch = () => {
     setLoading(true);
+    if (search.trim() === "") {
+      setSearchResponse(null);
+      setLoading(false);
+      return;
+    }
     apiGet<ISearchResponse>("/search?q=" + search)
       .then((response) => {
         setSearchResponse(response);
@@ -45,6 +50,11 @@ function Search() {
         {loading && (
           <div className="mt-32 w-full flex justify-center">
             <LoadingSpinner size={100} />
+          </div>
+        )}
+        {searchResponse === null && !loading && (
+          <div className="mt-4 italic text-gray-400 text-center text-lg">
+            Search for something...
           </div>
         )}
         {searchResponse?.data && searchResponse.data.length > 0 && (
