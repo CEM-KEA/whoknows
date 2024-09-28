@@ -85,6 +85,20 @@ func ValidateJWT(tokenString string) (jwt.MapClaims, error) {
 	return claims, nil
 }
 
+// Check if the token is revoked
+func ValidateJWTRevoked(db *gorm.DB, jwt string) error {
+	var jwtModel models.JWT
+	if err := db.Where("token = ?", jwt).First(&jwtModel).Error; err != nil {
+		return errors.Wrap(err, "failed to query token")
+	}
+
+	if jwtModel.RevokedAt != nil {
+		return errors.New("token is revoked")
+	}
+
+	return nil
+}
+
 // RevokeJWT revokes a given JWT token in the database
 func RevokeJWT(db *gorm.DB, jwt string) error {
 	var jwtModel models.JWT

@@ -27,6 +27,7 @@ func NewRouter() http.Handler {
 	router.HandleFunc("/api/register", handlers.RegisterHandler).Methods("POST") // Add the register handler here
 	router.HandleFunc("/api/login", handlers.Login).Methods("POST")
 	router.HandleFunc("/api/logout", handlers.LogoutHandler).Methods("GET")
+	router.HandleFunc("/api/validate-login", handlers.ValidateLoginHandler).Methods("GET")
 
 	// if environment is not production, allow all origins (*)
 	var allowedOrigins []string
