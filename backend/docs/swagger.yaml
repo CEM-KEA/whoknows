@@ -1,3 +1,4 @@
+basePath: /
 definitions:
   handlers.LoginRequest:
     properties:
@@ -51,6 +52,9 @@ definitions:
     type: object
 info:
   contact: {}
+  description: This is the API for the WhoKnows application
+  title: WhoKnows API
+  version: "1.0"
 paths:
   /api/login:
     post:
@@ -79,6 +83,24 @@ paths:
           description: Invalid username or password
           schema:
             type: string
+  /api/logout:
+    get:
+      description: Logs out the user by revoking the jwt token
+      responses:
+        "200":
+          description: Logged out successfully
+          schema:
+            type: string
+        "401":
+          description: Invalid Authorization header format
+          schema:
+            type: string
+        "500":
+          description: Failed to revoke token
+          schema:
+            type: string
+      security:
+      - Bearer: []
   /api/register:
     post:
       consumes:
@@ -134,6 +156,20 @@ paths:
           description: Search query failed
           schema:
             type: string
+  /api/validate-login:
+    get:
+      description: Validates the jwt token
+      responses:
+        "200":
+          description: valid
+          schema:
+            type: string
+        "401":
+          description: Token expired/revoked
+          schema:
+            type: string
+      security:
+      - Bearer: []
   /api/weather:
     get:
       description: Get weather information
@@ -148,4 +184,9 @@ paths:
           description: Failed to fetch weather data
           schema:
             type: string
+securityDefinitions:
+  Bearer:
+    in: header
+    name: JWT
+    type: apiKey
 swagger: "2.0"

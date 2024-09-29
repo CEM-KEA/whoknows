@@ -22,14 +22,14 @@ type LoginResponse struct {
 }
 
 // LoginRequest represents the login request payload
-// @Description Login with username and password
-// @Accept json
-// @Produce json
-// @Param login body LoginRequest true "Login credentials"
-// @Success 200 {object} LoginResponse
-// @Failure 400 {string} string "Invalid request body"
-// @Failure 401 {string} string "Invalid username or password"
-// @Router /api/login [post]
+//	@Description	Login with username and password
+//	@Accept			json
+//	@Produce		json
+//	@Param			login	body		LoginRequest	true	"Login credentials"
+//	@Success		200		{object}	LoginResponse
+//	@Failure		400		{string}	string	"Invalid request body"
+//	@Failure		401		{string}	string	"Invalid username or password"
+//	@Router			/api/login [post]
 // Handler for login
 func Login(w http.ResponseWriter, r *http.Request) {
 	var request LoginRequest

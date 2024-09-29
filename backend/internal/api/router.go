@@ -11,11 +11,6 @@ import (
 	httpSwagger "github.com/swaggo/http-swagger"
 )
 
-// @title WhoKnows API
-// @version 1.0
-// @description This is the API for the WhoKnows application
-// @BasePath /api
-// @host http://52.169.32.176:8080
 func NewRouter() http.Handler {
 	router := mux.NewRouter()
 

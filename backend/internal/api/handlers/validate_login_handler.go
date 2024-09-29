@@ -8,7 +8,15 @@ import (
 	"github.com/CEM-KEA/whoknows/backend/internal/security"
 )
 
-// Validates login to see if jwt is expired
+//	@Description	Validates the jwt token
+//	@Security		Bearer
+//	@Success		200	{string}	string	"valid"
+//	@Failure		401	{string}	string	"No Authorization header found"
+//	@Failure		401	{string}	string	"Invalid Authorization header format"
+//	@Failure		401	{string}	string	"Invalid token"
+//	@Failure		401	{string}	string	"Token expired/revoked"
+//	@Router			/api/validate-login [get]
+// Handler for validating the jwt token
 func ValidateLoginHandler(w http.ResponseWriter, r *http.Request) {
 
 	//Get the authorization header to get the jwt token
