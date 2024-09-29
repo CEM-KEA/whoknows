@@ -1,8 +1,13 @@
 {
     "swagger": "2.0",
     "info": {
-        "contact": {}
+        "description": "This is the API for the WhoKnows application",
+        "title": "WhoKnows API",
+        "contact": {},
+        "version": "1.0"
     },
+    "host": "52.169.32.176:8080",
+    "basePath": "/",
     "paths": {
         "/api/login": {
             "post": {
@@ -39,6 +44,36 @@
                     },
                     "401": {
                         "description": "Invalid username or password",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/logout": {
+            "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Logs out the user by revoking the jwt token",
+                "responses": {
+                    "200": {
+                        "description": "Logged out successfully",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "401": {
+                        "description": "Invalid Authorization header format",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Failed to revoke token",
                         "schema": {
                             "type": "string"
                         }
@@ -124,6 +159,30 @@
                     },
                     "500": {
                         "description": "Search query failed",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/validate-login": {
+            "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Validates the jwt token",
+                "responses": {
+                    "200": {
+                        "description": "valid",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "401": {
+                        "description": "Token expired/revoked",
                         "schema": {
                             "type": "string"
                         }
@@ -224,6 +283,13 @@
                     "additionalProperties": true
                 }
             }
+        }
+    },
+    "securityDefinitions": {
+        "Bearer": {
+            "type": "apiKey",
+            "name": "JWT",
+            "in": "header"
         }
     }
 }

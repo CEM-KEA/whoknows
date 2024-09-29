@@ -11,6 +11,15 @@ import (
 	"github.com/CEM-KEA/whoknows/backend/internal/utils"
 )
 
+//	@title						WhoKnows API
+//	@version					1.0
+//	@description				This is the API for the WhoKnows application
+//	@scheme						http
+//	@host						52.169.32.176:8080
+//	@BasePath					/
+//	@securityDefinitions.apiKey	Bearer
+//	@in							header
+//	@name						JWT
 func main() {
 	// Load application configuration from the .env file
 	err := config.LoadEnv()

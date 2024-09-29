@@ -8,6 +8,14 @@ import (
 	"github.com/CEM-KEA/whoknows/backend/internal/security"
 )
 
+//	@Description	Logs out the user by revoking the jwt token
+//	@Security		Bearer
+//	@Success		200	{string}	string	"Logged out successfully"
+//	@Failure		401	{string}	string	"No Authorization header found"
+//	@Failure		401	{string}	string	"Invalid Authorization header format"
+//	@Failure		500	{string}	string	"Failed to revoke token"
+//	@Router			/api/logout [get]
+// Handler for logout
 func LogoutHandler(w http.ResponseWriter, r *http.Request) {
 	//Get the authorization header to get the jwt token
 	authHeader := r.Header.Get("Authorization")
