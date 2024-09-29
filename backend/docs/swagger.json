@@ -6,7 +6,6 @@
         "contact": {},
         "version": "1.0"
     },
-    "host": "52.169.32.176:8080",
     "basePath": "/",
     "paths": {
         "/api/login": {
