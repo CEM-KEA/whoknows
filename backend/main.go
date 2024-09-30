@@ -34,15 +34,15 @@ func main() {
 			return
 		}
 	}
-
+	//TODO fix this shit
 	// Seed the database with initial data if the seed flag is set to true
-	if config.AppConfig.Database.Seed {
-		err = database.SeedData(database.DB, config.AppConfig.Database.SeedFilePath)
-		if err != nil {
-			fmt.Printf("Error seeding database: %s\n", err)
-			return
-		}
-	}
+	// if config.AppConfig.Database.Seed {
+	// 	err = database.SeedData()
+	// 	if err != nil {
+	// 		fmt.Printf("Error seeding database: %s\n", err)
+	// 		return
+	// 	}
+	// }
 
 	// initalize utils
 	utils.InitValidator()
