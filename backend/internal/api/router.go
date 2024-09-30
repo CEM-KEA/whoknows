@@ -11,11 +11,6 @@ import (
 	httpSwagger "github.com/swaggo/http-swagger"
 )
 
-// @title WhoKnows API
-// @version 1.0
-// @description This is the API for the WhoKnows application
-// @BasePath /api
-// @host http://52.169.32.176:8080
 func NewRouter() http.Handler {
 	router := mux.NewRouter()
 
@@ -26,7 +21,8 @@ func NewRouter() http.Handler {
 	router.HandleFunc("/api/weather", handlers.WeatherHandler).Methods("GET")
 	router.HandleFunc("/api/register", handlers.RegisterHandler).Methods("POST") // Add the register handler here
 	router.HandleFunc("/api/login", handlers.Login).Methods("POST")
-	router.HandleFunc("/api/logout", nil).Methods("GET") // Add the logout handler here
+	router.HandleFunc("/api/logout", handlers.LogoutHandler).Methods("GET")
+	router.HandleFunc("/api/validate-login", handlers.ValidateLoginHandler).Methods("GET")
 
 	// if environment is not production, allow all origins (*)
 	var allowedOrigins []string

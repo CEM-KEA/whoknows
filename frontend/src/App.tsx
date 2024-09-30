@@ -10,7 +10,8 @@ import {
 } from "./helpers/cookieHelpers";
 import Weather from "./views/Weather";
 import Register from "./views/Register";
-import { Toaster } from "react-hot-toast";
+import toast, { Toaster } from "react-hot-toast";
+import { apiGetVoid } from "./utils/apiUtils";
 
 function App() {
   const [loggedIn, setLoggedIn] = useState<boolean>(false);
@@ -28,7 +29,9 @@ function App() {
 
   function logOut() {
     setLoggedIn(false);
-    removeJWTTokenFromCookies();
+    void apiGetVoid("/logout", true)
+      .catch((e) => toast.error(e.message))
+      .finally(() => removeJWTTokenFromCookies());
   }
 
   function logIn(jwt_token: string) {

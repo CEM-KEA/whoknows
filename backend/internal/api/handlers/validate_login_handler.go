@@ -8,15 +8,17 @@ import (
 	"github.com/CEM-KEA/whoknows/backend/internal/security"
 )
 
-//	@Description	Logs out the user by revoking the jwt token
+//	@Description	Validates the jwt token
 //	@Security		Bearer
-//	@Success		200	{string}	string	"Logged out successfully"
+//	@Success		200	{string}	string	"valid"
 //	@Failure		401	{string}	string	"No Authorization header found"
 //	@Failure		401	{string}	string	"Invalid Authorization header format"
-//	@Failure		500	{string}	string	"Failed to revoke token"
-//	@Router			/api/logout [get]
-// Handler for logout
-func LogoutHandler(w http.ResponseWriter, r *http.Request) {
+//	@Failure		401	{string}	string	"Invalid token"
+//	@Failure		401	{string}	string	"Token expired/revoked"
+//	@Router			/api/validate-login [get]
+// Handler for validating the jwt token
+func ValidateLoginHandler(w http.ResponseWriter, r *http.Request) {
+
 	//Get the authorization header to get the jwt token
 	authHeader := r.Header.Get("Authorization")
 	if authHeader == "" {
@@ -32,16 +34,23 @@ func LogoutHandler(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("Invalid Authorization header format"))
 		return
 	}
-	token := parts[1]
 
-	//Revoke the jwt token
-	err := security.RevokeJWT(database.DB, token)
+	tokenString := parts[1]
+
+	_, err := security.ValidateJWT(tokenString)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte("Failed to revoke token"))
+		w.WriteHeader(http.StatusUnauthorized)
+		w.Write([]byte("Invalid token"))
+		return
+	}
+
+	err = security.ValidateJWTRevoked(database.DB, tokenString)
+	if err != nil {
+		w.WriteHeader(http.StatusUnauthorized)
+		w.Write([]byte("Token expired/revoked"))
 		return
 	}
 
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("Logged out successfully"))
+	w.Write([]byte("valid"))
 }

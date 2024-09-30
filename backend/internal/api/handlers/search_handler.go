@@ -19,14 +19,14 @@ type RequestValidationError struct {
 	Message    *string `json:"message,omitempty"`
 }
 
-// @Description Search for pages by content
-// @Produce json
-// @Param q query string true "Search query"
-// @Param language query string false "Language filter"
-// @Success 200 {object} SearchResponse
-// @Failure 400 {string} string "Search query (q) is required"
-// @Failure 500 {string} string "Search query failed"
-// @Router /api/search [get]
+//	@Description	Search for pages by content
+//	@Produce		json
+//	@Param			q			query		string	true	"Search query"
+//	@Param			language	query		string	false	"Language filter"
+//	@Success		200			{object}	SearchResponse
+//	@Failure		400			{string}	string	"Search query (q) is required"
+//	@Failure		500			{string}	string	"Search query failed"
+//	@Router			/api/search [get]
 // Search is the handler for the search API
 func Search(w http.ResponseWriter, r *http.Request) {
 	q := r.URL.Query().Get("q")
