@@ -26,15 +26,12 @@ func setupTestDB(t *testing.T) {
         Server: config.ServerConfig{
             Port: 8080,
         },
-        Database: config.DatabaseConfig{
-            FilePath: ":memory:",
-        },
         Environment: config.Environment{
             Environment: "test",
         },
     }
 
-    err := database.InitDatabase()
+    err := database.InitTestDatabase()
     if err != nil {
         t.Fatalf("Failed to initialize the Test database: %v", err)
     }
@@ -96,6 +93,6 @@ func TestMain(m *testing.M) {
     }
 
     code := m.Run()
-    
+
     os.Exit(code)
 }
