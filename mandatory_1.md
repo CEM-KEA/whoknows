@@ -1,3 +1,12 @@
+## Legacy codebase dependency graphs
+
+### Before upgrading Python and dependencies
+![fb59e541-6bbe-4be4-8b1f-47638736bc83](https://github.com/user-attachments/assets/83eb04a8-2354-466c-932e-47d9abba3838)
+
+### After upgrading Pythong and dependencies
+![f8be1849-b6e5-49c3-820e-a42d3678abf7](https://github.com/user-attachments/assets/21f32f2c-7587-49f9-9954-c39e331d753a)
+
+
 ## Problems with legacy codebase (listed by severity high->low)
 1. Outdated Language and dependencies 
 
