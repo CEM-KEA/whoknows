@@ -1,3 +1,18 @@
+## Problems with legacy codebase (listed by severity high->low)
+1. Outdated Language and dependencies 
+
+2. admin password in clear text in codebase 
+
+3. SQL injection 
+
+4. Hashing with MD5 
+
+5. Hardcoded configuration values 
+
+6. no CSFR protection 
+
+7. Single file 
+
 
 ## Branching strategy 
 - What version control strategy did you choose and how did you actually do it / enforce it? 
