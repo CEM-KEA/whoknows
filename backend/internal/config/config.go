@@ -8,92 +8,88 @@ import (
 	"github.com/joho/godotenv"
 )
 
-// LoadEnv loads the .env file using godotenv and populates AppConfig
+// LoadEnv loads the configuration based on the environment
 func LoadEnv() error {
 	envFilePath := os.Getenv("ENV_FILE_PATH")
 
-	// If the ENV_FILE_PATH environment variable is not set, default to .env in the current working directory
-	if envFilePath == "" {
-		envFilePath = ".env" // Default to .env in the current working directory
-	}
-
-	// Load the .env file
-	err := godotenv.Load(envFilePath)
-	if err != nil {
-		return fmt.Errorf("error reading .env file - %s", err)
+	// Load .env file only if ENV_FILE_PATH is set (for local dev)
+	if envFilePath != "" {
+		err := godotenv.Load(envFilePath)
+		if err != nil {
+			return fmt.Errorf("error reading .env file - %s", err)
+		}
+		fmt.Println("Loaded configuration from .env file")
+	} else {
+		fmt.Println("Loading configuration from environment variables")
 	}
 
 	// Populate AppConfig from environment variables
-	err = loadConfigFromEnv()
-	if err != nil {
-		return fmt.Errorf("error loading configuration from env - %s", err)
-	}
-
-	return nil
+	return loadConfigFromEnv()
 }
 
 // loadConfigFromEnv maps environment variables to AppConfig
 func loadConfigFromEnv() error {
-	// Server configuration
+	// General Config
 	port, err := strconv.Atoi(getEnv("API_SERVER_PORT", "8080"))
-
 	if err != nil {
-		return fmt.Errorf("invalid SERVER_PORT value")
+		return fmt.Errorf("invalid API_SERVER_PORT value")
 	}
-
 	AppConfig.Server.Port = port
 
-	// Database configuration
-	AppConfig.Database.FilePath = getEnv("API_DATABASE_FILE_PATH", "./internal/database/whoknows.db")
-	AppConfig.Database.Migrate = getEnvAsBool("API_DATABASE_MIGRATE", false)
-	AppConfig.Database.Seed = getEnvAsBool("API_DATABASE_SEED", false)
-	AppConfig.Database.SeedFilePath = getEnv("API_DATABASE_SEED_FILE_PATH", "./internal/database/pages.json")
-
-	// JWT configuration
-	AppConfig.JWT.Secret = getEnv("API_JWT_SECRET", "")
-	expiration, err := strconv.Atoi(getEnv("API_JWT_EXPIRATION", "3600"))
-
+	// Database Configuration
+	AppConfig.Database.Host = getEnv("API_DATABASE_HOST", "localhost")
+	AppConfig.Database.Port, err = strconv.Atoi(getEnv("API_DATABASE_PORT", "5432"))
 	if err != nil {
-		return fmt.Errorf("invalid JWT_EXPIRATION value")
+		return fmt.Errorf("invalid API_DATABASE_PORT value")
+	}
+	AppConfig.Database.User = getEnv("API_DATABASE_USER", "postgres")
+	AppConfig.Database.Password = getEnv("API_DATABASE_PASSWORD", "")
+	AppConfig.Database.Name = getEnv("API_DATABASE_NAME", "whoknows")
+	AppConfig.Database.SSLMode = getEnv("API_DATABASE_SSL_MODE", "disable")
+	AppConfig.Database.Migrate = getEnvAsBool("API_DATABASE_MIGRATE", true)
+	AppConfig.Database.Seed = getEnvAsBool("API_DATABASE_SEED", false) // Default to false for production
+
+	// Test Database Configuration
+	AppConfig.TestDatabase.FilePath = getEnv("API_TEST_DATABASE_FILE_PATH", ":memory:")
+
+	// JWT Configuration
+	AppConfig.JWT.Secret = getEnv("API_JWT_SECRET", "mysecret")
+	AppConfig.JWT.Expiration, err = strconv.Atoi(getEnv("API_JWT_EXPIRATION", "3600"))
+	if err != nil {
+		return fmt.Errorf("invalid API_JWT_EXPIRATION value")
 	}
 
-	AppConfig.JWT.Expiration = expiration
+	// Environment Configuration
+	AppConfig.Environment.Environment = getEnv("API_ENVIRONMENT", "development")
 
-	// Environment configuration
-	AppConfig.Environment.Environment = getEnv("API_APP_ENVIRONMENT", "development")
-
-	// Pagination configuration
-	limit, err := strconv.Atoi(getEnv("API_PAGINATION_LIMIT", "10"))
-
+	// Pagination Configuration
+	AppConfig.Pagination.Limit, err = strconv.Atoi(getEnv("API_PAGINATION_LIMIT", "10"))
 	if err != nil {
-		return fmt.Errorf("invalid PAGINATION_LIMIT value")
+		return fmt.Errorf("invalid API_PAGINATION_LIMIT value")
+	}
+	AppConfig.Pagination.Offset, err = strconv.Atoi(getEnv("API_PAGINATION_OFFSET", "0"))
+	if err != nil {
+		return fmt.Errorf("invalid API_PAGINATION_OFFSET value")
 	}
 
-	offset, err := strconv.Atoi(getEnv("API_PAGINATION_OFFSET", "0"))
-
-	if err != nil {
-		return fmt.Errorf("invalid PAGINATION_OFFSET value")
-	}
-
-	AppConfig.Pagination.Limit = limit
-	AppConfig.Pagination.Offset = offset
-
-	// Log configuration
+	// Log Configuration
 	AppConfig.Log.Level = getEnv("API_LOG_LEVEL", "debug")
 	AppConfig.Log.Format = getEnv("API_LOG_FORMAT", "text")
 
-	// Weather API configuration
+	// Weather API Configuration
 	AppConfig.WeatherAPI.OpenWeatherAPIKey = getEnv("API_WEATHER_API_KEY", "")
+	if AppConfig.WeatherAPI.OpenWeatherAPIKey == "" {
+		return fmt.Errorf("API_WEATHER_API_KEY is required")
+	}
 
 	return nil
 }
 
 // Helper function to get a string environment variable with a fallback value
-func getEnv(key string, fallback string) string {
+func getEnv(key, fallback string) string {
 	if value, exists := os.LookupEnv(key); exists {
 		return value
 	}
-
 	return fallback
 }
 
@@ -102,6 +98,5 @@ func getEnvAsBool(key string, fallback bool) bool {
 	if value, exists := os.LookupEnv(key); exists {
 		return value == "true" || value == "1"
 	}
-
 	return fallback
 }
