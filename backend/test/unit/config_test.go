@@ -21,7 +21,7 @@ func TestLoadEnvSuccess(t *testing.T) {
 
 	// Assert AppConfig is populated correctly
 	assert.Equal(t, 8080, config.AppConfig.Server.Port)
-	assert.Equal(t, "./internal/database/whoknows.db", config.AppConfig.Database.FilePath)
+	assert.Equal(t, "./internal/database/whoknows.db", config.AppConfig.TestDatabase.FilePath)
 	assert.Equal(t, "mysecret", config.AppConfig.JWT.Secret)
 	assert.Equal(t, "test", config.AppConfig.Environment.Environment)
 	assert.Equal(t, 10, config.AppConfig.Pagination.Limit)
