@@ -17,7 +17,7 @@ func TestInitDatabase(t *testing.T) {
 	defer os.Remove(tempFile.Name())
 
 	// Set the config to use the temporary database file
-	config.AppConfig.Database.FilePath = tempFile.Name()
+	config.AppConfig.TestDatabase.FilePath = tempFile.Name()
 
 	// Initialize the database
 	err = InitDatabase()
@@ -52,7 +52,7 @@ func TestMigrateDatabase(t *testing.T) {
 	defer os.Remove(tempFile.Name())
 
 	// Set the config to use the temporary database file
-	config.AppConfig.Database.FilePath = tempFile.Name()
+	config.AppConfig.TestDatabase.FilePath = tempFile.Name()
 
 	// Initialize the database
 	err = InitDatabase()
