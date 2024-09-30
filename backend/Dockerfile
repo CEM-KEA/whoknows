@@ -22,9 +22,6 @@ FROM ubuntu:24.10
 # Install CA certificates
 RUN apt-get update && apt-get install -y ca-certificates && rm -rf /var/lib/apt/lists/*
 
-# Set environment variables
-ENV PORT=8080
-
 # Copy the Pre-built binary file from the previous stage
 COPY --from=builder /app/main /app/main
 

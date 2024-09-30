@@ -1,55 +1,51 @@
 volumes:
-  sqlite_data:
-    external: true  # Use an external volume for SQLite database
+  postgres_data:
 
 networks:
   CEM-KEA:
-    driver: bridge  # Define a bridge network for the services
+    driver: bridge
 
 services:
   backend:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    image: whoknows-backend:${IMAGE_TAG}  # Tag the image after building it
+    image: whoknows-backend:${IMAGE_TAG}
     container_name: backend
     environment:
       - API_SERVER_PORT=${API_SERVER_PORT}
-      - API_DATABASE_FILE_PATH=${API_DATABASE_FILE_PATH}
+      - API_DATABASE_HOST=${API_DATABASE_HOST}
+      - API_DATABASE_PORT=${API_DATABASE_PORT}
+      - API_DATABASE_USER=${API_DATABASE_USER}
+      - API_DATABASE_PASSWORD=${API_DATABASE_PASSWORD}
+      - API_DATABASE_NAME=${API_DATABASE_NAME}
+      - API_DATABASE_SSL_MODE=${API_DATABASE_SSL_MODE}
       - API_DATABASE_MIGRATE=${API_DATABASE_MIGRATE}
-      - API_DATABASE_SEED=${API_DATABASE_SEED}
-      - API_DATABASE_SEED_FILE_PATH=${API_DATABASE_SEED_FILE_PATH}
       - API_JWT_SECRET=${API_JWT_SECRET}
       - API_JWT_EXPIRATION=${API_JWT_EXPIRATION}
       - API_APP_ENVIRONMENT=${API_APP_ENVIRONMENT}
-      - API_PAGINATION_LIMIT=${API_PAGINATION_LIMIT}
-      - API_PAGINATION_OFFSET=${API_PAGINATION_OFFSET}
-      - API_LOG_LEVEL=${API_LOG_LEVEL}
-      - API_LOG_FORMAT=${API_LOG_FORMAT}
-      - API_WEATHER_API_KEY=${API_WEATHER_API_KEY}
-      - ENV_FILE_PATH=/app/.env
+      - DOCKER_ENV=true
     volumes:
-      - ./.env:/app/.env
-      - sqlite_data:/app/internal/database  # Mount the database directory to a persisted volume
-      - ./backend/internal/database/pages.json:/app/internal/database/pages.json # Mount the pages.json file to the database directory
+      - ./backend/internal/database/pages.json:/app/internal/database/pages.json
+    depends_on:
+      - postgres
     ports:
       - "8080:8080"
-    networks: 
+    networks:
       - CEM-KEA
     restart: unless-stopped
 
-  frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-    image: whoknows-frontend:${IMAGE_TAG}  # Tag the image after building it
-    container_name: frontend
+  postgres:
+    image: postgres:13
+    container_name: postgres
     environment:
-      - VITE_API_URL=${VITE_API_URL}
+      POSTGRES_USER: your_user
+      POSTGRES_PASSWORD: your_password
+      POSTGRES_DB: your_db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
     ports:
-      - "80:80"
-    networks: 
+      - "5432:5432"
+    networks:
       - CEM-KEA
-    depends_on:
-      - backend
     restart: unless-stopped
