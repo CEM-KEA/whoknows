@@ -17,10 +17,6 @@ func setupTestDB(t *testing.T) {
 		Server: config.ServerConfig{
 			Port: 8080,
 		},
-		Database: config.DatabaseConfig{
-			// Use in-memory database
-			FilePath: ":memory:",
-		},
 		Environment: config.Environment{
 			Environment: "test",
 		},
