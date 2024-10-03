@@ -1,6 +1,7 @@
 package unit_test
 
 import (
+	"fmt"
 	"os"
 	"testing"
 
@@ -8,53 +9,48 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-// Test LoadEnv function (success scenario)
+// TestLoadEnvSuccess tests if LoadEnv successfully loads variables from a .env file
 func TestLoadEnvSuccess(t *testing.T) {
-	// Set the ENV_FILE_PATH to the actual .env file location
 	os.Setenv("ENV_FILE_PATH", "../test.env")
 
-	// Call the LoadEnv function
 	err := config.LoadEnv()
-
-	// Assert no error occurred
 	assert.NoError(t, err)
-
-	// Assert AppConfig is populated correctly
 	assert.Equal(t, 8080, config.AppConfig.Server.Port)
-	assert.Equal(t, "./internal/database/whoknows.db", config.AppConfig.TestDatabase.FilePath)
+	assert.Equal(t, "localhost", config.AppConfig.Database.Host)
+	assert.Equal(t, 5432, config.AppConfig.Database.Port)
+	assert.Equal(t, "user", config.AppConfig.Database.User)
+	assert.Equal(t, "password", config.AppConfig.Database.Password)
+	assert.Equal(t, "mydb", config.AppConfig.Database.Name)
+	assert.Equal(t, "disable", config.AppConfig.Database.SSLMode)
+	assert.Equal(t, true, config.AppConfig.Database.Migrate)
 	assert.Equal(t, "mysecret", config.AppConfig.JWT.Secret)
+	assert.Equal(t, 3600, config.AppConfig.JWT.Expiration)
 	assert.Equal(t, "test", config.AppConfig.Environment.Environment)
 	assert.Equal(t, 10, config.AppConfig.Pagination.Limit)
 	assert.Equal(t, 0, config.AppConfig.Pagination.Offset)
 	assert.Equal(t, "debug", config.AppConfig.Log.Level)
 	assert.Equal(t, "text", config.AppConfig.Log.Format)
+	assert.Equal(t, "weatherapikey", config.AppConfig.WeatherAPI.OpenWeatherAPIKey)
 
-	// Clean up environment variables to avoid test contamination
-	os.Unsetenv("SERVER_PORT")
-	os.Unsetenv("DATABASE_FILE_PATH")
-	os.Unsetenv("JWT_SECRET")
-	os.Unsetenv("APP_ENVIRONMENT")
-	os.Unsetenv("PAGINATION_LIMIT")
-	os.Unsetenv("PAGINATION_OFFSET")
-	os.Unsetenv("LOG_LEVEL")
-	os.Unsetenv("LOG_FORMAT")
-
-	// Unset ENV_FILE_PATH to avoid test contamination
 	os.Unsetenv("ENV_FILE_PATH")
 }
 
-// Test LoadEnv function (failure scenario)
+// TestLoadEnvFailure simulates a failure when required environment variables are missing
 func TestLoadEnvFailure(t *testing.T) {
-	// Set the ENV_FILE_PATH to an invalid path to simulate failure
-	os.Setenv("ENV_FILE_PATH", "/nonexistent.env")
+	// Clear all environment variables to simulate a missing .env and no environment variables
+	os.Clearenv()
 
-	// Call LoadEnv
+	// Optionally, print environment variables to confirm they are cleared
+	fmt.Println("Environment after clearing:")
+	for _, e := range os.Environ() {
+		fmt.Println(e)
+	}
+
+	// Call LoadEnv and expect it to fail due to missing required environment variables
 	err := config.LoadEnv()
 
 	// Assert that an error occurred
 	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "error reading .env file")
 
-	// Unset ENV_FILE_PATH to avoid test contamination
-	os.Unsetenv("ENV_FILE_PATH")
+	assert.Contains(t, err.Error(), "error loading configuration")
 }

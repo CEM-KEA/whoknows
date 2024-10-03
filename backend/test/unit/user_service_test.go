@@ -6,44 +6,43 @@ import (
 	"github.com/CEM-KEA/whoknows/backend/internal/database"
 	"github.com/CEM-KEA/whoknows/backend/internal/models"
 	"github.com/CEM-KEA/whoknows/backend/internal/services"
+	"github.com/CEM-KEA/whoknows/backend/test/helpers"
 	"github.com/stretchr/testify/assert"
 )
 
+// TestCreateUser tests the CreateUser service method
 func TestCreateUser(t *testing.T) {
-	// Set up the test database
-	setupTestDB(t)
+	helpers.SetupTestDB(t)
 
-	// Create a new user object
-	user := &models.User{Username: "test_user"}
+	user := &models.User{
+		Username: "test_user",
+		Email:    "test_user@example.com",
+	}
 
-	// Call the CreateUser service to create the user
 	err := services.CreateUser(database.DB, user)
-
-	// Validate that there were no errors
 	assert.NoError(t, err)
 
-	// Fetch the user from the database to verify it was created
 	var result models.User
-
 	database.DB.Where("username = ?", user.Username).First(&result)
 
-	// Validate the result
 	assert.Equal(t, user.Username, result.Username)
+	assert.Equal(t, user.Email, result.Email)
 }
 
+// TestGetUserByUsername tests the GetUserByUsername service method
 func TestGetUserByUsername(t *testing.T) {
-	// Set up the test database
-	setupTestDB(t)
+	helpers.SetupTestDB(t)
 
-	// Insert a user into the in-memory database
 	username := "test_user"
-	expectedUser := &models.User{Username: username}
+	expectedUser := &models.User{
+		Username: "test_user",
+		Email:    "test_user@example.com",
+	}
 	database.DB.Create(expectedUser)
 
-	// Call the actual service method
 	result, err := services.GetUserByUsername(database.DB, username)
 
-	// Validate the results
 	assert.NoError(t, err)
 	assert.Equal(t, expectedUser.Username, result.Username)
+	assert.Equal(t, expectedUser.Email, result.Email)
 }

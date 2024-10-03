@@ -8,11 +8,12 @@ import (
 	"testing"
 
 	"github.com/CEM-KEA/whoknows/backend/internal/api"
+	"github.com/CEM-KEA/whoknows/backend/test/helpers"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestRegisterIntegration(t *testing.T) {
-	setupTestDB(t)
+	helpers.SetupTestDB(t)
 
 	router := api.NewRouter()
 
