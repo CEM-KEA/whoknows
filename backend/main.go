@@ -11,14 +11,14 @@ import (
 	"github.com/CEM-KEA/whoknows/backend/internal/utils"
 )
 
-//	@title						WhoKnows API
-//	@version					1.0
-//	@description				This is the API for the WhoKnows application
-//	@scheme						http
-//	@BasePath					/
-//	@securityDefinitions.apiKey	Bearer
-//	@in							header
-//	@name						JWT
+// @title						WhoKnows API
+// @version					1.0
+// @description				This is the API for the WhoKnows application
+// @scheme						http
+// @BasePath					/
+// @securityDefinitions.apiKey	Bearer
+// @in							header
+// @name						JWT
 func main() {
 	// Load application configuration from the .env file
 	err := config.LoadEnv()
@@ -33,24 +33,6 @@ func main() {
 		fmt.Printf("Error initializing database: %s\n", err)
 		return
 	}
-
-	// Migrate the database schema to the latest version if the migrate flag is set to true
-	if config.AppConfig.Database.Migrate {
-		err = database.MigrateDatabase()
-		if err != nil {
-			fmt.Printf("Error migrating database: %s\n", err)
-			return
-		}
-	}
-	//TODO fix this shit
-	// Seed the database with initial data if the seed flag is set to true
-	// if config.AppConfig.Database.Seed {
-	// 	err = database.SeedData()
-	// 	if err != nil {
-	// 		fmt.Printf("Error seeding database: %s\n", err)
-	// 		return
-	// 	}
-	// }
 
 	// initalize utils
 	utils.InitValidator()
