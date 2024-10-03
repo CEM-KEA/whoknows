@@ -1,5 +1,5 @@
 # Stage 1: Build the Vite React app
-FROM node:20 AS builder
+FROM node:22-alpine AS builder
 
 # Set the working directory inside the container
 WORKDIR /app
@@ -17,7 +17,7 @@ COPY . .
 ARG VITE_API_URL
 
 # Expose environment variable
-ENV VITE_API_URL=http://52.169.32.176:8080/api
+ENV VITE_API_URL=$VITE_API_URL
 
 # Build the Vite React app
 RUN npm run build
