@@ -2,14 +2,13 @@ package config
 
 // Config is the struct that holds the application configuration
 type Config struct {
-	Environment  Environment
-	JWT          JWTConfig
-	Server       ServerConfig
-	Database     DatabaseConfig
-	TestDatabase TestDatabaseConfig
-	Pagination   PaginationConfig
-	Log          LogConfig
-	WeatherAPI   WeatherAPIConfig
+	Environment Environment
+	JWT         JWTConfig
+	Server      ServerConfig
+	Database    DatabaseConfig
+	Pagination  PaginationConfig
+	Log         LogConfig
+	WeatherAPI  WeatherAPIConfig
 }
 
 // Environment is the struct that holds the environment configuration
@@ -28,11 +27,6 @@ type ServerConfig struct {
 	Port int
 }
 
-// DatabaseConfig is the struct that holds the database configuration for sqlite3
-type TestDatabaseConfig struct {
-	FilePath     string
-}
-
 // DatabaseConfig is the struct that holds the database configuration for Postgres
 type DatabaseConfig struct {
 	Host     string
@@ -42,7 +36,6 @@ type DatabaseConfig struct {
 	Name     string
 	SSLMode  string
 	Migrate  bool
-	Seed	 bool
 }
 
 // PaginationConfig holds the pagination-related configuration
