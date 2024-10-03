@@ -6,14 +6,23 @@ networks:
     driver: bridge
 
 services:
+  # Backend service
   backend:
+    container_name: backend
+    profiles:
+      - development
+      - production
     build:
       context: ./backend
       dockerfile: Dockerfile
-    image: whoknows-backend:${IMAGE_TAG}
-    container_name: backend
+      # Only build in development mode
+      args:
+        - API_ENVIRONMENT=development
+    image: ghcr.io/cem-kea/whoknows/backend:${BACKEND_VERSION}
+    ports:
+      - "8080:8080"
     environment:
-      - API_SERVER_PORT=${API_SERVER_PORT}
+      - API_SERVER_PORT=8080
       - API_DATABASE_HOST=${API_DATABASE_HOST}
       - API_DATABASE_PORT=${API_DATABASE_PORT}
       - API_DATABASE_USER=${API_DATABASE_USER}
@@ -23,29 +32,85 @@ services:
       - API_DATABASE_MIGRATE=${API_DATABASE_MIGRATE}
       - API_JWT_SECRET=${API_JWT_SECRET}
       - API_JWT_EXPIRATION=${API_JWT_EXPIRATION}
-      - API_APP_ENVIRONMENT=${API_APP_ENVIRONMENT}
-      - DOCKER_ENV=true
+      - API_ENVIRONMENT=${API_ENVIRONMENT}
+      - API_PAGINATION_LIMIT=${API_PAGINATION_LIMIT}
+      - API_PAGINATION_OFFSET=${API_PAGINATION_OFFSET}
+      - API_LOG_LEVEL=${API_LOG_LEVEL}
+      - API_LOG_FORMAT=${API_LOG_FORMAT}
+      - API_WEATHER_API_KEY=${API_WEATHER_API_KEY}
     volumes:
-      - ./backend/internal/database/pages.json:/app/internal/database/pages.json
-    depends_on:
-      - postgres
-    ports:
-      - "8080:8080"
+      - type: bind
+        source: ./backend
+        target: /app
     networks:
       - CEM-KEA
-    restart: unless-stopped
+    depends_on:
+      - db
 
-  postgres:
-    image: postgres:13
-    container_name: postgres
+  # Frontend service
+  frontend:
+    container_name: frontend
+    profiles:
+      - development
+      - production
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        - VITE_API_URL=${VITE_API_URL}
+    image: ghcr.io/cem-kea/whoknows/frontend:${FRONTEND_VERSION}
+    ports:
+      - "80:80"
     environment:
-      POSTGRES_USER: your_user
-      POSTGRES_PASSWORD: your_password
-      POSTGRES_DB: your_db
+      - VITE_API_URL=${VITE_API_URL}
+    volumes:
+      - type: bind
+        source: ./frontend
+        target: /app
+    networks:
+      - CEM-KEA
+
+  # Database service (Postgres)
+  db:
+    container_name: db
+    image: postgres:15-alpine
+    environment:
+      - POSTGRES_DB=${API_DATABASE_NAME}
+      - POSTGRES_USER=${API_DATABASE_USER}
+      - POSTGRES_PASSWORD=${API_DATABASE_PASSWORD}
     volumes:
       - postgres_data:/var/lib/postgresql/data
-    ports:
-      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     networks:
       - CEM-KEA
-    restart: unless-stopped
+    ports:
+      - "5432:5432"
+
+# Profile-specific configurations for development and production
+x-profiles:
+  development:
+    backend:
+      profiles: ["development"]
+      build:
+        context: ./backend
+      env_file:
+        - .env # Only include this for development
+    frontend:
+      profiles: ["development"]
+      build:
+        context: ./frontend
+      env_file:
+        - .env # Only include this for development
+  production:
+    backend:
+      profiles: ["production"]
+      image: ghcr.io/cem-kea/whoknows/backend:${BACKEND_VERSION}
+      # No env_file for production, rely on env variables set outside
+    frontend:
+      profiles: ["production"]
+      image: ghcr.io/cem-kea/whoknows/frontend:${FRONTEND_VERSION}
+      # No env_file for production, rely on env variables set outside
