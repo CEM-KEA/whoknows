@@ -2,9 +2,11 @@ package database
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/CEM-KEA/whoknows/backend/internal/config"
 	"github.com/CEM-KEA/whoknows/backend/internal/models"
+	"github.com/go-gormigrate/gormigrate/v2"
 	"gorm.io/driver/postgres"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
@@ -31,25 +33,42 @@ func InitDatabase() error {
 	}
 
 	fmt.Println("Postgres database connection established")
-	return autoMigrate()
+
+	if config.AppConfig.Database.Migrate {
+		return autoMigrate()
+	}
+
+	return nil
 }
 
 // InitTestDatabase initializes an SQLite in-memory database for testing
 func InitTestDatabase() error {
-	databasePath := config.AppConfig.TestDatabase.FilePath
 	var err error
-	DB, err = gorm.Open(sqlite.Open(databasePath), &gorm.Config{})
+	DB, err = gorm.Open(sqlite.Open(":memory:"), &gorm.Config{})
 	if err != nil {
-		return fmt.Errorf("error connecting to SQLite test database: %s", err)
+		return fmt.Errorf("error connecting to SQLite in-memory database: %s", err)
 	}
 
-	fmt.Println("SQLite test database connection established")
+	fmt.Println("SQLite in-memory test database connection established")
+	
 	return autoMigrate()
 }
 
 // autoMigrate migrates the database schema to the latest version
 func autoMigrate() error {
-	err := DB.AutoMigrate(&models.User{}, &models.Page{}, &models.JWT{})
+	m := gormigrate.New(DB, gormigrate.DefaultOptions, []*gormigrate.Migration{
+		{
+			ID: time.Now().Format("20060102150405"),
+			Migrate: func(tx *gorm.DB) error {
+				return tx.AutoMigrate(&models.User{}, &models.Page{}, &models.JWT{})
+			},
+			Rollback: func(tx *gorm.DB) error {
+				return tx.Migrator().DropTable(&models.User{}, &models.Page{}, &models.JWT{})
+			},
+		},
+	})
+
+	err := m.Migrate()
 	if err != nil {
 		return fmt.Errorf("error migrating database: %s", err)
 	}
