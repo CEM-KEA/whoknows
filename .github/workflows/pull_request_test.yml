@@ -84,6 +84,12 @@ jobs:
       - name: Start Docker Compose 
         run: |
             docker compose --env-file .env -f compose.test.yml up --build -d
+      
+      - name: logs
+        run: | 
+          docker logs backend
+          docker logs frontend
+          docker logs db
 
       # Wait for the PostgreSQL container to be ready
       - name: Wait for PostgreSQL to be Ready
