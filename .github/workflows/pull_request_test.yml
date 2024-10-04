@@ -89,10 +89,13 @@ jobs:
       - name: Generate .env file for Docker Compose
         run: |
           echo "API_SERVER_PORT=${{ secrets.API_SERVER_PORT }}" > .env
-          echo "API_DATABASE_FILE_PATH=./app/internal/database/whoknows.db" >> .env
+          echo "API_DATABASE_HOST=${{ secrets.API_DATABASE_HOST }}" >> .env
+          echo "API_DATABASE_PORT=${{ secrets.API_DATABASE_PORT }}" >> .env
+          echo "API_DATABASE_USER=${{ secrets.API_DATABASE_USER }}" >> .env
+          echo "API_DATABASE_PASSWORD=${{ secrets.API_DATABASE_PASSWORD }}" >> .env
+          echo "API_DATABASE_NAME=${{ secrets.API_DATABASE_NAME }}" >> .env
+          echo "API_DATABASE_SSL_MODE=${{ secrets.API_DATABASE_SSL_MODE }}" >> .env
           echo "API_DATABASE_MIGRATE=${{ secrets.API_DATABASE_MIGRATE }}" >> .env
-          echo "API_DATABASE_SEED=${{ secrets.API_DATABASE_SEED }}" >> .env
-          echo "API_DATABASE_SEED_FILE_PATH=./app/internal/database/pages.json" >> .env
           echo "API_JWT_SECRET=${{ secrets.API_JWT_SECRET }}" >> .env
           echo "API_JWT_EXPIRATION=${{ secrets.API_JWT_EXPIRATION }}" >> .env
           echo "API_APP_ENVIRONMENT=${{ secrets.API_APP_ENVIRONMENT }}" >> .env
@@ -103,18 +106,9 @@ jobs:
           echo "VITE_API_URL=${{ secrets.VITE_API_URL }}" >> .env
           echo "API_WEATHER_API_KEY=${{ secrets.API_WEATHER_API_KEY }}" >> .env
 
-      - name: Create External Volume
+      - name: Start Docker Compose 
         run: |
-          if ! docker volume ls --format '{{.Name}}' | grep -q "^sqlite_data$"; then
-            echo "Creating external volume 'sqlite_data'..."
-            docker volume create sqlite_data
-          else
-            echo "Volume 'sqlite_data' already exists."
-          fi
-
-      - name: Start Docker Compose (Backend + Frontend)
-        run: |
-          docker compose --env-file .env up --build -d  # Start both backend and frontend services
+          docker compose --env-file .env up --profile production --build -d 
 
       - name: Wait for Frontend to be Ready
         run: |
