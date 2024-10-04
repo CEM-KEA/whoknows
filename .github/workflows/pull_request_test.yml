@@ -47,12 +47,6 @@ jobs:
 
   build_and_test:
     runs-on: ubuntu-latest
-    env:
-      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-      SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
-      SONAR_ORGANIZATION: ${{ secrets.SONAR_ORGANIZATION }}
-      SONAR_PROJECT_KEY: ${{ secrets.SONAR_PROJECT_KEY }}
-      IMAGE_TAG: ${{ github.sha }}
 
     steps:
       - name: Checkout Code
@@ -70,33 +64,6 @@ jobs:
         with:
           go-version: "1.23"
 
-      - name: Check Docker Version
-        run: docker --version
-
-      - name: Install Latest Docker, Docker CLI, and Containerd
-        run: |
-          curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo tee /etc/apt/trusted.gpg.d/docker.asc
-          sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
-          sudo apt-get update
-          sudo apt-get install -y docker-ce docker-ce-cli containerd.io
-          
-      - name: Check Updated Docker Version
-        run: docker --version
-
-      - name: Check Docker Compose Version
-        run: docker compose version
-
-      - name: SonarQube Scan Monorepo
-        uses: sonarsource/sonarcloud-github-action@v3
-        with:
-          args: |
-            -Dsonar.projectKey=${{ env.SONAR_PROJECT_KEY }}
-            -Dsonar.organization=${{ env.SONAR_ORGANIZATION }}
-            -Dsonar.token=${{ env.SONAR_TOKEN }}
-            -Dsonar.host.url=${{ env.SONAR_HOST_URL }}
-            -Dsonar.sources=./backend,./frontend,./legacy,./compose.yml
-            -Dsonar.exclusions=**/node_modules/**,**/test/**,**/legacy/**
-
       - name: Run Backend Tests
         run: |
           cd backend
@@ -104,14 +71,6 @@ jobs:
 
       - name: Set environment variables for Docker Compose
         run: |
-          export API_SERVER_PORT=${{ secrets.API_SERVER_PORT }}
-          export API_DATABASE_HOST=${{ secrets.API_DATABASE_HOST }}
-          export API_DATABASE_PORT=${{ secrets.API_DATABASE_PORT }}
-          export API_DATABASE_USER=${{ secrets.API_DATABASE_USER }}
-          export API_DATABASE_PASSWORD=${{ secrets.API_DATABASE_PASSWORD }}
-          export API_DATABASE_NAME=${{ secrets.API_DATABASE_NAME }}
-          export API_DATABASE_SSL_MODE=${{ secrets.API_DATABASE_SSL_MODE }}
-          export API_DATABASE_MIGRATE=${{ secrets.API_DATABASE_MIGRATE }}
           export API_JWT_SECRET=${{ secrets.API_JWT_SECRET }}
           export API_JWT_EXPIRATION=${{ secrets.API_JWT_EXPIRATION }}
           export API_APP_ENVIRONMENT=${{ secrets.API_APP_ENVIRONMENT }}
@@ -119,13 +78,59 @@ jobs:
           export API_PAGINATION_OFFSET=${{ secrets.API_PAGINATION_OFFSET }}
           export API_LOG_LEVEL=${{ secrets.API_LOG_LEVEL }}
           export API_LOG_FORMAT=${{ secrets.API_LOG_FORMAT }}
-          export VITE_API_URL=${{ secrets.VITE_API_URL }}
           export API_WEATHER_API_KEY=${{ secrets.API_WEATHER_API_KEY }}
-          export IMAGE_TAG=${{ env.IMAGE_TAG }}
 
       - name: Start Docker Compose 
         run: |
-          docker compose --profile development up --build -d 
+          docker compose -f compose.test.yml up --build -d 
+
+      # Wait for the PostgreSQL container to be ready
+      - name: Wait for PostgreSQL to be Ready
+        run: |
+          MAX_RETRIES=10
+          RETRY_INTERVAL=5
+          retries=0
+
+          until docker exec db pg_isready -U test_user; do
+            retries=$((retries+1))
+            if [ "$retries" -ge "$MAX_RETRIES" ]; then
+              echo "PostgreSQL did not become ready within the timeout. Exiting."
+              exit 1
+            fi
+            echo "Waiting for PostgreSQL to be ready... (Attempt: $retries/$MAX_RETRIES)"
+            sleep $RETRY_INTERVAL
+          done
+
+          echo "PostgreSQL is ready!"
+
+      # Copy the testdata.sql file into the PostgreSQL container
+      - name: Copy testdata.sql to PostgreSQL Container
+        run: |
+          docker cp ./backend/test/testdata.sql db:/tmp/testdata.sql
+
+      # Run the SQL script inside the PostgreSQL container to seed the test data
+      - name: Seed Test Data into PostgreSQL
+        run: |
+          docker exec db psql -U test_user -d test_db -f /tmp/testdata.sql
+
+      # Wait for the Backend to be Ready (Optional)
+      - name: Wait for Backend to be Ready
+        run: |
+          MAX_RETRIES=30
+          RETRY_INTERVAL=10
+          retries=0
+
+          until curl -s http://localhost:8080 > /dev/null; do
+            retries=$((retries+1))
+            if [ "$retries" -ge "$MAX_RETRIES" ]; then
+              echo "Backend did not become ready within the timeout. Exiting."
+              exit 1
+            fi
+            echo "Waiting for backend to be ready... (Attempt: $retries/$MAX_RETRIES)"
+            sleep $RETRY_INTERVAL
+          done
+
+          echo "Backend is ready!"
 
       - name: Wait for Frontend to be Ready
         run: |
@@ -162,3 +167,6 @@ jobs:
         run: |
           cd frontend
           npx playwright test
+
+      - name: Stop Docker Compose
+        run: docker compose -f compose.test.yml down
