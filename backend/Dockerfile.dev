@@ -2,7 +2,7 @@
 FROM golang:1.23 AS builder
 
 # Install Air for live reloading
-RUN go install github.com/cosmtrek/air@latest
+RUN go install github.com/air-verse/air@latest
 
 # Set the current working directory inside the container
 WORKDIR /app

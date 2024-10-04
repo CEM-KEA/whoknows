@@ -46,12 +46,13 @@ services:
       context: ./frontend
       dockerfile: Dockerfile.dev
     environment:
-      - VITE_API_URL=http://localhost:8080
+      - VITE_API_URL=http://localhost:8080/api
     ports:
-      - "3000:3000"
+      - "5173:5173" # Vite default dev server port
     volumes:
       - ./frontend:/app
-    command: npm run dev
+      - /app/node_modules  # Mount node_modules inside the container to avoid rollup bug (https://github.com/vitejs/vite/discussions/15532)
+    command: npm run dev -- --host
     networks:
       - CEM-KEA
 
