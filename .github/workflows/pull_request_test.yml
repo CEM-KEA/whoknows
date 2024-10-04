@@ -72,21 +72,7 @@ jobs:
 
       - name: Set environment variables for Docker Compose
         run: |
-            echo "API_SERVER_PORT=8080" > .env
-            echo "API_DATABASE_HOST=db" > .env
-            echo "API_DATABASE_PORT=5432" >> .env
-            echo "API_DATABASE_USER=${{ secrets.API_DATABASE_USER }}" >> .env
-            echo "API_DATABASE_PASSWORD=${{ secrets.API_DATABASE_PASSWORD }}" >> .env
-            echo "API_DATABASE_NAME=${{ secrets.API_DATABASE_NAME }}" >> .env
-            echo "API_DATABASE_SSL_MODE=${{ secrets.API_DATABASE_SSL_MODE }}" >> .env
-            echo "API_DATABASE_MIGRATE=${{ secrets.API_DATABASE_MIGRATE }}" >> .env
             echo "API_JWT_SECRET=${{ secrets.API_JWT_SECRET }}" > .env
-            echo "API_JWT_EXPIRATION=${{ secrets.API_JWT_EXPIRATION }}" >> .env
-            echo "API_APP_ENVIRONMENT=${{ secrets.API_APP_ENVIRONMENT }}" >> .env
-            echo "API_PAGINATION_LIMIT=${{ secrets.API_PAGINATION_LIMIT }}" >> .env
-            echo "API_PAGINATION_OFFSET=${{ secrets.API_PAGINATION_OFFSET }}" >> .env
-            echo "API_LOG_LEVEL=${{ secrets.API_LOG_LEVEL }}" >> .env
-            echo "API_LOG_FORMAT=${{ secrets.API_LOG_FORMAT }}" >> .env
             echo "API_WEATHER_API_KEY=${{ secrets.API_WEATHER_API_KEY }}" >> .env
 
       - name: Start Docker Compose 
