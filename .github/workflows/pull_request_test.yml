@@ -93,11 +93,14 @@ jobs:
         run: |
             docker compose --env-file .env -f compose.test.yml up --build -d
       
-      - name: logs
-        run: | 
-          docker logs backend
-          docker logs frontend
-          docker logs db
+      - name: Show Backend Logs
+        run: docker logs backend
+
+      - name: Show Frontend Logs
+        run: docker logs frontend
+
+      - name: Show Database Logs
+        run: docker logs db
 
       # Wait for the PostgreSQL container to be ready
       - name: Wait for PostgreSQL to be Ready
@@ -126,9 +129,9 @@ jobs:
       # Run the SQL script inside the PostgreSQL container to seed the test data
       - name: Seed Test Data into PostgreSQL
         run: |
-          docker exec db psql -U test_user -d test_db -f /tmp/testdata.sql
+          docker exec db psql -U postgres -d whoknows_test -f /tmp/testdata.sql
 
-      # Wait for the Backend to be Ready (Optional)
+      # Wait for the Backend to be Ready
       - name: Wait for Backend to be Ready
         run: |
           MAX_RETRIES=30
