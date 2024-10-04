@@ -70,6 +70,55 @@ jobs:
           cd backend
           go test ./...
 
+      # Create volume manually
+      - name: Create PostgreSQL Data Volume
+        run: docker volume create postgres_data
+
+      # Run PostgreSQL container separately to seed data
+      - name: Start PostgreSQL Container Manually
+        run: |
+          docker run -d --name db_temp \
+            -e POSTGRES_DB=${{ secrets.API_DATABASE_NAME }} \
+            -e POSTGRES_USER=${{ secrets.API_DATABASE_USER }} \
+            -e POSTGRES_PASSWORD=${{ secrets.API_DATABASE_PASSWORD }} \
+            -v postgres_data:/var/lib/postgresql/data \
+            -p 5432:5432 postgres:15-alpine
+
+      # Wait for the PostgreSQL container to be ready
+      - name: Wait for PostgreSQL to be Ready
+        run: |
+          MAX_RETRIES=10
+          RETRY_INTERVAL=5
+          retries=0
+
+          until docker exec db_temp pg_isready -U ${{ secrets.API_DATABASE_USER }}; do
+            retries=$((retries+1))
+            if [ "$retries" -ge "$MAX_RETRIES" ]; then
+              echo "PostgreSQL did not become ready within the timeout. Exiting."
+              exit 1
+            fi
+            echo "Waiting for PostgreSQL to be ready... (Attempt: $retries/$MAX_RETRIES)"
+            sleep $RETRY_INTERVAL
+          done
+
+          echo "PostgreSQL is ready!"
+
+      # Copy the testdata.sql file into the PostgreSQL container
+      - name: Copy testdata.sql to PostgreSQL Container
+        run: |
+          docker cp ./backend/test/testdata.sql db_temp:/tmp/testdata.sql
+
+      # Run the SQL script inside the PostgreSQL container to seed the test data
+      - name: Seed Test Data into PostgreSQL
+        run: |
+          docker exec db_temp psql -U ${{ secrets.API_DATABASE_USER }} -d ${{ secrets.API_DATABASE_NAME }} -f /tmp/testdata.sql
+
+      # Stop the temporary PostgreSQL container
+      - name: Stop and Remove Temporary PostgreSQL Container
+        run: |
+          docker stop db_temp
+          docker rm db_temp
+
       - name: Set environment variables for Docker Compose
         run: |
             echo "API_JWT_SECRET=${{ secrets.API_JWT_SECRET }}" > .env
@@ -87,35 +136,6 @@ jobs:
 
       - name: Show Database Logs
         run: docker logs db
-
-      # Wait for the PostgreSQL container to be ready
-      - name: Wait for PostgreSQL to be Ready
-        run: |
-          MAX_RETRIES=10
-          RETRY_INTERVAL=5
-          retries=0
-
-          until docker exec db pg_isready -U test_user; do
-            retries=$((retries+1))
-            if [ "$retries" -ge "$MAX_RETRIES" ]; then
-              echo "PostgreSQL did not become ready within the timeout. Exiting."
-              exit 1
-            fi
-            echo "Waiting for PostgreSQL to be ready... (Attempt: $retries/$MAX_RETRIES)"
-            sleep $RETRY_INTERVAL
-          done
-
-          echo "PostgreSQL is ready!"
-
-      # Copy the testdata.sql file into the PostgreSQL container
-      - name: Copy testdata.sql to PostgreSQL Container
-        run: |
-          docker cp ./backend/test/testdata.sql db:/tmp/testdata.sql
-
-      # Run the SQL script inside the PostgreSQL container to seed the test data
-      - name: Seed Test Data into PostgreSQL
-        run: |
-          docker exec db psql -U ${{secrets.API_DATABASE_USER}} -d ${{secrets.API_DATABASE_NAME}} -f /tmp/testdata.sql
 
       # Wait for the Backend to be Ready
       - name: Wait for Backend to be Ready
