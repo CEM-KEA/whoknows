@@ -115,7 +115,7 @@ jobs:
       # Run the SQL script inside the PostgreSQL container to seed the test data
       - name: Seed Test Data into PostgreSQL
         run: |
-          docker exec db psql -U postgres -d whoknows_test -f /tmp/testdata.sql
+          docker exec db psql -U ${{secrets.API_DATABASE_USER}} -d ${{secrets.API_DATABASE_NAME}} -f /tmp/testdata.sql
 
       # Wait for the Backend to be Ready
       - name: Wait for Backend to be Ready
