@@ -124,7 +124,7 @@ jobs:
 
       - name: Start Docker Compose 
         run: |
-          docker compose --env-file .env up --profile production --build -d 
+          docker compose --env-file .env up --build -d 
 
       - name: Wait for Frontend to be Ready
         run: |
