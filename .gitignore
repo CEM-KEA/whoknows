@@ -473,4 +473,6 @@ $RECYCLE.BIN/
 # Windows shortcuts
 *.lnk
 
+# Air tmp files
+/backend/tmp/*
 # End of https://www.toptal.com/developers/gitignore/api/jetbrains+all,macos,windows,visualstudiocode,linux,python,flask,react,go
