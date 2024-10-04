@@ -95,6 +95,19 @@ jobs:
       IMAGE_TAG: ${{ needs.build_and_push.outputs.image_tag }}
 
     steps:
+    - name: Check Docker Version
+      run: docker --version
+
+    - name: Install Latest Docker, Docker CLI, and Containerd
+      run: |
+          curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+          sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
+          sudo apt-get update
+          sudo apt-get install -y docker-ce docker-ce-cli containerd.io
+          
+    - name: Check Updated Docker Version
+      run: docker --version
+      
     - name: Set up SSH
       uses: webfactory/ssh-agent@v0.9.0
       with:
