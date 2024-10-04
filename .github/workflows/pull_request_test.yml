@@ -47,6 +47,7 @@ jobs:
 
   build_and_test:
     runs-on: ubuntu-latest
+    needs: check_branch_status
 
     steps:
       - name: Checkout Code
@@ -71,18 +72,18 @@ jobs:
 
       - name: Set environment variables for Docker Compose
         run: |
-          export API_JWT_SECRET=${{ secrets.API_JWT_SECRET }}
-          export API_JWT_EXPIRATION=${{ secrets.API_JWT_EXPIRATION }}
-          export API_APP_ENVIRONMENT=${{ secrets.API_APP_ENVIRONMENT }}
-          export API_PAGINATION_LIMIT=${{ secrets.API_PAGINATION_LIMIT }}
-          export API_PAGINATION_OFFSET=${{ secrets.API_PAGINATION_OFFSET }}
-          export API_LOG_LEVEL=${{ secrets.API_LOG_LEVEL }}
-          export API_LOG_FORMAT=${{ secrets.API_LOG_FORMAT }}
-          export API_WEATHER_API_KEY=${{ secrets.API_WEATHER_API_KEY }}
+            echo "API_JWT_SECRET=${{ secrets.API_JWT_SECRET }}" > .env
+            echo "API_JWT_EXPIRATION=${{ secrets.API_JWT_EXPIRATION }}" >> .env
+            echo "API_APP_ENVIRONMENT=${{ secrets.API_APP_ENVIRONMENT }}" >> .env
+            echo "API_PAGINATION_LIMIT=${{ secrets.API_PAGINATION_LIMIT }}" >> .env
+            echo "API_PAGINATION_OFFSET=${{ secrets.API_PAGINATION_OFFSET }}" >> .env
+            echo "API_LOG_LEVEL=${{ secrets.API_LOG_LEVEL }}" >> .env
+            echo "API_LOG_FORMAT=${{ secrets.API_LOG_FORMAT }}" >> .env
+            echo "API_WEATHER_API_KEY=${{ secrets.API_WEATHER_API_KEY }}" >> .env
 
       - name: Start Docker Compose 
         run: |
-          docker compose -f compose.test.yml up --build -d 
+            docker compose --env-file .env -f compose.test.yml up --build -d
 
       # Wait for the PostgreSQL container to be ready
       - name: Wait for PostgreSQL to be Ready
