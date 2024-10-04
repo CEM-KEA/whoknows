@@ -104,7 +104,6 @@ jobs:
 
       - name: Set environment variables for Docker Compose
         run: |
-         # Set environment variables directly in OS (no need for .env)
           export API_SERVER_PORT=${{ secrets.API_SERVER_PORT }}
           export API_DATABASE_HOST=${{ secrets.API_DATABASE_HOST }}
           export API_DATABASE_PORT=${{ secrets.API_DATABASE_PORT }}
