@@ -44,18 +44,9 @@ jobs:
         run: |
           git merge origin/main
 
-
   build_and_test:
     runs-on: ubuntu-latest
     needs: check_branch_status
-    env:
-      API_DATABASE_USER: ${{ secrets.API_DATABASE_USER }}
-      API_DATABASE_PASSWORD: ${{ secrets.API_DATABASE_PASSWORD }}
-      API_DATABASE_NAME: ${{ secrets.API_DATABASE_NAME }}
-      API_JWT_SECRET: ${{ secrets.API_JWT_SECRET }}
-      API_WEATHER_API_KEY: ${{ secrets.API_WEATHER_API_KEY }}
-      TEST_LOGIN_USERNAME: ${{ secrets.TEST_LOGIN_USERNAME }}
-      TEST_LOGIN_PASSWORD: ${{ secrets.TEST_LOGIN_PASSWORD }}
 
     steps:
       - name: Checkout Code
@@ -86,9 +77,9 @@ jobs:
       - name: Start PostgreSQL Container Manually
         run: |
           docker run -d --name db_temp \
-            -e POSTGRES_DB=${{ env.API_DATABASE_NAME }} \
-            -e POSTGRES_USER=${{ env.API_DATABASE_USER }} \
-            -e POSTGRES_PASSWORD=${{ env.API_DATABASE_PASSWORD }} \
+            -e POSTGRES_DB=${{ secrets.API_DATABASE_NAME }} \
+            -e POSTGRES_USER=${{ secrets.API_DATABASE_USER }} \
+            -e POSTGRES_PASSWORD=${{ secrets.API_DATABASE_PASSWORD }} \
             -v postgres_data:/var/lib/postgresql/data \
             -p 5432:5432 postgres:15-alpine
 
@@ -99,7 +90,7 @@ jobs:
           RETRY_INTERVAL=5
           retries=0
 
-          until docker exec db_temp pg_isready -U ${{ env.API_DATABASE_USER }}; do
+          until docker exec db_temp pg_isready -U ${{ secrets.API_DATABASE_USER }}; do
             retries=$((retries+1))
             if [ "$retries" -ge "$MAX_RETRIES" ]; then
               echo "PostgreSQL did not become ready within the timeout. Exiting."
@@ -119,7 +110,7 @@ jobs:
       # Run the SQL script inside the PostgreSQL container to seed the test data
       - name: Seed Test Data into PostgreSQL
         run: |
-          docker exec db_temp psql -U ${{ env.API_DATABASE_USER }} -d ${{ env.API_DATABASE_NAME }} -f /tmp/testdata.sql
+          docker exec db_temp psql -U ${{ secrets.API_DATABASE_USER }} -d ${{ secrets.API_DATABASE_NAME }} -f /tmp/testdata.sql
 
       # Stop the temporary PostgreSQL container
       - name: Stop and Remove Temporary PostgreSQL Container
@@ -129,11 +120,11 @@ jobs:
 
       - name: Set environment variables for Docker Compose
         run: |
-            echo "API_DATABASE_USER=${{ env.API_DATABASE_USER }}" > .env
-            echo "API_DATABASE_PASSWORD=${{ env.API_DATABASE_PASSWORD }}" >> .env
-            echo "API_DATABASE_NAME=${{ env.API_DATABASE_NAME }}" >> .env
-            echo "API_JWT_SECRET=${{ env.API_JWT_SECRET }}" > .env
-            echo "API_WEATHER_API_KEY=${{ env.API_WEATHER_API_KEY }}" >> .env
+            echo "API_DATABASE_USER=${{ secrets.API_DATABASE_USER }}" > .env
+            echo "API_DATABASE_PASSWORD=${{ secrets.API_DATABASE_PASSWORD }}" >> .env
+            echo "API_DATABASE_NAME=${{ secrets.API_DATABASE_NAME }}" >> .env
+            echo "API_JWT_SECRET=${{ secrets.API_JWT_SECRET }}" > .env
+            echo "API_WEATHER_API_KEY=${{ secrets.API_WEATHER_API_KEY }}" >> .env
 
       - name: Start Docker Compose 
         run: |
@@ -197,8 +188,8 @@ jobs:
       - name: Run End-to-End Tests
         env:
           TEST_FRONTEND_URL: http://localhost
-          TEST_LOGIN_USERNAME: ${{ env.TEST_LOGIN_USERNAME }}
-          TEST_LOGIN_PASSWORD: ${{ env.TEST_LOGIN_PASSWORD }}
+          TEST_LOGIN_USERNAME: ${{ secrets.TEST_LOGIN_USERNAME }}
+          TEST_LOGIN_PASSWORD: ${{ secrets.TEST_LOGIN_PASSWORD }}
         run: |
           cd frontend
           npx playwright test
