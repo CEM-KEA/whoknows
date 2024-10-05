@@ -11,7 +11,7 @@ test("search", async ({ page }) => {
   await page.goto(`${baseUrl}`, { timeout: 10000 });
 
   // Search for 'Test'.
-  await page.fill("#search", "Test");
+  await page.fill("#search", "guide");
   await page.keyboard.press("Enter");
 
   // Wait for 5 seconds
