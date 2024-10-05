@@ -69,19 +69,30 @@ jobs:
           cd backend
           go test ./...
 
-      # Create volume manually
+      # Create volume for PostgreSQL data
       - name: Create PostgreSQL Data Volume
         run: docker volume create postgres_data
 
-      # Run PostgreSQL container separately to seed data
-      - name: Start PostgreSQL Container Manually
+      - name: Set environment variables for Docker Compose
         run: |
-          docker run -d --name db_temp \
-            -e POSTGRES_DB=${{ secrets.API_DATABASE_NAME }} \
-            -e POSTGRES_USER=${{ secrets.API_DATABASE_USER }} \
-            -e POSTGRES_PASSWORD=${{ secrets.API_DATABASE_PASSWORD }} \
-            -v postgres_data:/var/lib/postgresql/data \
-            -p 5432:5432 postgres:15-alpine
+            echo "API_DATABASE_USER=${{ secrets.API_DATABASE_USER }}" > .env
+            echo "API_DATABASE_PASSWORD=${{ secrets.API_DATABASE_PASSWORD }}" >> .env
+            echo "API_DATABASE_NAME=${{ secrets.API_DATABASE_NAME }}" >> .env
+            echo "API_JWT_SECRET=${{ secrets.API_JWT_SECRET }}" >> .env
+            echo "API_WEATHER_API_KEY=${{ secrets.API_WEATHER_API_KEY }}" >> .env
+
+      - name: Start Docker Compose 
+        run: |
+            docker compose --env-file .env -f compose.test.yml up --build -d
+      
+      - name: Show Backend Logs
+        run: docker logs backend
+
+      - name: Show Frontend Logs
+        run: docker logs frontend
+
+      - name: Show Database Logs
+        run: docker logs db
 
       # Wait for the PostgreSQL container to be ready
       - name: Wait for PostgreSQL to be Ready
@@ -111,33 +122,6 @@ jobs:
       - name: Seed Test Data into PostgreSQL
         run: |
           docker exec db_temp psql -U ${{ secrets.API_DATABASE_USER }} -d ${{ secrets.API_DATABASE_NAME }} -f /tmp/testdata.sql
-
-      # Stop the temporary PostgreSQL container
-      - name: Stop and Remove Temporary PostgreSQL Container
-        run: |
-          docker stop db_temp
-          docker rm db_temp
-
-      - name: Set environment variables for Docker Compose
-        run: |
-            echo "API_DATABASE_USER=${{ secrets.API_DATABASE_USER }}" > .env
-            echo "API_DATABASE_PASSWORD=${{ secrets.API_DATABASE_PASSWORD }}" >> .env
-            echo "API_DATABASE_NAME=${{ secrets.API_DATABASE_NAME }}" >> .env
-            echo "API_JWT_SECRET=${{ secrets.API_JWT_SECRET }}" >> .env
-            echo "API_WEATHER_API_KEY=${{ secrets.API_WEATHER_API_KEY }}" >> .env
-
-      - name: Start Docker Compose 
-        run: |
-            docker compose --env-file .env -f compose.test.yml up --build -d
-      
-      - name: Show Backend Logs
-        run: docker logs backend
-
-      - name: Show Frontend Logs
-        run: docker logs frontend
-
-      - name: Show Database Logs
-        run: docker logs db
 
       # Wait for the Backend to be Ready
       - name: Wait for Backend to be Ready
