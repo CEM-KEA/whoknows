@@ -101,7 +101,7 @@ jobs:
           RETRY_INTERVAL=5
           retries=0
 
-          until docker exec db_temp pg_isready -U ${{ secrets.API_DATABASE_USER }}; do
+          until docker exec db pg_isready -U ${{ secrets.API_DATABASE_USER }}; do
             retries=$((retries+1))
             if [ "$retries" -ge "$MAX_RETRIES" ]; then
               echo "PostgreSQL did not become ready within the timeout. Exiting."
