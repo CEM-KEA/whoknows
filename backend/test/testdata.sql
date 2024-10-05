@@ -52,3 +52,7 @@ SELECT setval('users_id_seq', (SELECT COALESCE(MAX(id), 1) FROM users));
 SELECT setval('pages_id_seq', (SELECT COALESCE(MAX(id), 1) FROM pages));
 SELECT setval('jwts_id_seq', (SELECT COALESCE(MAX(id), 1) FROM jwts));
 
+-- Verify the data
+SELECT FROM users WHERE username = 'testuser';
+SELECT FROM pages WHERE url = '/go-programming';
+
