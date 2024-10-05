@@ -123,7 +123,7 @@ jobs:
             echo "API_DATABASE_USER=${{ secrets.API_DATABASE_USER }}" > .env
             echo "API_DATABASE_PASSWORD=${{ secrets.API_DATABASE_PASSWORD }}" >> .env
             echo "API_DATABASE_NAME=${{ secrets.API_DATABASE_NAME }}" >> .env
-            echo "API_JWT_SECRET=${{ secrets.API_JWT_SECRET }}" > .env
+            echo "API_JWT_SECRET=${{ secrets.API_JWT_SECRET }}" >> .env
             echo "API_WEATHER_API_KEY=${{ secrets.API_WEATHER_API_KEY }}" >> .env
 
       - name: Start Docker Compose 
