@@ -116,12 +116,12 @@ jobs:
       # Copy the testdata.sql file into the PostgreSQL container
       - name: Copy testdata.sql to PostgreSQL Container
         run: |
-          docker cp ./backend/test/testdata.sql db_temp:/tmp/testdata.sql
+          docker cp ./backend/test/testdata.sql db:/tmp/testdata.sql
 
       # Run the SQL script inside the PostgreSQL container to seed the test data
       - name: Seed Test Data into PostgreSQL
         run: |
-          docker exec db_temp psql -U ${{ secrets.API_DATABASE_USER }} -d ${{ secrets.API_DATABASE_NAME }} -f /tmp/testdata.sql
+          docker exec db psql -U ${{ secrets.API_DATABASE_USER }} -d ${{ secrets.API_DATABASE_NAME }} -f /tmp/testdata.sql
 
       # Wait for the Backend to be Ready
       - name: Wait for Backend to be Ready
