@@ -37,20 +37,15 @@ func TestLoadEnvSuccess(t *testing.T) {
 
 // TestLoadEnvFailure simulates a failure when required environment variables are missing
 func TestLoadEnvFailure(t *testing.T) {
-	// Clear all environment variables to simulate a missing .env and no environment variables
 	os.Clearenv()
 
-	// Optionally, print environment variables to confirm they are cleared
 	fmt.Println("Environment after clearing:")
 	for _, e := range os.Environ() {
 		fmt.Println(e)
 	}
 
-	// Call LoadEnv and expect it to fail due to missing required environment variables
 	err := config.LoadEnv()
 
-	// Assert that an error occurred
 	assert.Error(t, err)
-
 	assert.Contains(t, err.Error(), "error loading configuration")
 }

@@ -13,26 +13,23 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-// SetupTestDB initializes the test database using the common InitTestDatabase() method
+// SetupTestDB initializes the test database and seeds initial data
 func SetupTestDB(t *testing.T) {
-	// Initialize the validator (necessary for validation logic in tests)
 	utils.InitValidator()
 
-	// Set up the test-specific configuration
 	config.AppConfig = config.Config{
 		JWT: config.JWTConfig{
 			Secret:     "testsecret",
-			Expiration: 3600, // 1 hour expiration for JWTs
+			Expiration: 3600,
 		},
 		Server: config.ServerConfig{
-			Port: 8080, // Set any port necessary for your tests
+			Port: 8080,
 		},
 		Environment: config.Environment{
-			Environment: "test", // Ensure the environment is set to 'test'
+			Environment: "test",
 		},
 	}
 
-	// Initialize the test database (using SQLite or any test-specific setup)
 	err := database.InitTestDatabase()
 	if err != nil {
 		t.Fatalf("Failed to initialize the test database: %v", err)

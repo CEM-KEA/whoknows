@@ -109,9 +109,9 @@ jobs:
         ssh -o StrictHostKeyChecking=no ${{ secrets.AZURE_VM_USER }}@${{ secrets.AZURE_VM_IP }} << EOF
           cd /home/azureuser/whoknows || exit
 
-          # Optionally pull the compose.yml if needed
+          # Pull the compose.prod.yml
           git fetch origin main
-          git checkout origin/main -- compose.yml
+          git checkout origin/main -- compose.prod.yml
 
           # Set environment variables directly in OS (no need for .env)
           export API_DATABASE_USER=${{ secrets.API_DATABASE_USER }}
@@ -137,8 +137,8 @@ jobs:
           echo "Pulling frontend image ghcr.io/${{ github.repository }}/frontend:${{ env.IMAGE_TAG }}"
           docker pull ghcr.io/${{ github.repository }}/frontend:${{ env.IMAGE_TAG }}
 
-          # Build and start Docker services with the 'production' profile
-          echo "Building and starting Docker services with the production profile..."
+          # Start Docker services for production
+          echo "Starting Docker services for production..."
           docker compose down
           docker compose -f compose.prod.yml up -d
         EOF

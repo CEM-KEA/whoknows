@@ -10,7 +10,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-// TestCreateUser tests the CreateUser service method
 func TestCreateUser(t *testing.T) {
 	helpers.SetupTestDB(t)
 
@@ -29,7 +28,6 @@ func TestCreateUser(t *testing.T) {
 	assert.Equal(t, user.Email, result.Email)
 }
 
-// TestGetUserByUsername tests the GetUserByUsername service method
 func TestGetUserByUsername(t *testing.T) {
 	helpers.SetupTestDB(t)
 

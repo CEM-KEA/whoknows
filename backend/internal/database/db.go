@@ -26,7 +26,6 @@ func InitDatabase() error {
 		config.AppConfig.Database.Port,
 		config.AppConfig.Database.SSLMode,
 	)
-	fmt.Printf("Attempting to connect to Postgres database with DSN: %s\n", dsn)
 	
 	var err error
 	DB, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
