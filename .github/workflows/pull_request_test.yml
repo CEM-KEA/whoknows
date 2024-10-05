@@ -176,6 +176,15 @@ jobs:
 
           echo "Frontend is ready!"
 
+      - name: Curl from frontend to backend with backend as hostname
+        run: |
+          docker exec frontend curl -X POST http://backend:8080/api/login \
+          -H "Content-Type: application/json" \
+          -d '{
+          "Username": "testuser",
+          "Password": "password123"
+          }'
+
       - name: Install Dependencies for Playwright
         run: npx playwright install-deps
 
@@ -187,7 +196,7 @@ jobs:
 
       - name: Run End-to-End Tests
         env:
-          TEST_FRONTEND_URL: http://localhost
+          TEST_FRONTEND_URL: http://frontend
           TEST_LOGIN_USERNAME: ${{ secrets.TEST_LOGIN_USERNAME }}
           TEST_LOGIN_PASSWORD: ${{ secrets.TEST_LOGIN_PASSWORD }}
         run: |
