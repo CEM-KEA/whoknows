@@ -176,6 +176,10 @@ jobs:
 
           echo "Frontend is ready!"
 
+      - name: Verify testdata in PostgreSQL
+        run: |
+          docker exec db psql -U ${{ secrets.API_DATABASE_USER }} -d ${{ secrets.API_DATABASE_NAME }} -c "SELECT * FROM users;"
+
       - name: Curl from frontend to backend with backend as hostname
         run: |
           docker exec frontend curl -X POST http://backend:8080/api/login \
