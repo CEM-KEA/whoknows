@@ -40,7 +40,7 @@ services:
       context: ./frontend
       dockerfile: Dockerfile.test
     environment:
-      - VITE_API_URL=http://localhost:8080/api
+      - VITE_API_URL=http://backend:8080/api/
     ports:
       - "80:80"
     depends_on:
