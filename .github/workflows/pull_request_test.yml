@@ -185,8 +185,8 @@ jobs:
       - name: Run End-to-End Tests
         env:
           TEST_FRONTEND_URL: http://localhost
-          TEST_LOGIN_USERNAME: ${{ secrets.TEST_LOGIN_USERNAME }}
-          TEST_LOGIN_PASSWORD: ${{ secrets.TEST_LOGIN_PASSWORD }}
+          TEST_LOGIN_USERNAME: testuser
+          TEST_LOGIN_PASSWORD: password123
         run: |
           cd frontend
           npx playwright test
