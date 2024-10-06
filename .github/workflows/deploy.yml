@@ -114,21 +114,21 @@ jobs:
           git checkout origin/main -- compose.prod.yml
 
           # Set environment variables directly in OS (no need for .env)
-          export API_DATABASE_USER=${{ secrets.API_DATABASE_USER }}
-          export API_DATABASE_PASSWORD=${{ secrets.API_DATABASE_PASSWORD }}
-          export API_DATABASE_NAME=${{ secrets.API_DATABASE_NAME }}
-          export API_DATABASE_SSL_MODE=${{ secrets.API_DATABASE_SSL_MODE }}
-          export API_DATABASE_MIGRATE=${{ secrets.API_DATABASE_MIGRATE }}
-          export API_JWT_SECRET=${{ secrets.API_JWT_SECRET }}
-          export API_JWT_EXPIRATION=${{ secrets.API_JWT_EXPIRATION }}
-          export API_APP_ENVIRONMENT=${{ secrets.API_APP_ENVIRONMENT }}
-          export API_PAGINATION_LIMIT=${{ secrets.API_PAGINATION_LIMIT }}
-          export API_PAGINATION_OFFSET=${{ secrets.API_PAGINATION_OFFSET }}
-          export API_LOG_LEVEL=${{ secrets.API_LOG_LEVEL }}
-          export API_LOG_FORMAT=${{ secrets.API_LOG_FORMAT }}
-          export VITE_API_URL=${{ secrets.VITE_API_URL }}
-          export API_WEATHER_API_KEY=${{ secrets.API_WEATHER_API_KEY }}
-          export IMAGE_TAG=${{ env.IMAGE_TAG }}
+          export API_DATABASE_USER="${{ secrets.API_DATABASE_USER }}"
+          export API_DATABASE_PASSWORD="${{ secrets.API_DATABASE_PASSWORD }}"
+          export API_DATABASE_NAME="${{ secrets.API_DATABASE_NAME }}"
+          export API_DATABASE_SSL_MODE="${{ secrets.API_DATABASE_SSL_MODE }}"
+          export API_DATABASE_MIGRATE="${{ secrets.API_DATABASE_MIGRATE }}"
+          export API_JWT_SECRET="${{ secrets.API_JWT_SECRET }}"
+          export API_JWT_EXPIRATION="${{ secrets.API_JWT_EXPIRATION }}"
+          export API_APP_ENVIRONMENT="${{ secrets.API_APP_ENVIRONMENT }}"
+          export API_PAGINATION_LIMIT="${{ secrets.API_PAGINATION_LIMIT }}"
+          export API_PAGINATION_OFFSET="${{ secrets.API_PAGINATION_OFFSET }}"
+          export API_LOG_LEVEL="${{ secrets.API_LOG_LEVEL }}"
+          export API_LOG_FORMAT="${{ secrets.API_LOG_FORMAT }}"
+          export VITE_API_URL="${{ secrets.VITE_API_URL }}"
+          export API_WEATHER_API_KEY="${{ secrets.API_WEATHER_API_KEY }}"
+          export IMAGE_TAG="${{ env.IMAGE_TAG }}"
 
           # Pull the latest images from GHCR
           echo "Pulling backend image ghcr.io/${{ github.repository }}/backend:${{ env.IMAGE_TAG }}"
