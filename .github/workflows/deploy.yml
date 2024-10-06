@@ -95,6 +95,11 @@ jobs:
       IMAGE_TAG: ${{ needs.build_and_push.outputs.image_tag }}
 
     steps:
+    - name: Set Repository Name to Lowercase
+      id: set_repo_name
+      run: |
+        REPO_NAME=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
+        echo "repo_name=$REPO_NAME" >> $GITHUB_ENV
 
     - name: Set up SSH
       uses: webfactory/ssh-agent@v0.9.0
@@ -102,6 +107,9 @@ jobs:
         ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
     - name: Deploy to Azure VM
+      env:
+        IMAGE_TAG: ${{ env.IMAGE_TAG }}
+        REPO_NAME: ${{ env.repo_name }}
       run: |
         echo "Deploying with IMAGE_TAG: ${{ env.IMAGE_TAG }}"
 
@@ -133,11 +141,11 @@ jobs:
           export FRONTEND_VERSION="${{ env.IMAGE_TAG }}"
 
           # Pull the latest images from GHCR
-          echo "Pulling backend image ghcr.io/${{ github.repository }}/backend:${{ env.IMAGE_TAG }}"
-          docker pull ghcr.io/${{ github.repository }}/backend:${{ env.IMAGE_TAG }}
+          echo "Pulling backend image ghcr.io/${{ env.REPO_NAME }}/backend:${{ env.IMAGE_TAG }}"
+          docker pull ghcr.io/${{ env.REPO_NAME }}/backend:${{ env.IMAGE_TAG }}
 
-          echo "Pulling frontend image ghcr.io/${{ github.repository }}/frontend:${{ env.IMAGE_TAG }}"
-          docker pull ghcr.io/${{ github.repository }}/frontend:${{ env.IMAGE_TAG }}
+          echo "Pulling frontend image ghcr.io/${{ env.REPO_NAME }}/frontend:${{ env.IMAGE_TAG }}"
+          docker pull ghcr.io/${{ env.REPO_NAME }}/frontend:${{ env.IMAGE_TAG }}
 
           # Start Docker services for production
           echo "Starting Docker services for production..."
