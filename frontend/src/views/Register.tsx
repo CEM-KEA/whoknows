@@ -11,7 +11,7 @@ interface RegisterProps {
   logIn: (jwt_token: string) => void;
 }
 
-function Register(props: RegisterProps) {
+function Register(props: Readonly<RegisterProps>) {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [username, setUsername] = useState("");
