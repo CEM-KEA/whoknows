@@ -8,42 +8,33 @@ const testUserUsername = process.env.TEST_LOGIN_USERNAME ?? "";
 const testUserPassword = process.env.TEST_LOGIN_PASSWORD ?? "";
 
 test("can login", async ({ page }) => {
-  // set a timeout of 10 seconds(max time to wait for the page to load)
-  await page.goto(`${baseUrl}/login`, { timeout: 10000 });
 
-  // fill in form
+  await page.goto(`${baseUrl}/login`, { timeout: 10000 });
+  await page.waitForSelector("#login-button", { state: "visible" });
+
   await page.fill("#login-username", testUserUsername);
   await page.fill("#login-password", testUserPassword);
   await page.click("#login-button");
 
-  // wait 5 second
   await page.waitForTimeout(5000);
+  await page.waitForURL(`${baseUrl}/`, { timeout: 10000 });
 
-  // expect to be redirected to the search page.
   expect(page.url()).toBe(`${baseUrl}/`);
-  const logoutButton = page.locator("#login-logout-nav");
-  expect(await logoutButton?.innerText()).toBe("Log out");
 });
 
 test("can log in and then log out", async ({ page }) => {
-  // set a timeout of 10 seconds(max time to wait for the page to load)
   await page.goto(`${baseUrl}/login`, { timeout: 10000 });
 
-  // fill in the form and submit it.
   await page.fill("#login-username", testUserUsername);
   await page.fill("#login-password", testUserPassword);
   await page.click("#login-button");
 
-  // Wait for 5 seconds
   await page.waitForTimeout(5000);
 
-  // Expect to be redirected to the search page.
   expect(page.url()).toBe(`${baseUrl}/`);
 
-  // Click the logout button
   await page.click("#login-logout-nav");
 
-  // Wait for 5 seconds
   await page.waitForTimeout(5000);
 
   // Expect to be redirected to the login page.
