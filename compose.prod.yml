@@ -1,0 +1,69 @@
+volumes:
+  postgres_data:
+    external: true
+
+networks:
+  CEM-KEA:
+    driver: bridge
+
+services:
+  backend:
+    container_name: backend
+    image: ghcr.io/cem-kea/whoknows/backend:${BACKEND_VERSION}
+    ports:
+      - "8080:8080"
+    environment:
+      - API_SERVER_PORT=8080
+      - API_DATABASE_HOST=db
+      - API_DATABASE_PORT=5432
+      - API_DATABASE_USER=${API_DATABASE_USER}
+      - API_DATABASE_PASSWORD=${API_DATABASE_PASSWORD}
+      - API_DATABASE_NAME=${API_DATABASE_NAME}
+      - API_DATABASE_SSL_MODE=${API_DATABASE_SSL_MODE}
+      - API_DATABASE_MIGRATE=${API_DATABASE_MIGRATE}
+      - API_JWT_SECRET=${API_JWT_SECRET}
+      - API_JWT_EXPIRATION=${API_JWT_EXPIRATION}
+      - API_ENVIRONMENT=production
+      - API_PAGINATION_LIMIT=${API_PAGINATION_LIMIT}
+      - API_PAGINATION_OFFSET=${API_PAGINATION_OFFSET}
+      - API_LOG_LEVEL=${API_LOG_LEVEL}
+      - API_LOG_FORMAT=${API_LOG_FORMAT}
+      - API_WEATHER_API_KEY=${API_WEATHER_API_KEY}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    networks:
+      - CEM-KEA
+    depends_on:
+      - db
+
+  frontend:
+    container_name: frontend
+    image: ghcr.io/cem-kea/whoknows/frontend:${FRONTEND_VERSION}
+    ports:
+      - "80:80"
+    environment:
+      - VITE_API_URL=${VITE_API_URL}
+    networks:
+      - CEM-KEA
+
+  db:
+    container_name: db
+    image: postgres:15-alpine
+    environment:
+      - POSTGRES_DB=${API_DATABASE_NAME}
+      - POSTGRES_USER=${API_DATABASE_USER}
+      - POSTGRES_PASSWORD=${API_DATABASE_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - CEM-KEA
+    ports:
+      - "5432:5432"
