@@ -101,9 +101,6 @@ jobs:
         REPO_NAME=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
         echo "repo_name=$REPO_NAME" >> $GITHUB_ENV
 
-    - name: Log into GitHub Container Registry
-      run: echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
-
     - name: Set up SSH
       uses: webfactory/ssh-agent@v0.9.0
       with:
@@ -119,6 +116,9 @@ jobs:
         # SSH into the Azure VM and deploy
         ssh -o StrictHostKeyChecking=no ${{ secrets.AZURE_VM_USER }}@${{ secrets.AZURE_VM_IP }} << EOF
           cd /home/azureuser/whoknows || exit
+
+          # log into GitHub Container Registry
+          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
           # Pull the compose.prod.yml
           git fetch origin main
