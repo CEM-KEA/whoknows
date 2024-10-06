@@ -48,8 +48,6 @@ services:
       - VITE_API_URL=${VITE_API_URL}
     networks:
       - CEM-KEA
-    depends_on:
-      - backend
 
   db:
     container_name: db
