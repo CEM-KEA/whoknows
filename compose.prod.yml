@@ -7,12 +7,8 @@ networks:
     driver: bridge
 
 services:
-  # Backend service
   backend:
     container_name: backend
-    build:
-      context: ./backend
-      dockerfile: Dockerfile.prod
     image: ghcr.io/cem-kea/whoknows/backend:${BACKEND_VERSION}
     ports:
       - "8080:8080"
@@ -33,18 +29,19 @@ services:
       - API_LOG_LEVEL=${API_LOG_LEVEL}
       - API_LOG_FORMAT=${API_LOG_FORMAT}
       - API_WEATHER_API_KEY=${API_WEATHER_API_KEY}
-      
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
     networks:
       - CEM-KEA
     depends_on:
-      - db
+      db:
+        condition: service_healthy
 
-  # Frontend service
   frontend:
     container_name: frontend
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile.prod
     image: ghcr.io/cem-kea/whoknows/frontend:${FRONTEND_VERSION}
     ports:
       - "80:80"
@@ -52,8 +49,10 @@ services:
       - VITE_API_URL=${VITE_API_URL}
     networks:
       - CEM-KEA
+    depends_on:
+      - serviceName: backend
+        condition: service_healthy
 
-  # Database service (Postgres)
   db:
     container_name: db
     image: postgres:15-alpine
