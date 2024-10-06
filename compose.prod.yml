@@ -37,8 +37,7 @@ services:
     networks:
       - CEM-KEA
     depends_on:
-      db:
-        condition: service_healthy
+      - db
 
   frontend:
     container_name: frontend
@@ -50,8 +49,7 @@ services:
     networks:
       - CEM-KEA
     depends_on:
-      - serviceName: backend
-        condition: service_healthy
+      - backend
 
   db:
     container_name: db
