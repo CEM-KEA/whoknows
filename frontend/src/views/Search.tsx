@@ -1,23 +1,35 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import PageLayout from "../components/PageLayout";
 import { apiGet } from "../utils/apiUtils";
 import type { ISearchResponse } from "../types/search.types";
 import LoadingSpinner from "../components/LoadingSpinner";
 import toast from "react-hot-toast";
+import { useLocation, useNavigate } from "react-router-dom";
+
+function useQuery() {
+  return new URLSearchParams(useLocation().search);
+}
 
 function Search() {
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(false);
   const [searchResponse, setSearchResponse] = useState<ISearchResponse | null>(null);
+  const query = useQuery();
+  const navigate = useNavigate();
+  const initialSearchPerformed = useRef(false); // useRef to persist the value across re-renders
 
-  const handleSearch = () => {
-    setLoading(true);
-    if (search.trim() === "") {
-      setSearchResponse(null);
-      setLoading(false);
-      return;
+  useEffect(() => {
+    const queryParam = query.get("q");
+    if (queryParam && !initialSearchPerformed.current) {
+      setSearch(queryParam);
+      performSearch(queryParam);
+      initialSearchPerformed.current = true;
     }
-    apiGet<ISearchResponse>("/search?q=" + search)
+  }, [query]);
+
+  const performSearch = (query: string) => {
+    setLoading(true);
+    apiGet<ISearchResponse>("/search?q=" + query)
       .then((response) => {
         setSearchResponse(response);
       })
@@ -25,6 +37,17 @@ function Search() {
         toast.error(error.message);
       })
       .finally(() => setLoading(false));
+  };
+
+  const handleSearch = () => {
+    if (search.trim() === "") {
+      setSearchResponse(null);
+      navigate(``);
+      return;
+    }
+    // Encode the search query to handle special characters for URL
+    navigate(`?q=${encodeURIComponent(search)}`);
+    performSearch(search);
   };
 
   return (
