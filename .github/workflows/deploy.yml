@@ -129,6 +129,8 @@ jobs:
           export VITE_API_URL="${{ secrets.VITE_API_URL }}"
           export API_WEATHER_API_KEY="${{ secrets.API_WEATHER_API_KEY }}"
           export IMAGE_TAG="${{ env.IMAGE_TAG }}"
+          export BACKEND_VERSION="${{ env.IMAGE_TAG }}"
+          export FRONTEND_VERSION="${{ env.IMAGE_TAG }}"
 
           # Pull the latest images from GHCR
           echo "Pulling backend image ghcr.io/${{ github.repository }}/backend:${{ env.IMAGE_TAG }}"
@@ -139,7 +141,7 @@ jobs:
 
           # Start Docker services for production
           echo "Starting Docker services for production..."
-          docker compose down
+          docker compose -f compose.prod.yml down
           docker compose -f compose.prod.yml up -d
         EOF
 

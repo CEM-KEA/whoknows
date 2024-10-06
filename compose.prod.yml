@@ -33,6 +33,7 @@ services:
       - API_LOG_LEVEL=${API_LOG_LEVEL}
       - API_LOG_FORMAT=${API_LOG_FORMAT}
       - API_WEATHER_API_KEY=${API_WEATHER_API_KEY}
+      
     networks:
       - CEM-KEA
     depends_on:
