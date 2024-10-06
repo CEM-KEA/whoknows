@@ -58,7 +58,7 @@ function App() {
           <>
             <Route
               path="/register"
-              element={<Register />}
+              element={<Register logIn={logIn} />}
             />
             <Route
               path="/login"

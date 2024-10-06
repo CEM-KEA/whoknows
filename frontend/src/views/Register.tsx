@@ -1,5 +1,5 @@
 import { FormEventHandler, useMemo, useState } from "react";
-import type { IRegisterRequest } from "../types/auth.types";
+import type { ILoginRequest, ILoginResponse, IRegisterRequest } from "../types/auth.types";
 import PageLayout from "../components/PageLayout";
 import { apiPost } from "../utils/apiUtils";
 import { useNavigate } from "react-router-dom";
@@ -7,7 +7,11 @@ import LoadingSpinner from "../components/LoadingSpinner";
 import toast from "react-hot-toast";
 import validator from "validator";
 
-function Register() {
+interface RegisterProps {
+  logIn: (jwt_token: string) => void;
+}
+
+function Register(props: Readonly<RegisterProps>) {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [username, setUsername] = useState("");
@@ -54,9 +58,18 @@ function Register() {
     setLoading(true);
     apiPost<IRegisterRequest, void>("/register", registerData)
       .then(() => {
-        setLoading(false);
-        toast.success("User registered successfully. Please login.");
-        navigate("/login");
+        toast.success("User registered successfully.");
+        apiPost<ILoginRequest, ILoginResponse>("/login", { username: username, password })
+          .then((data) => {
+            setLoading(false);
+            props.logIn(data.token);
+            toast.success("Logged in successfully.");
+            navigate("/");
+          })
+          .catch((error) => {
+            setLoading(false);
+            toast.error(error.message);
+          });
       })
       .catch((error) => {
         toast.error(error.message);
