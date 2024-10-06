@@ -1,5 +1,6 @@
 volumes:
   postgres_data:
+    external: true
 
 networks:
   CEM-KEA:
