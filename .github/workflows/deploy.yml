@@ -67,25 +67,24 @@ jobs:
         run: |
           REPO_NAME=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
           echo "repo_name=$REPO_NAME" >> $GITHUB_ENV
-      
+
       - name: Build and Push Backend Image
         env:
           repo_name: ${{ env.repo_name }}
         run: |
-          docker build -t ghcr.io/${{ env.repo_name }}/backend:${{env.IMAGE_TAG}} ./backend
+          docker build -t ghcr.io/${{ env.repo_name }}/backend:${{env.IMAGE_TAG}} -f ./backend/Dockerfile.prod ./backend
           docker push ghcr.io/${{ env.repo_name }}/backend:${{env.IMAGE_TAG}}
-      
+
       - name: Build and Push Frontend Image
         env:
           repo_name: ${{ env.repo_name }}
         run: |
-          docker build -t ghcr.io/${{ env.repo_name }}/frontend:${{env.IMAGE_TAG}} ./frontend
+          docker build -t ghcr.io/${{ env.repo_name }}/frontend:${{env.IMAGE_TAG}} -f ./frontend/Dockerfile.prod ./frontend
           docker push ghcr.io/${{ env.repo_name }}/frontend:${{env.IMAGE_TAG}}
-      
 
       - name: Set Build Image Tag
         id: set_build_image_tag
-        run: | 
+        run: |
           echo "image_tag=${{ env.IMAGE_TAG }}" >> $GITHUB_OUTPUT
           echo "DEBUG: Image tag: ${{ env.IMAGE_TAG }}"
 
@@ -96,69 +95,87 @@ jobs:
       IMAGE_TAG: ${{ needs.build_and_push.outputs.image_tag }}
 
     steps:
-      - name: Set up SSH
-        uses: webfactory/ssh-agent@v0.9.0
-        with:
-          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+    - name: Set Repository Name to Lowercase
+      id: set_repo_name
+      run: |
+        REPO_NAME=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
+        echo "repo_name=$REPO_NAME" >> $GITHUB_ENV
 
-      - name: Deploy to Azure VM
-        run: |
-          echo "Deploying with IMAGE_TAG: ${{ env.IMAGE_TAG }}"
+    - name: Set up SSH
+      uses: webfactory/ssh-agent@v0.9.0
+      with:
+        ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
-          # SSH into the Azure VM and deploy
-          ssh -o StrictHostKeyChecking=no ${{ secrets.AZURE_VM_USER }}@${{ secrets.AZURE_VM_IP }} << EOF
-            cd /home/azureuser/whoknows || exit
+    - name: Deploy to Azure VM
+      env:
+        IMAGE_TAG: ${{ env.IMAGE_TAG }}
+        REPO_NAME: ${{ env.repo_name }}
+      run: |
+        echo "Deploying with IMAGE_TAG: ${{ env.IMAGE_TAG }}"
 
-            # Pull the latest code
-            git pull origin main
+        # SSH into the Azure VM and deploy
+        ssh -o StrictHostKeyChecking=no ${{ secrets.AZURE_VM_USER }}@${{ secrets.AZURE_VM_IP }} << EOF
+          cd /home/azureuser/whoknows || exit
 
-            # Generate the .env file
-            echo "API_SERVER_PORT=${{ secrets.API_SERVER_PORT }}" > .env
-            echo "API_DATABASE_FILE_PATH=./app/internal/database/whoknows.db" >> .env
-            echo "API_DATABASE_MIGRATE=${{ secrets.API_DATABASE_MIGRATE }}" >> .env
-            echo "API_DATABASE_SEED=${{ secrets.API_DATABASE_SEED }}" >> .env
-            echo "API_DATABASE_SEED_FILE_PATH=./app/internal/database/pages.json" >> .env
-            echo "API_JWT_SECRET=${{ secrets.API_JWT_SECRET }}" >> .env
-            echo "API_JWT_EXPIRATION=${{ secrets.API_JWT_EXPIRATION }}" >> .env
-            echo "API_APP_ENVIRONMENT=${{ secrets.API_APP_ENVIRONMENT }}" >> .env
-            echo "API_PAGINATION_LIMIT=${{ secrets.API_PAGINATION_LIMIT }}" >> .env
-            echo "API_PAGINATION_OFFSET=${{ secrets.API_PAGINATION_OFFSET }}" >> .env
-            echo "API_LOG_LEVEL=${{ secrets.API_LOG_LEVEL }}" >> .env
-            echo "API_LOG_FORMAT=${{ secrets.API_LOG_FORMAT }}" >> .env
-            echo "VITE_API_URL=${{ secrets.VITE_API_URL }}" >> .env
-            echo "API_WEATHER_API_KEY=${{ secrets.API_WEATHER_API_KEY }}" >> .env
-            echo "IMAGE_TAG=${{ env.IMAGE_TAG }}" >> .env
+          # log into GitHub Container Registry
+          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
-            # Build and start Docker services
-            echo "Building and starting Docker services..."
-            docker compose down
-            docker compose up --build -d
-          EOF
+          # Pull the compose.prod.yml
+          git fetch origin main
+          git checkout origin/main -- compose.prod.yml
 
-      - name: Checkout Code
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0 # Fetch all history and tags in order to push a new tag and generate a release
+          # Set environment variables directly in OS (no need for .env)
+          export API_DATABASE_USER="${{ secrets.API_DATABASE_USER }}"
+          export API_DATABASE_PASSWORD="${{ secrets.API_DATABASE_PASSWORD }}"
+          export API_DATABASE_NAME="${{ secrets.API_DATABASE_NAME }}"
+          export API_DATABASE_SSL_MODE="${{ secrets.API_DATABASE_SSL_MODE }}"
+          export API_DATABASE_MIGRATE="${{ secrets.API_DATABASE_MIGRATE }}"
+          export API_JWT_SECRET="${{ secrets.API_JWT_SECRET }}"
+          export API_JWT_EXPIRATION="${{ secrets.API_JWT_EXPIRATION }}"
+          export API_APP_ENVIRONMENT="${{ secrets.API_APP_ENVIRONMENT }}"
+          export API_PAGINATION_LIMIT="${{ secrets.API_PAGINATION_LIMIT }}"
+          export API_PAGINATION_OFFSET="${{ secrets.API_PAGINATION_OFFSET }}"
+          export API_LOG_LEVEL="${{ secrets.API_LOG_LEVEL }}"
+          export API_LOG_FORMAT="${{ secrets.API_LOG_FORMAT }}"
+          export VITE_API_URL="${{ secrets.VITE_API_URL }}"
+          export API_WEATHER_API_KEY="${{ secrets.API_WEATHER_API_KEY }}"
+          export IMAGE_TAG="${{ env.IMAGE_TAG }}"
+          export BACKEND_VERSION="${{ env.IMAGE_TAG }}"
+          export FRONTEND_VERSION="${{ env.IMAGE_TAG }}"
 
-      - name: Create New Tag
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          # Configure git user for tagging
-          git config --global user.name "GitHub Actions"
-          git config --global user.email "actions@github.com"
+          # Pull the latest images from GHCR
+          echo "Pulling backend image ghcr.io/${{ env.REPO_NAME }}/backend:${{ env.IMAGE_TAG }}"
+          docker pull ghcr.io/${{ env.REPO_NAME }}/backend:${{ env.IMAGE_TAG }}
 
-          # Create and push the new tag
-          git tag ${{ env.IMAGE_TAG }}
-          git push origin ${{ env.IMAGE_TAG }}
+          echo "Pulling frontend image ghcr.io/${{ env.REPO_NAME }}/frontend:${{ env.IMAGE_TAG }}"
+          docker pull ghcr.io/${{ env.REPO_NAME }}/frontend:${{ env.IMAGE_TAG }}
 
-      - name: Create Release with GitHub CLI
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          IMAGE_TAG: ${{ env.IMAGE_TAG }}
-        run: |
-          echo "Creating release for tag: ${{ env.IMAGE_TAG }}"
-          gh release create ${{ env.IMAGE_TAG }} \
-          --title "Release ${{ env.IMAGE_TAG }}" \
-          --notes "This is an automatically generated release with all the latest changes." \
-          --generate-notes
+          # Start Docker services for production
+          echo "Starting Docker services for production..."
+          docker compose -f compose.prod.yml down
+          docker compose -f compose.prod.yml up -d
+        EOF
+
+    - name: Checkout Code for Tagging
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Create New Tag
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        git config --global user.name "GitHub Actions"
+        git config --global user.email "actions@github.com"
+        git tag ${{ env.IMAGE_TAG }}
+        git push origin ${{ env.IMAGE_TAG }}
+
+    - name: Create GitHub Release
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        IMAGE_TAG: ${{ env.IMAGE_TAG }}
+      run: |
+        gh release create ${{ env.IMAGE_TAG }} \
+        --title "Release ${{ env.IMAGE_TAG }}" \
+        --notes "Automatically generated release." \
+        --generate-notes

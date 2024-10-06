@@ -8,7 +8,7 @@ type Config struct {
 	Database    DatabaseConfig
 	Pagination  PaginationConfig
 	Log         LogConfig
-	WeatherAPI 	WeatherAPIConfig
+	WeatherAPI  WeatherAPIConfig
 }
 
 // Environment is the struct that holds the environment configuration
@@ -27,12 +27,15 @@ type ServerConfig struct {
 	Port int
 }
 
-// DatabaseConfig is the struct that holds the database configuration for sqlite3
+// DatabaseConfig is the struct that holds the database configuration for Postgres
 type DatabaseConfig struct {
-	FilePath     string
-	Migrate      bool
-	Seed         bool
-	SeedFilePath string
+	Host     string
+	Port     int
+	User     string
+	Password string
+	Name     string
+	SSLMode  string
+	Migrate  bool
 }
 
 // PaginationConfig holds the pagination-related configuration
