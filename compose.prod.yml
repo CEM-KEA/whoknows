@@ -10,6 +10,7 @@ services:
   backend:
     container_name: backend
     image: ghcr.io/cem-kea/whoknows/backend:${BACKEND_VERSION}
+    restart: always
     ports:
       - "8080:8080"
     environment:
@@ -42,6 +43,7 @@ services:
   frontend:
     container_name: frontend
     image: ghcr.io/cem-kea/whoknows/frontend:${FRONTEND_VERSION}
+    restart: always
     ports:
       - "80:80"
     environment:
@@ -52,6 +54,7 @@ services:
   db:
     container_name: db
     image: postgres:15-alpine
+    restart: always
     environment:
       - POSTGRES_DB=${API_DATABASE_NAME}
       - POSTGRES_USER=${API_DATABASE_USER}
