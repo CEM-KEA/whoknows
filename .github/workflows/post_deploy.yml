@@ -20,7 +20,7 @@ jobs:
         run: |
           # Run curl checks to validate the services
             echo "Running smoke test on frontend..."
-            curl -f $TEST_FRONTEND_URL || exit 1
+            curl -f ${TEST_FRONTEND_URL} || exit 1
 
             # Verify a simple login flow to backend API
             echo "Testing login to backend API..."
