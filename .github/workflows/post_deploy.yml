@@ -17,27 +17,27 @@ jobs:
           TEST_BACKEND_URL: ${{ secrets.PROD_BACKEND_URL }}
           TEST_LOGIN_USERNAME: ${{ secrets.PROD_TEST_USERNAME }}
           TEST_LOGIN_PASSWORD: ${{ secrets.PROD_TEST_PASSWORD }}
-        run: |  
+        run: |
           # Run curl checks to validate the services
             echo "Running smoke test on frontend..."
-            curl -f $PROD_FRONTEND_URL || exit 1
+            curl -f $TEST_FRONTEND_URL || exit 1
 
             # Verify a simple login flow to backend API
             echo "Testing login to backend API..."
-            curl -X POST ${PROD_BACKEND_URL}/login \
+            curl -X POST ${TEST_BACKEND_URL}/login \
               -H "Content-Type: application/json" \
               -d '{
-                "Username": "'${PROD_TEST_USERNAME}'",
-                "Password": "'${PROD_TEST_PASSWORD}'"
+                "Username": "'${TEST_LOGIN_USERNAME}'",
+                "Password": "'${TEST_LOGIN_PASSWORD}'"
               }' || exit 1
             
             # Check external API integration
             echo "Checking external API integration for weather data..."
-            curl -f ${PROD_BACKEND_URL}/weather || exit 1
+            curl -f ${TEST_BACKEND_URL}/weather || exit 1
 
             # Check basic search query
             echo "Checking basic search query..."
-            curl -f ${PROD_BACKEND_URL}/search?q=programming&language=en || exit 1
+            curl -f ${TEST_BACKEND_URL}/search?q=programming&language=en || exit 1
 
             echo "Smoke tests passed successfully!"
           EOF

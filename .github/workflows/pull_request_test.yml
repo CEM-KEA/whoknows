@@ -13,7 +13,7 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Fetch all history and tags
+          fetch-depth: 0 # Fetch all history and tags
 
       - name: Check if Branch is Behind Base Branch
         id: check_branch
@@ -52,7 +52,7 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Fetch all history and tags
+          fetch-depth: 0 # Fetch all history and tags
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -77,7 +77,7 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Fetch all history and tags
+          fetch-depth: 0 # Fetch all history and tags
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -97,15 +97,15 @@ jobs:
 
       - name: Set environment variables for Docker Compose
         run: |
-            echo "API_DATABASE_USER=${{ secrets.API_DATABASE_USER }}" > .env
-            echo "API_DATABASE_PASSWORD=${{ secrets.API_DATABASE_PASSWORD }}" >> .env
-            echo "API_DATABASE_NAME=${{ secrets.API_DATABASE_NAME }}" >> .env
-            echo "API_JWT_SECRET=${{ secrets.API_JWT_SECRET }}" >> .env
-            echo "API_WEATHER_API_KEY=${{ secrets.API_WEATHER_API_KEY }}" >> .env
+          echo "API_DATABASE_USER=${{ secrets.API_DATABASE_USER }}" > .env
+          echo "API_DATABASE_PASSWORD=${{ secrets.API_DATABASE_PASSWORD }}" >> .env
+          echo "API_DATABASE_NAME=${{ secrets.API_DATABASE_NAME }}" >> .env
+          echo "API_JWT_SECRET=${{ secrets.API_JWT_SECRET }}" >> .env
+          echo "API_WEATHER_API_KEY=${{ secrets.API_WEATHER_API_KEY }}" >> .env
 
-      - name: Start Docker Compose 
+      - name: Start Docker Compose
         run: |
-            docker compose --env-file .env -f compose.test.yml up --build -d
+          docker compose --env-file .env -f compose.test.yml up --build -d
 
       # Wait for the PostgreSQL container to be ready
       - name: Wait for PostgreSQL to be Ready
