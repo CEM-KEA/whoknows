@@ -11,6 +11,11 @@ func CreateUser(db *gorm.DB, user *models.User) error {
 	return db.Create(user).Error
 }
 
+// UpdateUser updates a user in the database.
+func UpdateUser(db *gorm.DB, user *models.User) error {
+	return db.Save(user).Error
+}
+
 // GetUserByUsername retrieves a user from the database by username.
 func GetUserByUsername(db *gorm.DB, username string) (*models.User, error) {
 	user := &models.User{}
