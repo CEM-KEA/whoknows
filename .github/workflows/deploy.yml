@@ -156,6 +156,10 @@ jobs:
             docker compose -f compose.prod.yml up -d
           EOF
 
+      - name: clean up unused images
+        run: |
+          docker image prune -f
+
       - name: Checkout Code for Tagging
         uses: actions/checkout@v4
         with:
