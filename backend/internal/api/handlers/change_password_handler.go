@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/CEM-KEA/whoknows/backend/internal/database"
-	"github.com/CEM-KEA/whoknows/backend/internal/security"
 	"github.com/CEM-KEA/whoknows/backend/internal/services"
 	"github.com/CEM-KEA/whoknows/backend/internal/utils"
 	"golang.org/x/crypto/bcrypt"
@@ -44,15 +43,10 @@ func ChangePasswordHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := services.GetUserByUsername(database.DB, request.Username)
+	user, valid, err := services.CheckUserPassword(database.DB, request.Password, request.Username)
 
-	if err != nil {
-		http.Error(w, "Invalid username", http.StatusUnauthorized)
-		return
-	}
-
-	if !security.CheckPasswordHash(request.Password, user.PasswordHash) {
-		http.Error(w, "Invalid username or password", http.StatusUnauthorized)
+	if err != nil || !valid {
+		http.Error(w, err.Error(), http.StatusUnauthorized)
 		return
 	}
 

@@ -51,16 +51,10 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	//Retrieve the user from the database by username
-	user, err := services.GetUserByUsername(database.DB, request.Username)
+	user, valid, err := services.CheckUserPassword(database.DB, request.Password, request.Username)
 
-	if err != nil {
-		http.Error(w, "Invalid username", http.StatusUnauthorized)
-		return
-	}
-
-	//Check if the user exists and if the password matches
-	if !security.CheckPasswordHash(request.Password, user.PasswordHash) {
-		http.Error(w, "Invalid password", http.StatusUnauthorized)
+	if err != nil  || !valid {
+		http.Error(w, err.Error(), http.StatusUnauthorized)
 		return
 	}
 

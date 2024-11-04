@@ -5,6 +5,7 @@ import LoadingSpinner from "../components/LoadingSpinner";
 import { apiPost } from "../utils/apiUtils";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
+import { getInputClassName } from "../helpers/styleHelpers";
 
 interface ChangePasswordProps {
   loggedIn: boolean;
@@ -58,13 +59,6 @@ function ChangePassword(props: Readonly<ChangePasswordProps>) {
       });
   };
 
-  const getInputClassName = (value: string, validator: (value: string) => boolean) => {
-    const base = "border-2 p-2 w-full rounded outline-2 caret-blue-500 text-xl";
-    if (value.length === 0) return base;
-    return validator(value)
-      ? `border-green-500 outline-green-500 ${base}`
-      : `border-red-500 outline-red-500 ${base}`;
-  };
   return (
     <PageLayout>
       <div className="flex items-center justify-center mt-20 p-8">
