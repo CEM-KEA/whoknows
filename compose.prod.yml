@@ -45,7 +45,6 @@ services:
   frontend:
     container_name: frontend
     image: ghcr.io/cem-kea/whoknows/frontend:${FRONTEND_VERSION}
-    restart: always
     environment:
       - VITE_API_URL=${VITE_API_URL}
     networks:
@@ -74,19 +73,17 @@ services:
       - "5432:5432"
 
   nginx:
-    container_name: nginx
-    image: nginx:alpine
-    restart: always
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - ./nginx.conf:/etc/nginx/conf.d/default.conf
-      - /etc/letsencrypt:/etc/letsencrypt
-      - frontend:/usr/share/nginx/html
-    depends_on:
-      - frontend
-      - backend
-      
-    networks:
-      - CEM-KEA
+  container_name: nginx
+  image: nginx:alpine
+  restart: always
+  ports:
+    - "80:80"
+    - "443:443"
+  volumes:
+    - ./nginx.conf:/etc/nginx/conf.d/default.conf
+    - /etc/letsencrypt:/etc/letsencrypt
+    - frontend:/usr/share/nginx/html
+  depends_on:
+    - backend
+  networks:
+    - CEM-KEA

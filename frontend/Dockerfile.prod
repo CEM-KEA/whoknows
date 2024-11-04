@@ -24,7 +24,7 @@ RUN npm run build
 FROM alpine:3.14
 
 # Set the working directory
-WORKDIR /dist
+WORKDIR /frontend
 
 # Copy the built files from the previous stage
 COPY --from=builder /app/dist .
