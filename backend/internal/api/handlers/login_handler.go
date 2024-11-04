@@ -19,6 +19,7 @@ type LoginRequest struct {
 
 type LoginResponse struct {
 	Token string `json:"token"`
+	RequirePasswordChange bool `json:"require_password_change"`
 }
 
 // LoginRequest represents the login request payload
@@ -33,6 +34,7 @@ type LoginResponse struct {
 // Handler for login
 func Login(w http.ResponseWriter, r *http.Request) {
 	var request LoginRequest
+	var response LoginResponse
 
 	//Decode the request body into the LoginRequest struct
 	err := json.NewDecoder(r.Body).Decode(&request)
@@ -62,6 +64,13 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	//Check if user changed password after incident on 31/10/2024
+	if user.UpdatedAt.Before(time.Date(2024, 10, 31, 0, 0, 0, 0, time.UTC)) {
+		response.RequirePasswordChange = true
+	} else {
+		response.RequirePasswordChange = false
+	}
+
 	//Generate a JWT token for the user
 	token, err := security.GenerateJWT(user.ID, user.Username)
 
@@ -85,9 +94,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	//Return the token in the response
-	response := LoginResponse{
-		Token: token,
-	}
+	response.Token = token;
 
 	//Write the response
 	w.Header().Set("Content-Type", "application/json")
