@@ -22,6 +22,11 @@ function Login(props: Readonly<LoginProps>) {
     apiPost<ILoginRequest, ILoginResponse>("/login", { username: username, password })
       .then((data) => {
         setLoading(false);
+        if (data.require_password_change) {
+          toast.error("You need to change your password.");
+          navigate("/change-password");
+          return;
+        }
         props.onLogIn(data.token);
         toast.success("Logged in successfully.");
         navigate("/");
