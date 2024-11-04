@@ -14,9 +14,9 @@ import (
 
 type ChangePasswordRequest struct {
 	Username          string `json:"username" validate:"required"`
-	Password          string `json:"password" validate:"required"`
+	Password          string `json:"old_password" validate:"required"`
 	NewPassword  	    string `json:"new_password" validate:"required"`
-	RepeatNewPassword string `json:"repeat_password" validate:"required,eqfield=NewPassword"`
+	RepeatNewPassword string `json:"repeat_new_password" validate:"required,eqfield=NewPassword"`
 }
 
 // ChangePasswordRequest represents the change password request payload
@@ -28,7 +28,7 @@ type ChangePasswordRequest struct {
 //	@Success		200			{string}	string			"Password changed successfully"
 //	@Failure		400			{string}	string			"Validation error"
 //	@Failure		500			{string}	string			"Failed to change password"
-//	@Router			/api/change_password [post]
+//	@Router			/api/change-password [post]
 // ChangePasswordHandler handles changing of a user password, requires the user to be logged in as the request uses the Bearer token to get user information
 func ChangePasswordHandler(w http.ResponseWriter, r *http.Request) {
 	var request ChangePasswordRequest

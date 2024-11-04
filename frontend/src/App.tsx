@@ -12,6 +12,7 @@ import Weather from "./views/Weather";
 import Register from "./views/Register";
 import toast, { Toaster } from "react-hot-toast";
 import { apiGetVoid } from "./utils/apiUtils";
+import ChangePassword from "./views/ChangePassword";
 
 function App() {
   const [loggedIn, setLoggedIn] = useState<boolean>(false);
@@ -66,6 +67,10 @@ function App() {
             />
           </>
         )}
+        <Route
+          path="/change-password"
+          element={<ChangePassword />}
+        />
       </Routes>
       <Toaster position="bottom-left" />
     </BrowserRouter>

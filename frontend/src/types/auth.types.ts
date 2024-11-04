@@ -22,3 +22,10 @@ export interface IRegisterRequest {
   password: string;
   password2: string;
 }
+
+export interface IChangePasswordRequest {
+  username: string;
+  old_password: string;
+  new_password: string;
+  repeat_new_password: string;
+}
