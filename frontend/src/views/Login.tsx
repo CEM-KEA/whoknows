@@ -2,7 +2,7 @@ import { FormEventHandler, useState } from "react";
 import PageLayout from "../components/PageLayout";
 import { ILoginRequest, ILoginResponse } from "../types/auth.types";
 import { apiPost } from "../utils/apiUtils";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import LoadingSpinner from "../components/LoadingSpinner";
 import toast from "react-hot-toast";
 
@@ -73,6 +73,12 @@ function Login(props: Readonly<LoginProps>) {
                 Log in
               </button>
             </div>
+            <Link
+              to="/change-password"
+              className="text-blue-500 underline text-center"
+            >
+              Change password
+            </Link>
           </form>
         )}
       </div>

@@ -22,14 +22,13 @@ type ChangePasswordRequest struct {
 // ChangePasswordRequest represents the change password request payload
 //	@Description	Change password
 //	@Accept			json
-//	@Security		Bearer
 //	@Produce		json
 //	@Param			register	body		RegisterRequest	true	"User data"
 //	@Success		200			{string}	string			"Password changed successfully"
 //	@Failure		400			{string}	string			"Validation error"
 //	@Failure		500			{string}	string			"Failed to change password"
 //	@Router			/api/change-password [post]
-// ChangePasswordHandler handles changing of a user password, requires the user to be logged in as the request uses the Bearer token to get user information
+// ChangePasswordHandler handles changing of a user password
 func ChangePasswordHandler(w http.ResponseWriter, r *http.Request) {
 	var request ChangePasswordRequest
 
@@ -72,5 +71,9 @@ func ChangePasswordHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write([]byte("Password changed successfully"))
+	w.WriteHeader(http.StatusCreated)
+	err = json.NewEncoder(w).Encode(map[string]string{"message": "User created successfully"})
+	if err != nil {
+		http.Error(w, "Failed to encode response", http.StatusInternalServerError)
+	}
 }

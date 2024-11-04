@@ -11,7 +11,7 @@ interface ChangePasswordProps {
   logOut: () => void;
 }
 
-function ChangePassword(props: ChangePasswordProps) {
+function ChangePassword(props: Readonly<ChangePasswordProps>) {
   const navigate = useNavigate();
   const [username, setUsername] = useState<string>("");
   const [oldPassword, setOldPassword] = useState<string>("");
@@ -142,7 +142,12 @@ function ChangePassword(props: ChangePasswordProps) {
             <div className="flex gap-1 w-full justify-between mt-8">
               <button
                 className="border rounded bg-blue-50 text-blue-500 hover:bg-blue-100 font-semibold p-2"
-                onClick={() => {}}
+                onClick={() => {
+                  setUsername("");
+                  setOldPassword("");
+                  setNewPassword("");
+                  setRepeatNewPassword("");
+                }}
                 type="button"
               >
                 Clear

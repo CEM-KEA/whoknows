@@ -5,10 +5,11 @@ interface DataLeakBannerProps {
   onClose: () => void;
 }
 
-function DataLeakBanner(props: DataLeakBannerProps) {
+function DataLeakBanner(props: Readonly<DataLeakBannerProps>) {
   return (
     <div className="bg-yellow-300 bg-opacity-75 p-2 fixed bottom-0 w-full">
       <div className="flex justify-between ml-5 font-semibold">
+        <div>{/* spacer div for centering text content */}</div>
         <div>
           <div className="flex gap-2 items-center justify-center">
             <p className="text-lg font-bold">
