@@ -72,7 +72,12 @@ function App() {
         )}
         <Route
           path="/change-password"
-          element={<ChangePassword />}
+          element={
+            <ChangePassword
+              loggedIn={loggedIn}
+              logOut={logOut}
+            />
+          }
         />
       </Routes>
       <Toaster position="bottom-left" />

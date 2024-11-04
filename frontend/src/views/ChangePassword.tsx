@@ -6,11 +6,12 @@ import { apiPost } from "../utils/apiUtils";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 
-// interface ChangePasswordProps {
+interface ChangePasswordProps {
+  loggedIn: boolean;
+  logOut: () => void;
+}
 
-// }
-
-function ChangePassword(/*props: ChangePasswordProps*/) {
+function ChangePassword(props: ChangePasswordProps) {
   const navigate = useNavigate();
   const [username, setUsername] = useState<string>("");
   const [oldPassword, setOldPassword] = useState<string>("");
@@ -48,7 +49,8 @@ function ChangePassword(/*props: ChangePasswordProps*/) {
     apiPost<IChangePasswordRequest, void>("/change-password", changePasswordData)
       .then(() => {
         toast.success("Password changed successfully");
-        navigate("/");
+        if (props.loggedIn) props.logOut();
+        navigate("/login");
       })
       .catch((e) => {
         setLoading(false);
