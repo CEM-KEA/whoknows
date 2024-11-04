@@ -13,9 +13,11 @@ import Register from "./views/Register";
 import toast, { Toaster } from "react-hot-toast";
 import { apiGetVoid } from "./utils/apiUtils";
 import ChangePassword from "./views/ChangePassword";
+import DataLeakBanner from "./components/DataLeakBanner";
 
 function App() {
   const [loggedIn, setLoggedIn] = useState<boolean>(false);
+  const [showBanner, setShowBanner] = useState<boolean>(true);
 
   // right now, as the jwt token is not really used, we just check if it exists to see if the user is logged in
   // ideally, we would also check if the token is still valid with the backend
@@ -42,6 +44,7 @@ function App() {
 
   return (
     <BrowserRouter>
+      {showBanner && <DataLeakBanner onClose={() => setShowBanner(false)} />}
       <Nav
         loggedIn={loggedIn}
         onLogOut={logOut}
