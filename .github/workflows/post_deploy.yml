@@ -40,4 +40,3 @@ jobs:
             curl -f ${TEST_BACKEND_URL}/search?q=abap&language=en || exit 1
 
             echo "Smoke tests passed successfully!"
-          EOF
