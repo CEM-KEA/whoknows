@@ -83,17 +83,11 @@ jobs:
           echo "API_JWT_SECRET=${{ secrets.API_JWT_SECRET }}" >> .env
           echo "API_WEATHER_API_KEY=${{ secrets.API_WEATHER_API_KEY }}" >> .env
 
-      - name: Display .env file
-        run: cat .env
-
-      - name: Display working directory
-        run: pwd
-
       - name: Upload .env file as an artifact
         uses: actions/upload-artifact@v4
         with:
           name: env-file
-          path: ${{ github.workspace }}/.env
+          path: .env
 
   e2e_test:
     runs-on: ubuntu-latest
