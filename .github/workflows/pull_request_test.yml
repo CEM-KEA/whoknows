@@ -93,7 +93,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: env-file
-          path: ./.env
+          path: ${{ github.workspace }}/.env
 
   e2e_test:
     runs-on: ubuntu-latest
