@@ -93,7 +93,7 @@ jobs:
 
   e2e_test:
     runs-on: ubuntu-latest
-    needs: check_branch_status
+    needs: setup_test_env
 
     steps:
       - name: Checkout Code
