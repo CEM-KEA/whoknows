@@ -74,15 +74,20 @@ jobs:
     needs: check_branch_status
 
     steps:
-      - name: Create .env file for Docker Compose
+      - name: Create and Populate .env file for Docker Compose
         run: |
+          touch .env  # Create an empty .env file
           echo "API_DATABASE_USER=${{ secrets.API_DATABASE_USER }}" > .env
           echo "API_DATABASE_PASSWORD=${{ secrets.API_DATABASE_PASSWORD }}" >> .env
           echo "API_DATABASE_NAME=${{ secrets.API_DATABASE_NAME }}" >> .env
           echo "API_JWT_SECRET=${{ secrets.API_JWT_SECRET }}" >> .env
           echo "API_WEATHER_API_KEY=${{ secrets.API_WEATHER_API_KEY }}" >> .env
 
-          cat ./.env # DEBUGGING
+      - name: Display .env file
+        run: cat .env
+
+      - name: Display working directory
+        run: pwd
 
       - name: Upload .env file as an artifact
         uses: actions/upload-artifact@v4
