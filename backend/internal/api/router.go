@@ -31,7 +31,7 @@ func NewRouter() http.Handler {
 	if config.AppConfig.Environment.Environment != "production" {
 		allowedOrigins = []string{"*"}
 	} else {
-		allowedOrigins = []string{"http://localhost:80", "http://localhost:443", "http://52.169.32.176", "http://52.169.32.176:80", "http://52.169.32.176:443", "http://cemdev.dk", "https://cemdev.dk"} // CHANGE THIS TO THE FRONTEND URL
+		allowedOrigins = []string{"http://cemdev.dk", "https://cemdev.dk"}
 	}
 
 	c := cors.New(cors.Options{
