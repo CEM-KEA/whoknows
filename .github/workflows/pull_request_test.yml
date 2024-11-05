@@ -74,9 +74,6 @@ jobs:
     needs: check_branch_status
 
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
-
       - name: Create .env file for Docker Compose
         run: |
           echo "API_DATABASE_USER=${{ secrets.API_DATABASE_USER }}" > .env
@@ -85,11 +82,13 @@ jobs:
           echo "API_JWT_SECRET=${{ secrets.API_JWT_SECRET }}" >> .env
           echo "API_WEATHER_API_KEY=${{ secrets.API_WEATHER_API_KEY }}" >> .env
 
+          cat ./.env # DEBUGGING
+
       - name: Upload .env file as an artifact
         uses: actions/upload-artifact@v4
         with:
           name: env-file
-          path: .env
+          path: ./.env
 
   e2e_test:
     runs-on: ubuntu-latest
