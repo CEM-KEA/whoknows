@@ -1,8 +1,6 @@
 volumes:
   postgres_data:
     external: true
-  frontend:
-    external: false
 
 networks:
   CEM-KEA:
@@ -45,12 +43,13 @@ services:
   frontend:
     container_name: frontend
     image: ghcr.io/cem-kea/whoknows/frontend:${FRONTEND_VERSION}
+    restart: always
+    ports:
+      - "3000:80"  # Serve frontend on port 3000 for internal testing
     environment:
       - VITE_API_URL=${VITE_API_URL}
     networks:
       - CEM-KEA
-    volumes:
-      - frontend:/dist
 
   db:
     container_name: db
@@ -82,8 +81,8 @@ services:
     volumes:
       - ./nginx.conf:/etc/nginx/conf.d/default.conf
       - /etc/letsencrypt:/etc/letsencrypt
-      - frontend:/usr/share/nginx/html
     depends_on:
+      - frontend
       - backend
     networks:
       - CEM-KEA
