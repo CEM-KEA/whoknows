@@ -2,6 +2,7 @@ package services
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/CEM-KEA/whoknows/backend/internal/models"
 	"github.com/CEM-KEA/whoknows/backend/internal/security"
@@ -23,12 +24,25 @@ func UpdateUser(db *gorm.DB, user *models.User) error {
 func GetUserByUsername(db *gorm.DB, username string) (*models.User, error) {
 	user := &models.User{}
 	err := db.Where("username = ?", username).First(user).Error
-
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get user by username")
 	}
-
 	return user, nil
+}
+
+// GetUserByID retrieves a user by their ID.
+func GetUserByID(db *gorm.DB, userID uint) (*models.User, error) {
+	user := &models.User{}
+	if err := db.First(user, userID).Error; err != nil {
+		return nil, errors.New("user not found")
+	}
+	return user, nil
+}
+
+// UpdateLastLogin updates the last_login field for a user.
+func UpdateLastLogin(db *gorm.DB, user *models.User) error {
+	user.LastLogin = time.Now()
+	return db.Save(user).Error
 }
 
 // CheckUserPassword checks if the provided password matches the user's password hash.
