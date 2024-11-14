@@ -35,14 +35,12 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	var request LoginRequest
 	var response LoginResponse
 
-	// Decode the request body into the LoginRequest struct
 	err := json.NewDecoder(r.Body).Decode(&request)
 	if err != nil {
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
 		return
 	}
 
-	// Validate the request
 	err = utils.Validate(request)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -56,21 +54,19 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Check if user needs to change password
+	//Check if user changed password after incident on 31/10/2024
 	if user.UpdatedAt.Before(time.Date(2024, 10, 31, 0, 0, 0, 0, time.UTC)) {
 		response.RequirePasswordChange = true
 	} else {
 		response.RequirePasswordChange = false
 	}
 
-	// Generate a JWT token for the user
 	token, err := security.GenerateJWT(user.ID, user.Username)
 	if err != nil {
 		http.Error(w, "Failed to generate token", http.StatusInternalServerError)
 		return
 	}
 
-	// Store the JWT token in the database
 	jwtModel := models.JWT{
 		UserID:    user.ID,
 		Token:     token,
@@ -84,7 +80,6 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Update last_login field
 	err = services.UpdateLastLogin(database.DB, user)
 	if err != nil {
 		http.Error(w, "Failed to update last login", http.StatusInternalServerError)
@@ -94,7 +89,6 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	// Return the token in the response
 	response.Token = token
 
-	// Write the response
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(response)
