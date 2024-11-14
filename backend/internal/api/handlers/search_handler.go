@@ -6,6 +6,7 @@ import (
 
 	"github.com/CEM-KEA/whoknows/backend/internal/database"
 	"github.com/CEM-KEA/whoknows/backend/internal/models"
+	"github.com/CEM-KEA/whoknows/backend/internal/services"
 )
 
 // SearchResponse represents the structure of the search response
@@ -46,6 +47,15 @@ func Search(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "Failed to encode validation error", http.StatusInternalServerError)
 		}
 
+		return
+	}
+
+	// Log the search query
+	searchLog := models.SearchLog{
+		Query: q,
+	}
+	if err := services.CreateSearchLog(database.DB, &searchLog); err != nil {
+		http.Error(w, "Failed to log search query", http.StatusInternalServerError)
 		return
 	}
 
