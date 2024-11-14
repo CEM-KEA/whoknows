@@ -61,10 +61,10 @@ func autoMigrate() error {
 		{
 			ID: time.Now().Format("20060102150405"),
 			Migrate: func(tx *gorm.DB) error {
-				return tx.AutoMigrate(&models.User{}, &models.Page{}, &models.JWT{})
+				return tx.AutoMigrate(&models.User{}, &models.Page{}, &models.JWT{}, &models.SearchLog{})
 			},
 			Rollback: func(tx *gorm.DB) error {
-				return tx.Migrator().DropTable(&models.User{}, &models.Page{}, &models.JWT{})
+				return tx.Migrator().DropTable(&models.User{}, &models.Page{}, &models.JWT{}, &models.SearchLog{})
 			},
 		},
 	})
