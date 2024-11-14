@@ -18,11 +18,11 @@ type LoginRequest struct {
 }
 
 type LoginResponse struct {
-	Token string `json:"token"`
-	RequirePasswordChange bool `json:"require_password_change"`
+	Token                string `json:"token"`
+	RequirePasswordChange bool   `json:"require_password_change"`
 }
 
-// LoginRequest represents the login request payload
+// Login handles user login requests
 //	@Description	Login with username and password
 //	@Accept			json
 //	@Produce		json
@@ -31,30 +31,26 @@ type LoginResponse struct {
 //	@Failure		400		{string}	string	"Invalid request body"
 //	@Failure		401		{string}	string	"Invalid username or password"
 //	@Router			/api/login [post]
-// Handler for login
 func Login(w http.ResponseWriter, r *http.Request) {
 	var request LoginRequest
 	var response LoginResponse
 
-	//Decode the request body into the LoginRequest struct
 	err := json.NewDecoder(r.Body).Decode(&request)
 	if err != nil {
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
 		return
 	}
 
-	//Validate the request
 	err = utils.Validate(request)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	//Retrieve the user from the database by username
+	// Retrieve the user from the database by username
 	user, valid, err := services.CheckUserPassword(database.DB, request.Password, request.Username)
-
-	if err != nil  || !valid {
-		http.Error(w, err.Error(), http.StatusUnauthorized)
+	if err != nil || !valid {
+		http.Error(w, "Invalid username or password", http.StatusUnauthorized)
 		return
 	}
 
@@ -65,9 +61,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		response.RequirePasswordChange = false
 	}
 
-	//Generate a JWT token for the user
 	token, err := security.GenerateJWT(user.ID, user.Username)
-
 	if err != nil {
 		http.Error(w, "Failed to generate token", http.StatusInternalServerError)
 		return
@@ -76,21 +70,25 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	jwtModel := models.JWT{
 		UserID:    user.ID,
 		Token:     token,
-		ExpiresAt: time.Now().Add(time.Hour * 24),
+		ExpiresAt: time.Now().Add(24 * time.Hour),
 		CreatedAt: time.Now(),
 		RevokedAt: nil,
 	}
-
 	err = database.DB.Create(&jwtModel).Error
 	if err != nil {
 		http.Error(w, "Failed to save token", http.StatusInternalServerError)
 		return
 	}
 
-	//Return the token in the response
-	response.Token = token;
+	err = services.UpdateLastLogin(database.DB, user)
+	if err != nil {
+		http.Error(w, "Failed to update last login", http.StatusInternalServerError)
+		return
+	}
 
-	//Write the response
+	// Return the token in the response
+	response.Token = token
+
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(response)

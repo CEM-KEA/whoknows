@@ -8,8 +8,11 @@ import (
 	"testing"
 
 	"github.com/CEM-KEA/whoknows/backend/internal/api/middlewares"
+	"github.com/CEM-KEA/whoknows/backend/internal/models"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"gorm.io/driver/sqlite"
+	"gorm.io/gorm"
 )
 
 // Mock the ValidateJWT function
@@ -25,6 +28,24 @@ func (m *MockJWTValidator) ValidateJWT(token string) (map[string]interface{}, er
 	}
 
 	return nil, args.Error(1)
+}
+
+// Mock database setup
+func setupTestDB() (*gorm.DB, error) {
+	db, err := gorm.Open(sqlite.Open(":memory:"), &gorm.Config{})
+	if err != nil {
+		return nil, err
+	}
+
+	// Auto-migrate the User model
+	if err := db.AutoMigrate(&models.User{}); err != nil {
+		return nil, err
+	}
+
+	// Insert a test user
+	db.Create(&models.User{ID: 123, Username: "testuser", Email: "testuser@example.com"})
+
+	return db, nil
 }
 
 func TestAuthMiddleware(t *testing.T) {
@@ -59,11 +80,15 @@ func TestAuthMiddleware(t *testing.T) {
 		},
 	}
 
+	// Setup test database
+	db, err := setupTestDB()
+	assert.NoError(t, err)
+
 	// Mock the ValidateJWT function
 	mockValidator.On("ValidateJWT", "validtoken").Return(map[string]interface{}{"sub": "123"}, nil)
 	mockValidator.On("ValidateJWT", "invalidtoken").Return(nil, errors.New("invalid token"))
 
-	authMiddleware := middlewares.AuthMiddleware(mockValidator.ValidateJWT)
+	authMiddleware := middlewares.AuthMiddleware(db, mockValidator.ValidateJWT)
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -82,7 +107,6 @@ func TestAuthMiddleware(t *testing.T) {
 					assert.NoError(t, err)
 					assert.Equal(t, tt.expectedUserID, strconv.FormatUint(uint64(userID), 10))
 				}
-
 				w.WriteHeader(http.StatusOK)
 			})
 

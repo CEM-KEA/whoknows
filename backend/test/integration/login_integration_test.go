@@ -39,7 +39,7 @@ func TestLoginIntegration(t *testing.T) {
 				"password": "wrongpassword",
 			},
 			expectedStatus: http.StatusUnauthorized,
-			expectedBody:   "invalid password",
+			expectedBody:   "Invalid username or password",
 		},
 		{
 			name: "Non-existent User",
@@ -48,7 +48,7 @@ func TestLoginIntegration(t *testing.T) {
 				"password": "password123",
 			},
 			expectedStatus: http.StatusUnauthorized,
-			expectedBody:   "invalid username",
+			expectedBody:   "Invalid username or password",
 		},
 	}
 

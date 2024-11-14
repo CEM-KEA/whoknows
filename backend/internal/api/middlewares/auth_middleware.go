@@ -6,63 +6,83 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/CEM-KEA/whoknows/backend/internal/services"
 	"github.com/pkg/errors"
+	"gorm.io/gorm"
 )
 
 type contextKey string
 
 const UserKey contextKey = "userID"
 
-// AuthMiddleware is a middleware function for checking the presence of a valid JWT token in the request headers.
-// It expects a function that can validate the JWT token and return the claims if the token is valid.
-// The user ID is extracted from the claims and added to the request context.
-// If the token is invalid or missing, it returns a 401 Unauthorized response.
-func AuthMiddleware(validateJWT func(token string) (map[string]interface{}, error)) func(http.Handler) http.Handler {
+// AuthMiddleware checks for a valid JWT token and adds the user ID to the context.
+func AuthMiddleware(db *gorm.DB, validateJWT func(token string) (map[string]interface{}, error)) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			// Extract the token from the Authorization header
-			authHeader := r.Header.Get("Authorization")
-			if authHeader == "" {
-				http.Error(w, "Authorization header is required", http.StatusUnauthorized)
+			// Extract and validate the token
+			token, err := extractToken(r)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusUnauthorized)
 				return
 			}
 
-			// The token is expected to be in the format "Bearer <token>"
-			tokenParts := strings.Split(authHeader, " ")
-			if len(tokenParts) != 2 || tokenParts[0] != "Bearer" {
-				http.Error(w, "Invalid Authorization header format", http.StatusUnauthorized)
-				return
-			}
-
-			token := tokenParts[1]
-
-			// Validate the token
+			// Validate the token and get claims
 			claims, err := validateJWT(token)
 			if err != nil {
 				http.Error(w, "Invalid token", http.StatusUnauthorized)
 				return
 			}
 
-			// Add user information to the request context
-			userID := claims["sub"].(string) // Assuming "sub" contains the user ID
-			ctx := context.WithValue(r.Context(), UserKey, userID)
+			// Extract user ID from claims
+			userID, err := extractUserID(claims)
+			if err != nil {
+				http.Error(w, "Invalid user ID", http.StatusUnauthorized)
+				return
+			}
 
-			// Pass the request with the context to the next handler
+			// Get user from the database
+			_, err = services.GetUserByID(db, uint(userID))
+			if err != nil {
+				http.Error(w, "User not found", http.StatusUnauthorized)
+				return
+			}
+
+			// Add user ID to the request context
+			ctx := context.WithValue(r.Context(), UserKey, uint(userID))
 			next.ServeHTTP(w, r.WithContext(ctx))
 		})
 	}
 }
 
-// GetUserIDFromContext is a helper function to retrieve the user ID from the context.
-func GetUserIDFromContext(ctx context.Context) (uint, error) {
-	if userIDStr, ok := ctx.Value(UserKey).(string); ok {
-		userIDUint, err := strconv.ParseUint(userIDStr, 10, 32)
-		if err != nil {
-			return 0, err
-		}
-
-		return uint(userIDUint), nil
+// extractToken retrieves the JWT from the Authorization header.
+func extractToken(r *http.Request) (string, error) {
+	authHeader := r.Header.Get("Authorization")
+	if authHeader == "" {
+		return "", errors.New("Authorization header is required")
 	}
 
-	return 0, errors.New("user ID not found in context")
+	tokenParts := strings.Split(authHeader, " ")
+	if len(tokenParts) != 2 || tokenParts[0] != "Bearer" {
+		return "", errors.New("Invalid Authorization header format")
+	}
+
+	return tokenParts[1], nil
+}
+
+// extractUserID retrieves the user ID from JWT claims.
+func extractUserID(claims map[string]interface{}) (uint64, error) {
+	userIDStr, ok := claims["sub"].(string)
+	if !ok {
+		return 0, errors.New("user ID not found in token")
+	}
+	return strconv.ParseUint(userIDStr, 10, 32)
+}
+
+// GetUserIDFromContext is a helper function to retrieve the user ID from the context.
+func GetUserIDFromContext(ctx context.Context) (uint, error) {
+	userID, ok := ctx.Value(UserKey).(uint)
+	if !ok {
+		return 0, errors.New("user ID not found in context")
+	}
+	return userID, nil
 }
