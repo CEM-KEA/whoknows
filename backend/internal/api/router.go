@@ -43,8 +43,10 @@ func NewRouter() http.Handler {
 	// if environment is not production, allow all origins (*)
 	var allowedOrigins []string
 
-	if config.AppConfig.Environment.Environment != "production" {
+	if config.AppConfig.Environment.Environment == "development" {
 		allowedOrigins = []string{"*"}
+	} else if config.AppConfig.Environment.Environment == "test" {
+		allowedOrigins = []string{"http://localhost", "https://localhost"}
 	} else {
 		allowedOrigins = []string{"http://cemdev.dk", "https://cemdev.dk"}
 	}
