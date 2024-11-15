@@ -15,10 +15,12 @@ func NewRouter() http.Handler {
 	router := mux.NewRouter()
 
 	router.HandleFunc("/api/robots.txt", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Cache-Control", "no-store")
 		http.ServeFile(w, r, "./static/robots.txt")
 	})
 
 	router.HandleFunc("/api/sitemap.xml", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Cache-Control", "no-store")
 		http.ServeFile(w, r, "./static/sitemap.xml")
 	})
 
