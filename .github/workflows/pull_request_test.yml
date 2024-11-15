@@ -90,6 +90,7 @@ jobs:
           path: .env
           include-hidden-files: true
           if-no-files-found: error
+          retention-days: 1
 
   e2e_test:
     runs-on: ubuntu-latest
@@ -310,3 +311,19 @@ jobs:
 
       - name: Stop Docker Compose
         run: docker compose -f compose.test.yml down
+  
+  cleanup_artifacts:
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Install GitHub CLI
+        run: sudo apt-get install -y gh
+
+      - name: Delete env-file artifact
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh api \
+          -X DELETE \
+          repos/${{ github.repository }}/actions/artifacts/$(gh api repos/${{ github.repository }}/actions/artifacts | jq '.artifacts[] | select(.name=="env-file") | .id') \
+          --silent
