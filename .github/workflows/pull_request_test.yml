@@ -69,40 +69,27 @@ jobs:
           cd backend
           go test ./...
 
-  setup_test_env:
-    runs-on: ubuntu-latest
-    needs: check_branch_status
-
-    steps:
-      - name: Create and Populate .env file for Docker Compose
-        run: |
-          touch .env  # Create an empty .env file
-          echo "API_DATABASE_USER=${{ secrets.API_DATABASE_USER }}" > .env
-          echo "API_DATABASE_PASSWORD=${{ secrets.API_DATABASE_PASSWORD }}" >> .env
-          echo "API_DATABASE_NAME=${{ secrets.API_DATABASE_NAME }}" >> .env
-          echo "API_JWT_SECRET=${{ secrets.API_JWT_SECRET }}" >> .env
-          echo "API_WEATHER_API_KEY=${{ secrets.API_WEATHER_API_KEY }}" >> .env
-
-      - name: Upload .env file as an artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: env-file
-          path: .env
-          include-hidden-files: true
-          if-no-files-found: error
-
   e2e_test:
     runs-on: ubuntu-latest
-    needs: setup_test_env
+    needs: check_branch_status
+    env:
+      API_DATABASE_USER: ${{ secrets.API_DATABASE_USER }}
+      API_DATABASE_PASSWORD: ${{ secrets.API_DATABASE_PASSWORD }}
+      API_DATABASE_NAME: ${{ secrets.API_DATABASE_NAME }}
+      API_JWT_SECRET: ${{ secrets.API_JWT_SECRET }}
+      API_WEATHER_API_KEY: ${{ secrets.API_WEATHER_API_KEY }}
 
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
         
-      - name: Download .env file artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: env-file
+      - name: Create .env file
+        run: |
+          echo "API_DATABASE_USER=${{ env.API_DATABASE_USER }}" > .env
+          echo "API_DATABASE_PASSWORD=${{ env.API_DATABASE_PASSWORD }}" >> .env
+          echo "API_DATABASE_NAME=${{ env.API_DATABASE_NAME }}" >> .env
+          echo "API_JWT_SECRET=${{ env.API_JWT_SECRET }}" >> .env
+          echo "API_WEATHER_API_KEY=${{ env.API_WEATHER_API_KEY }}" >> .env
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -223,16 +210,25 @@ jobs:
 
   zap_scan_backend:
     runs-on: ubuntu-latest    
-    needs: setup_test_env
+    needs: check_branch_status
+    env:
+      API_DATABASE_USER: ${{ secrets.API_DATABASE_USER }}
+      API_DATABASE_PASSWORD: ${{ secrets.API_DATABASE_PASSWORD }}
+      API_DATABASE_NAME: ${{ secrets.API_DATABASE_NAME }}
+      API_JWT_SECRET: ${{ secrets.API_JWT_SECRET }}
+      API_WEATHER_API_KEY: ${{ secrets.API_WEATHER_API_KEY }}
 
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Download .env file artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: env-file
+      - name: Create .env file
+        run: |
+          echo "API_DATABASE_USER=${{ env.API_DATABASE_USER }}" > .env
+          echo "API_DATABASE_PASSWORD=${{ env.API_DATABASE_PASSWORD }}" >> .env
+          echo "API_DATABASE_NAME=${{ env.API_DATABASE_NAME }}" >> .env
+          echo "API_JWT_SECRET=${{ env.API_JWT_SECRET }}" >> .env
+          echo "API_WEATHER_API_KEY=${{ env.API_WEATHER_API_KEY }}" >> .env
       
       - name: Start Docker Compose for ZAP
         run: |
@@ -268,16 +264,25 @@ jobs:
 
   zap_scan_frontend:
     runs-on: ubuntu-latest    
-    needs: setup_test_env
+    needs: check_branch_status
+    env:
+      API_DATABASE_USER: ${{ secrets.API_DATABASE_USER }}
+      API_DATABASE_PASSWORD: ${{ secrets.API_DATABASE_PASSWORD }}
+      API_DATABASE_NAME: ${{ secrets.API_DATABASE_NAME }}
+      API_JWT_SECRET: ${{ secrets.API_JWT_SECRET }}
+      API_WEATHER_API_KEY: ${{ secrets.API_WEATHER_API_KEY }}
 
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Download .env file artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: env-file
+      - name: Create .env file
+        run: |
+          echo "API_DATABASE_USER=${{ env.API_DATABASE_USER }}" > .env
+          echo "API_DATABASE_PASSWORD=${{ env.API_DATABASE_PASSWORD }}" >> .env
+          echo "API_DATABASE_NAME=${{ env.API_DATABASE_NAME }}" >> .env
+          echo "API_JWT_SECRET=${{ env.API_JWT_SECRET }}" >> .env
+          echo "API_WEATHER_API_KEY=${{ env.API_WEATHER_API_KEY }}" >> .env
       
       - name: Start Docker Compose for ZAP
         run: |
@@ -310,3 +315,4 @@ jobs:
 
       - name: Stop Docker Compose
         run: docker compose -f compose.test.yml down
+
