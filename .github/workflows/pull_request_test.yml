@@ -320,11 +320,18 @@ jobs:
       - name: Install GitHub CLI
         run: sudo apt-get install -y gh
 
-      - name: Delete env-file artifact
+      - name: Get env-file Artifact ID
+        id: get_artifact_id
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh api \
-          -X DELETE \
-          repos/${{ github.repository }}/actions/artifacts/$(gh api repos/${{ github.repository }}/actions/artifacts | jq '.artifacts[] | select(.name=="env-file") | .id') \
-          --silent
+          ARTIFACT_ID=$(gh api repos/${{ github.repository }}/actions/artifacts | jq -r '.artifacts[] | select(.name=="env-file") | .id')
+          echo "artifact_id=$ARTIFACT_ID" >> $GITHUB_ENV
+
+      - name: Delete env-file Artifact
+        if: ${{ steps.get_artifact_id.outputs.artifact_id != '' }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh api -X DELETE repos/${{ github.repository }}/actions/artifacts/${{ steps.get_artifact_id.outputs.artifact_id }} --silent
+
