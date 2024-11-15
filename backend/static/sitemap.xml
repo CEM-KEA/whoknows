@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+    <!-- Base Routes -->
+    <url>
+        <loc>https://cemdev.dk/api</loc>
+    </url>
+    <url>
+        <loc>https://cemdev.dk/api/robots.txt</loc>
+    </url>
+    <url>
+        <loc>https://cemdev.dk/api/sitemap.xml</loc>
+    </url>
+
+    <!-- Swagger Documentation -->
+    <url>
+        <loc>https://cemdev.dk/api/swagger/</loc>
+    </url>
+
+    <!-- API Endpoints -->
+    <url>
+        <loc>https://cemdev.dk/api/search</loc>
+    </url>
+    <url>
+        <loc>https://cemdev.dk/api/weather</loc>
+    </url>
+    <url>
+        <loc>https://cemdev.dk/api/register</loc>
+    </url>
+    <url>
+        <loc>https://cemdev.dk/api/login</loc>
+    </url>
+</urlset>
