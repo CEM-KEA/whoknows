@@ -15,13 +15,11 @@ func NewRouter() http.Handler {
 	router := mux.NewRouter()
 
 	router.HandleFunc("/api/robots.txt", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Cache-Control", "no-store")
 		w.Header().Set("Content-Type", "text/plain")
 		http.ServeFile(w, r, "./static/robots.txt")
 	})
 
 	router.HandleFunc("/api/sitemap.xml", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Cache-Control", "no-store")
 		w.Header().Set("Content-Type", "application/xml")
 		http.ServeFile(w, r, "./static/sitemap.xml")
 	})
@@ -62,9 +60,18 @@ func NewRouter() http.Handler {
 		AllowCredentials: true,
 	})
 
-	return c.Handler(router)
+	return NoCacheMiddleware(c.Handler(router))
 }
 
 func RedirectToSwaggerHandler() http.Handler {
 	return http.RedirectHandler("/api/swagger/", http.StatusMovedPermanently)
+}
+
+func NoCacheMiddleware(next http.Handler) http.Handler {
+    return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+        w.Header().Set("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate")
+        w.Header().Set("Pragma", "no-cache")
+        w.Header().Set("Expires", "0")
+        next.ServeHTTP(w, r)
+    })
 }
