@@ -14,23 +14,22 @@ import (
 func NewRouter() http.Handler {
 	router := mux.NewRouter()
 
-	 // robots.txt
 	router.HandleFunc("/api/robots.txt", func(w http.ResponseWriter, r *http.Request) {
-		http.ServeFile(w, r, "static/robots.txt")
+		http.ServeFile(w, r, "./static/robots.txt")
 	})
 
-	// sitemap.xml
 	router.HandleFunc("/api/sitemap.xml", func(w http.ResponseWriter, r *http.Request) {
-		http.ServeFile(w, r, "static/sitemap.xml")
+		http.ServeFile(w, r, "./static/sitemap.xml")
 	})
 
-	// Redirect to Swagger API documentation
-	router.Handle("/", http.RedirectHandler("/api/swagger/", http.StatusMovedPermanently))
-	router.Handle("/api", http.RedirectHandler("/api/swagger/", http.StatusMovedPermanently))
+	// Redirects
+	router.Handle("/", RedirectToSwaggerHandler())
+	router.Handle("/api", RedirectToSwaggerHandler())
+	router.Handle("/api/", RedirectToSwaggerHandler())
+	router.Handle("/api/swagger", RedirectToSwaggerHandler())
 	router.Handle("/robots.txt", http.RedirectHandler("/api/robots.txt", http.StatusMovedPermanently))
 	router.Handle("/sitemap.xml", http.RedirectHandler("/api/sitemap.xml", http.StatusMovedPermanently))
-
-	// Swagger API documentation route - http://localhost:8080/swagger/index.html
+	
 	router.PathPrefix("/api/swagger/").Handler(httpSwagger.WrapHandler)
 
 	router.HandleFunc("/api/search", handlers.Search).Methods("GET")
@@ -58,4 +57,8 @@ func NewRouter() http.Handler {
 	})
 
 	return c.Handler(router)
+}
+
+func RedirectToSwaggerHandler() http.Handler {
+	return http.RedirectHandler("/api/swagger/", http.StatusMovedPermanently)
 }
