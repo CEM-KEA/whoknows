@@ -90,6 +90,9 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Increment the user registrations counter
+	utils.IncrementUserRegistrations()
+
 	// Send response
 	response := map[string]string{"message": "User created successfully"}
 	w.Header().Set("Content-Type", "application/json")
