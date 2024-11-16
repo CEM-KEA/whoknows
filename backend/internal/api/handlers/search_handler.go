@@ -67,6 +67,13 @@ func Search(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Increment the search queries counter
+	queryType := "generic" // Default query type
+	if language != "" {
+		queryType = "language_filtered"
+	}
+	utils.IncrementSearchQueries(queryType)
+
 	// Perform the search
 	var pages []models.Page
 	query := database.DB.Where("content LIKE ?", "%"+q+"%").Order("title ASC")
