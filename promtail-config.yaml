@@ -1,0 +1,30 @@
+server:
+  http_listen_port: 9080
+  grpc_listen_port: 0
+
+clients:
+  - url: http://${MONITOR_IP}:3100/loki/api/v1/push
+
+positions:
+  filename: /var/log/positions.yaml
+
+scrape_configs:
+  # Scrape backend logs
+  - job_name: "backend-logs"
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: backend
+          instance: backend-instance
+          __path__: /var/log/backend.log
+
+  # Scrape Nginx logs
+  - job_name: "nginx-logs"
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: nginx
+          instance: nginx-instance
+          __path__: /var/log/nginx/*.log
