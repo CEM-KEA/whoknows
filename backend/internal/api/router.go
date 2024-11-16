@@ -42,7 +42,7 @@ func NewRouter() http.Handler {
 
 	// Wrap router with middleware
 	utils.LogInfo("Applying middlewares", nil)
-	return middlewares.NoCacheMiddleware(corsHandler(router))
+	return middlewares.MetricsMiddleware(middlewares.NoCacheMiddleware(corsHandler(router)))
 }
 
 // serveStaticFile serves a static file with the specified content type
