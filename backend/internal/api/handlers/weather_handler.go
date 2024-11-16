@@ -8,6 +8,8 @@ import (
 
 	"github.com/CEM-KEA/whoknows/backend/internal/cache"
 	"github.com/CEM-KEA/whoknows/backend/internal/config"
+	"github.com/CEM-KEA/whoknows/backend/internal/utils"
+	"github.com/sirupsen/logrus"
 )
 
 // We cache the weather data for 1 hour to reduce amount of calls to the API,
@@ -18,6 +20,13 @@ type WeatherResponse struct {
 	Data map[string]interface{} `json:"data"`
 }
 
+const (
+	fetchDataError       = "Failed to fetch weather data"
+	encodeResponseError  = "Failed to encode weather response"
+	weatherDataCacheKey  = "weatherData"
+	weatherDataCacheTime = 1 * time.Hour
+)
+
 // WeatherResponse represents the weather response payload
 //	@Description	Get weather information
 //	@Produce		json
@@ -26,45 +35,61 @@ type WeatherResponse struct {
 //	@Router			/api/weather [get]
 // handler for GET request to /api/weather
 func WeatherHandler(w http.ResponseWriter, r *http.Request) {
-	data, err := GetWeatherData();
+	utils.LogInfo("Processing weather request", nil)
+
+	// Fetch weather data
+	data, err := GetWeatherData()
 	if err != nil {
-		http.Error(w, "Failed to fetch weather data", http.StatusInternalServerError)
+		utils.LogError(err, fetchDataError, nil)
+		http.Error(w, fetchDataError, http.StatusInternalServerError)
 		return
 	}
 
-	response := WeatherResponse{
-		Data: data,
+	// Prepare response
+	response := WeatherResponse{Data: data}
+
+	// Send response
+	if err := json.NewEncoder(w).Encode(response); err != nil {
+		utils.LogError(err, encodeResponseError, nil)
+		http.Error(w, encodeResponseError, http.StatusInternalServerError)
+		return
 	}
 
-	if err := json.NewEncoder(w).Encode(response); err != nil {
-		http.Error(w, "Failed to encode response", http.StatusInternalServerError)
-	}
+	utils.LogInfo("Weather data fetched and response sent successfully", nil)
 }
 
-// fetches current weather data for Copenhagen from the OpenWeatherMap API
-func GetWeatherData() (weatherData map[string]interface{}, err error) {
-    // check if data is in cache
-    if cachedData, found := WeatherCache.Get("weatherData"); found {
-        return cachedData.(map[string]interface{}), nil
-    }
+// GetWeatherData fetches current weather data for Copenhagen from OpenWeatherMap API
+func GetWeatherData() (map[string]interface{}, error) {
+	utils.LogInfo("Fetching weather data", nil)
 
-    apiKey := config.AppConfig.WeatherAPI.OpenWeatherAPIKey
-    url := fmt.Sprintf("https://api.openweathermap.org/data/2.5/weather?q=Copenhagen&appid=%s", apiKey)
-    res, err := http.Get(url)
-    if err != nil {
-        fmt.Println("Error fetching weather data:", err)
-        return weatherData, err
-    }
-    defer res.Body.Close()
+	// Check cache for existing data
+	if cachedData, found := WeatherCache.Get(weatherDataCacheKey); found {
+		utils.LogInfo("Weather data found in cache", nil)
+		return cachedData.(map[string]interface{}), nil
+	}
 
-    err = json.NewDecoder(res.Body).Decode(&weatherData)
-    if err != nil {
-        fmt.Println("Error decoding weather data:", err)
-        return weatherData, err
-    }
+	// Construct API request
+	apiKey := config.AppConfig.WeatherAPI.OpenWeatherAPIKey
+	url := fmt.Sprintf("https://api.openweathermap.org/data/2.5/weather?q=Copenhagen&appid=%s", apiKey)
+	res, err := http.Get(url)
+	if err != nil {
+		utils.LogError(err, "Failed to fetch weather data from API", logrus.Fields{
+			"url": url,
+		})
+		return nil, err
+	}
+	defer res.Body.Close()
 
-    // store data in cache with expiration of 1 hour
-    WeatherCache.Set("weatherData", weatherData, 1 * time.Hour)
+	// Decode API response
+	var weatherData map[string]interface{}
+	if err := json.NewDecoder(res.Body).Decode(&weatherData); err != nil {
+		utils.LogError(err, "Failed to decode weather API response", nil)
+		return nil, err
+	}
 
-    return weatherData, nil
+	// Store data in cache
+	WeatherCache.Set(weatherDataCacheKey, weatherData, weatherDataCacheTime)
+	utils.LogInfo("Weather data fetched and stored in cache successfully", nil)
+
+	return weatherData, nil
 }
