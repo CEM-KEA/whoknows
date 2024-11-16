@@ -5,30 +5,39 @@ import (
 	"os"
 	"strconv"
 
+	"github.com/CEM-KEA/whoknows/backend/internal/utils"
 	"github.com/joho/godotenv"
+	"github.com/sirupsen/logrus"
 )
 
 // LoadEnv loads the configuration based on the environment
 func LoadEnv() error {
+	utils.LogInfo("Loading environment configuration", nil)
+
 	envFilePath := os.Getenv("ENV_FILE_PATH")
 
-	// Load .env file only if ENV_FILE_PATH is set (for local dev)
+	// Load .env file if specified
 	if envFilePath != "" {
-		err := godotenv.Load(envFilePath)
-		if err != nil {
-			return fmt.Errorf("error reading .env file - %s", err)
+		if err := godotenv.Load(envFilePath); err != nil {
+			utils.LogError(err, "Error reading .env file", logrus.Fields{
+				"path": envFilePath,
+			})
+			return fmt.Errorf("error reading .env file: %w", err)
 		}
-		fmt.Println("Loaded configuration from .env file")
+		utils.LogInfo("Loaded configuration from .env file", logrus.Fields{
+			"path": envFilePath,
+		})
 	} else {
-		fmt.Println("Loading configuration from environment variables")
+		utils.LogInfo("Loading configuration from environment variables", nil)
 	}
 
 	// Populate AppConfig from environment variables
-	err := loadConfigFromEnv()
-	if err != nil {
-		return fmt.Errorf("error loading configuration: %s", err)
+	if err := loadConfigFromEnv(); err != nil {
+		utils.LogError(err, "Error loading configuration from environment variables", nil)
+		return fmt.Errorf("error loading configuration: %w", err)
 	}
 
+	utils.LogInfo("Configuration loaded successfully", nil)
 	return nil
 }
 
@@ -70,10 +79,12 @@ func loadConfigFromEnv() error {
 
 	for key, fn := range loadConfig {
 		if err := fn(); err != nil {
+			utils.LogError(err, "Error loading configuration", logrus.Fields{"key": key})
 			return fmt.Errorf("error loading %s: %v", key, err)
 		}
 	}
-
+	
+	utils.LogInfo("All environment variables loaded successfully", nil)
 	return nil
 }
 
