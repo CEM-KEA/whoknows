@@ -10,6 +10,7 @@ import (
 	"github.com/CEM-KEA/whoknows/backend/internal/services"
 	"github.com/CEM-KEA/whoknows/backend/internal/utils"
 	"github.com/go-playground/validator/v10"
+	"github.com/sirupsen/logrus"
 )
 
 type RegisterRequest struct {
@@ -23,6 +24,7 @@ type RegisterRequest struct {
 
 // RegisterRequest represents the registration request payload
 //	@Description	Register a new user
+//	@Tags Authentication
 //	@Accept			json
 //	@Produce		json
 //	@Param			register	body		RegisterRequest	true	"User data"
@@ -30,27 +32,33 @@ type RegisterRequest struct {
 //	@Failure		400			{string}	string			"Validation error"
 //	@Failure		500			{string}	string			"Failed to create user"
 //	@Router			/api/register [post]
-// RegisterHandler handles the registration of a new user
 func RegisterHandler(w http.ResponseWriter, r *http.Request) {
+	utils.LogInfo("Processing register request", nil)
 
-	db := database.DB
-	req := RegisterRequest{}
-	
+	// Decode request body
+	var req RegisterRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, "Failed to decode request", http.StatusBadRequest)
+		utils.LogError(err, "Failed to decode request body", nil)
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
 		return
 	}
 
-	// validate the request
+	// Validate the request
 	if err := utils.Validate(req); err != nil {
 		if validationErrors, ok := err.(validator.ValidationErrors); ok {
 			for _, ve := range validationErrors {
 				if ve.StructField() == "Password2" && ve.Tag() == "eqfield" {
+					utils.LogWarn("Password confirmation does not match", logrus.Fields{
+						"username": req.Username,
+					})
 					http.Error(w, "Password confirmation does not match", http.StatusBadRequest)
 					return
 				}
 			}
 		}
+		utils.LogError(err, "Request validation failed", logrus.Fields{
+			"username": req.Username,
+		})
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
@@ -58,6 +66,9 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 	// Hash the password
 	hashedPassword, err := security.HashPassword(req.Password)
 	if err != nil {
+		utils.LogError(err, "Failed to hash password", logrus.Fields{
+			"username": req.Username,
+		})
 		http.Error(w, "Failed to hash password", http.StatusInternalServerError)
 		return
 	}
@@ -70,19 +81,32 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Save the user to the database
-	err = services.CreateUser(db, &user)
-	if err != nil {
+	if err := services.CreateUser(database.DB, &user); err != nil {
+		utils.LogError(err, "Failed to create user in database", logrus.Fields{
+			"username": user.Username,
+			"email":    user.Email,
+		})
 		http.Error(w, "Failed to create user", http.StatusInternalServerError)
 		return
 	}
 
-	// Return the user
+	// Send response
+	response := map[string]string{"message": "User created successfully"}
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
-	err = json.NewEncoder(w).Encode(map[string]string{"message": "User created successfully"})
-	if err != nil {
+	if err := json.NewEncoder(w).Encode(response); err != nil {
+		utils.LogError(err, "Failed to encode response", logrus.Fields{
+			"username": user.Username,
+		})
 		http.Error(w, "Failed to encode response", http.StatusInternalServerError)
+		return
 	}
+
+	// Log successful creation
+	utils.LogInfo("User created successfully", logrus.Fields{
+		"username": user.Username,
+		"email":    user.Email,
+	})
 }
 
 
