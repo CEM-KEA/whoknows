@@ -30,6 +30,8 @@ services:
       - API_LOG_LEVEL=${API_LOG_LEVEL}
       - API_LOG_FORMAT=${API_LOG_FORMAT}
       - API_WEATHER_API_KEY=${API_WEATHER_API_KEY}
+    volumes:
+      - ./logs/backend.log:/var/log/backend.log
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
       interval: 30s
@@ -106,7 +108,9 @@ services:
     restart: always
     volumes:
       - ./promtail-config.yaml:/etc/promtail/config.yaml
-      - /var/log:/var/log
+      - ./logs/backend.log:/var/log/backend.log  # Backend logs
+      - /var/log/nginx:/var/log/nginx           # Nginx logs
+      - /var/log/positions.yaml:/var/log/positions.yaml
     command: -config.file=/etc/promtail/config.yaml
     networks:
       - CEM-KEA
