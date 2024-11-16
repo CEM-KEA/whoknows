@@ -7,6 +7,8 @@ import (
 	"github.com/CEM-KEA/whoknows/backend/internal/database"
 	"github.com/CEM-KEA/whoknows/backend/internal/models"
 	"github.com/CEM-KEA/whoknows/backend/internal/services"
+	"github.com/CEM-KEA/whoknows/backend/internal/utils"
+	"github.com/sirupsen/logrus"
 )
 
 // SearchResponse represents the structure of the search response
@@ -20,6 +22,7 @@ type RequestValidationError struct {
 	Message    *string `json:"message,omitempty"`
 }
 
+// Search is the handler for the search API
 //	@Description	Search for pages by content
 //	@Produce		json
 //	@Param			q			query		string	true	"Search query"
@@ -28,57 +31,62 @@ type RequestValidationError struct {
 //	@Failure		400			{string}	string	"Search query (q) is required"
 //	@Failure		500			{string}	string	"Search query failed"
 //	@Router			/api/search [get]
-// Search is the handler for the search API
 func Search(w http.ResponseWriter, r *http.Request) {
+	utils.LogInfo("Processing search request", nil)
+
+	// Extract query parameters
 	q := r.URL.Query().Get("q")
 	language := r.URL.Query().Get("language")
 
-	// Validate the required search query (q)
+	// Validate the required search query parameter
 	if q == "" {
 		msg := "Search query (q) is required"
+		utils.LogWarn("Search query validation failed", logrus.Fields{
+			"error": msg,
+		})
+
 		validationError := RequestValidationError{
 			StatusCode: http.StatusBadRequest,
 			Message:    &msg,
 		}
-
 		w.WriteHeader(http.StatusBadRequest)
-
 		if err := json.NewEncoder(w).Encode(validationError); err != nil {
+			utils.LogError(err, "Failed to encode validation error", nil)
 			http.Error(w, "Failed to encode validation error", http.StatusInternalServerError)
 		}
-
 		return
 	}
 
 	// Log the search query
-	searchLog := models.SearchLog{
-		Query: q,
-	}
+	searchLog := models.SearchLog{Query: q}
 	if err := services.CreateSearchLog(database.DB, &searchLog); err != nil {
+		utils.LogError(err, "Failed to log search query", logrus.Fields{
+			"query": q,
+		})
 		http.Error(w, "Failed to log search query", http.StatusInternalServerError)
 		return
 	}
 
-	// Perform the search using Gorm
+	// Perform the search
 	var pages []models.Page
-
 	query := database.DB.Where("content LIKE ?", "%"+q+"%").Order("title ASC")
-
-	// Optional language filter
 	if language != "" {
 		query = query.Where("language = ?", language)
 	}
 
-	err := query.Find(&pages).Error
-	if err != nil {
+	if err := query.Find(&pages).Error; err != nil {
+		utils.LogError(err, "Search query execution failed", logrus.Fields{
+			"query":    q,
+			"language": language,
+		})
 		http.Error(w, "Search query failed", http.StatusInternalServerError)
 		return
 	}
 
+	// Prepare the response
 	response := SearchResponse{
 		Data: make([]map[string]interface{}, len(pages)),
 	}
-
 	for i, page := range pages {
 		response.Data[i] = map[string]interface{}{
 			"id":       page.ID,
@@ -89,7 +97,20 @@ func Search(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	// Encode and send the response
 	if err := json.NewEncoder(w).Encode(response); err != nil {
+		utils.LogError(err, "Failed to encode search response", logrus.Fields{
+			"query":    q,
+			"language": language,
+		})
 		http.Error(w, "Failed to encode response", http.StatusInternalServerError)
+		return
 	}
+
+	// Log success
+	utils.LogInfo("Search query completed successfully", logrus.Fields{
+		"query":    q,
+		"language": language,
+		"results":  len(pages),
+	})
 }
