@@ -39,6 +39,9 @@ func InitDatabase() error {
 		return fmt.Errorf("error connecting to Postgres database: %s", err)
 	}
 
+	// Register the database callbacks for Prometheus metrics
+	RegisterCallbacks(DB)
+
 	utils.LogInfo("Database connection established", nil)
 
 	// Perform migrations if enabled in the configuration
