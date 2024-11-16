@@ -86,3 +86,63 @@ services:
       - backend
     networks:
       - CEM-KEA
+
+  postgres_exporter:
+    container_name: postgres_exporter
+    image: prometheuscommunity/postgres-exporter:latest
+    restart: always
+    ports:
+      - "9187:9187"
+    environment:
+      - DATA_SOURCE_NAME=postgresql://${API_DATABASE_USER}:${API_DATABASE_PASSWORD}@db:5432/${API_DATABASE_NAME}?sslmode=disable
+    depends_on:
+      - db
+    networks:
+      - CEM-KEA
+
+  promtail:
+    container_name: promtail
+    image: grafana/promtail:latest
+    restart: always
+    volumes:
+      - ./promtail-config.yaml:/etc/promtail/config.yaml
+      - /var/log:/var/log
+    command: -config.file=/etc/promtail/config.yaml
+    networks:
+      - CEM-KEA
+
+  cadvisor:
+    container_name: cadvisor
+    image: gcr.io/cadvisor/cadvisor:latest
+    restart: always
+    ports:
+      - "8081:8080"
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+    networks:
+      - CEM-KEA
+
+  node_exporter:
+    container_name: node_exporter
+    image: prom/node-exporter:latest
+    restart: always
+    ports:
+      - "9100:9100"
+    networks:
+      - CEM-KEA
+
+  nginx_exporter:
+    container_name: nginx_exporter
+    image: nginx/nginx-prometheus-exporter:latest
+    restart: always
+    ports:
+      - "9113:9113"
+    environment:
+      - NGINX_STATUS_URL=http://nginx/nginx_status
+    depends_on:
+      - nginx
+    networks:
+      - CEM-KEA
