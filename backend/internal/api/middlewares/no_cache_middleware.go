@@ -4,40 +4,45 @@ import (
 	"net/http"
 
 	"github.com/CEM-KEA/whoknows/backend/internal/utils"
-	"github.com/sirupsen/logrus"
 )
 
-
-// NoCacheMiddleware is a middleware that sets HTTP headers to prevent caching.
-// It adds the following headers to the response:
+// NoCacheMiddleware prevents caching by setting appropriate HTTP headers.
+// Headers added:
 // - Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate
 // - Pragma: no-cache
 // - Expires: 0
 //
-// This middleware logs the initialization, application, and completion of the no-cache headers.
+// Logs:
+// - Logs initialization of the middleware during server startup.
+// - Logs application of no-cache headers for each request.
 //
 // Parameters:
 // - next: The next http.Handler in the middleware chain.
 //
 // Returns:
-// - http.Handler: A handler that applies the no-cache headers and then calls the next handler.
+// - http.Handler: A handler that applies no-cache headers and then delegates to the next handler.
 func NoCacheMiddleware(next http.Handler) http.Handler {
 	utils.LogInfo("Initializing no-cache middleware", nil)
 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		utils.LogInfo("Applying no-cache headers", logrus.Fields{
-			"path":   r.URL.Path,
-			"method": r.Method,
+		path := utils.SanitizeValue(r.URL.Path)
+		method := utils.SanitizeValue(r.Method)
+
+		utils.LogInfo("Applying no-cache headers", map[string]interface{}{
+			"path":   path,
+			"method": method,
 		})
 
+		// Set headers to disable caching
 		w.Header().Set("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate")
 		w.Header().Set("Pragma", "no-cache")
 		w.Header().Set("Expires", "0")
 
-		utils.LogInfo("No-cache headers applied", logrus.Fields{
-			"path":   r.URL.Path,
-			"method": r.Method,
+		utils.LogInfo("No-cache headers applied", map[string]interface{}{
+			"path":   path,
+			"method": method,
 		})
+
 		next.ServeHTTP(w, r)
 	})
 }
