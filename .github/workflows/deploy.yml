@@ -142,6 +142,7 @@ jobs:
             export IMAGE_TAG="${{ env.IMAGE_TAG }}"
             export BACKEND_VERSION="${{ env.IMAGE_TAG }}"
             export FRONTEND_VERSION="${{ env.IMAGE_TAG }}"
+            export MONITOR_IP="${{ secrets.MONITOR_IP }}"
 
             # Pull the latest images from GHCR
             echo "Pulling backend image ghcr.io/${{ env.REPO_NAME }}/backend:${{ env.IMAGE_TAG }}"

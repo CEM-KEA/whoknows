@@ -1,12 +1,13 @@
 package handlers
 
 import (
-	"encoding/json"
 	"net/http"
 
 	"github.com/CEM-KEA/whoknows/backend/internal/database"
 	"github.com/CEM-KEA/whoknows/backend/internal/models"
 	"github.com/CEM-KEA/whoknows/backend/internal/services"
+	"github.com/CEM-KEA/whoknows/backend/internal/utils"
+	"github.com/sirupsen/logrus"
 )
 
 // SearchResponse represents the structure of the search response
@@ -20,6 +21,8 @@ type RequestValidationError struct {
 	Message    *string `json:"message,omitempty"`
 }
 
+// Search is the handler for the search API
+//
 //	@Description	Search for pages by content
 //	@Produce		json
 //	@Param			q			query		string	true	"Search query"
@@ -28,57 +31,44 @@ type RequestValidationError struct {
 //	@Failure		400			{string}	string	"Search query (q) is required"
 //	@Failure		500			{string}	string	"Search query failed"
 //	@Router			/api/search [get]
-// Search is the handler for the search API
 func Search(w http.ResponseWriter, r *http.Request) {
-	q := r.URL.Query().Get("q")
-	language := r.URL.Query().Get("language")
+	utils.LogInfo("Processing search request", nil)
+	q := utils.SanitizeValue(r.URL.Query().Get("q"))
+	language := utils.SanitizeValue(r.URL.Query().Get("language"))
 
-	// Validate the required search query (q)
 	if q == "" {
-		msg := "Search query (q) is required"
-		validationError := RequestValidationError{
-			StatusCode: http.StatusBadRequest,
-			Message:    &msg,
-		}
-
-		w.WriteHeader(http.StatusBadRequest)
-
-		if err := json.NewEncoder(w).Encode(validationError); err != nil {
-			http.Error(w, "Failed to encode validation error", http.StatusInternalServerError)
-		}
-
+		utils.LogWarn("Search query validation failed", nil)
+		utils.WriteJSONError(w, "Search query (q) is required", http.StatusBadRequest)
 		return
 	}
 
-	// Log the search query
-	searchLog := models.SearchLog{
-		Query: q,
-	}
+	searchLog := models.SearchLog{Query: q}
 	if err := services.CreateSearchLog(database.DB, &searchLog); err != nil {
-		http.Error(w, "Failed to log search query", http.StatusInternalServerError)
+		utils.LogError(err, "Failed to log search query", nil)
+		utils.WriteJSONError(w, "Failed to log search query", http.StatusInternalServerError)
 		return
 	}
 
-	// Perform the search using Gorm
+	queryType := "generic"
+	if language != "" {
+		queryType = "language_filtered"
+	}
+	utils.IncrementSearchQueries(queryType)
+
 	var pages []models.Page
-
 	query := database.DB.Where("content LIKE ?", "%"+q+"%").Order("title ASC")
-
-	// Optional language filter
 	if language != "" {
 		query = query.Where("language = ?", language)
 	}
-
-	err := query.Find(&pages).Error
-	if err != nil {
-		http.Error(w, "Search query failed", http.StatusInternalServerError)
+	if err := query.Find(&pages).Error; err != nil {
+		utils.LogError(err, "Search query execution failed", nil)
+		utils.WriteJSONError(w, "Search query failed", http.StatusInternalServerError)
 		return
 	}
 
 	response := SearchResponse{
 		Data: make([]map[string]interface{}, len(pages)),
 	}
-
 	for i, page := range pages {
 		response.Data[i] = map[string]interface{}{
 			"id":       page.ID,
@@ -89,7 +79,15 @@ func Search(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	if err := json.NewEncoder(w).Encode(response); err != nil {
-		http.Error(w, "Failed to encode response", http.StatusInternalServerError)
-	}
+	utils.JSONSuccess(w, map[string]interface{}{
+		"status":  "success",
+		"data":    response.Data,
+		"results": len(response.Data),
+	}, http.StatusOK)
+
+	utils.LogInfo("Search query completed successfully", logrus.Fields{
+		"query":    q,
+		"language": language,
+		"results":  len(pages),
+	})
 }

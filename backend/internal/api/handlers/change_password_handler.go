@@ -14,60 +14,66 @@ import (
 type ChangePasswordRequest struct {
 	Username          string `json:"username" validate:"required"`
 	Password          string `json:"old_password" validate:"required"`
-	NewPassword  	    string `json:"new_password" validate:"required"`
+	NewPassword       string `json:"new_password" validate:"required"`
 	RepeatNewPassword string `json:"repeat_new_password" validate:"required,eqfield=NewPassword"`
 }
 
 // ChangePasswordRequest represents the change password request payload
-//	@Description	Change password
-//	@Accept			json
-//	@Produce		json
-//	@Param			register	body		RegisterRequest	true	"User data"
-//	@Success		200			{string}	string			"Password changed successfully"
-//	@Failure		400			{string}	string			"Validation error"
-//	@Failure		500			{string}	string			"Failed to change password"
-//	@Router			/api/change-password [post]
-// ChangePasswordHandler handles changing of a user password
+//
+//	@Summary Change user password
+//	@Description Endpoint to change the password of a user
+//	@Tags Authentication
+//	@Accept json
+//	@Produce json
+//	@Param changePasswordRequest body handlers.ChangePasswordRequest true "Change password payload"
+//	@Success 200 {object} map[string]string "Password changed successfully"
+//	@Failure 400 {object} map[string]string "Validation error"
+//	@Failure 500 {object} map[string]string "Failed to change password"
+//	@Router /api/change-password [post]
 func ChangePasswordHandler(w http.ResponseWriter, r *http.Request) {
+	utils.LogInfo("Processing change password request", nil)
+
 	var request ChangePasswordRequest
-
-	err := json.NewDecoder(r.Body).Decode(&request)
-	if err != nil {
-		http.Error(w, "Invalid request body", http.StatusBadRequest)
+	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+		utils.LogError(err, "Failed to decode request body", nil)
+		utils.WriteJSONError(w, "Invalid request body", http.StatusBadRequest)
 		return
 	}
 
-	err = utils.Validate(request)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+	utils.SanitizeStruct(&request)
+
+	if err := utils.Validate(request); err != nil {
+		utils.LogError(err, "Request validation failed", nil)
+		utils.WriteJSONError(w, "Invalid input data", http.StatusBadRequest)
 		return
 	}
 
-	user, valid, err := services.CheckUserPassword(database.DB, request.Password, request.Username)
-
+	_, valid, err := services.CheckUserPassword(database.DB, request.Password, request.Username)
 	if err != nil || !valid {
-		http.Error(w, err.Error(), http.StatusUnauthorized)
+		utils.LogWarn("Invalid user credentials", nil)
+		utils.WriteJSONError(w, "Invalid username or password", http.StatusUnauthorized)
 		return
 	}
 
 	hash, err := bcrypt.GenerateFromPassword([]byte(request.NewPassword), bcrypt.DefaultCost)
 	if err != nil {
-		http.Error(w, "Failed to change password", http.StatusInternalServerError)
+		utils.LogError(err, "Password hashing failed", nil)
+		utils.WriteJSONError(w, "Failed to change password", http.StatusInternalServerError)
 		return
 	}
 
+	user, _ := services.GetUserByUsername(database.DB, request.Username)
 	user.PasswordHash = string(hash)
 	user.UpdatedAt = time.Now()
-
-	err = services.UpdateUser(database.DB, user)
-	if err != nil {
-		http.Error(w, "Failed to change password", http.StatusInternalServerError)
+	if err := services.UpdateUser(database.DB, user); err != nil {
+		utils.LogError(err, "Failed to update user in database", nil)
+		utils.WriteJSONError(w, "Failed to change password", http.StatusInternalServerError)
 		return
 	}
 
-	w.WriteHeader(http.StatusCreated)
-	err = json.NewEncoder(w).Encode(map[string]string{"message": "User created successfully"})
-	if err != nil {
-		http.Error(w, "Failed to encode response", http.StatusInternalServerError)
-	}
+	utils.LogInfo("Password changed successfully", nil)
+	utils.JSONSuccess(w, map[string]interface{}{
+		"status":  "success",
+		"message": "Password changed successfully",
+	}, http.StatusOK)
 }

@@ -9,6 +9,7 @@ import (
 	"github.com/CEM-KEA/whoknows/backend/internal/config"
 	"github.com/CEM-KEA/whoknows/backend/internal/database"
 	"github.com/CEM-KEA/whoknows/backend/internal/utils"
+	"github.com/sirupsen/logrus"
 )
 
 // @title						WhoKnows API
@@ -20,41 +21,87 @@ import (
 // @in							header
 // @name						JWT
 func main() {
-	// Load application configuration from the .env file
-	err := config.LoadEnv()
-	if err != nil {
-		fmt.Printf("Error loading configuration: %s\n", err)
+	// Initialize logger immediately
+	utils.InitGlobalLogger("info", "json")
+	utils.LogInfo("Logger initialized for early application setup", nil)
+
+	// Load configuration
+	if err := loadConfig(); err != nil {
+		utils.LogFatal("Failed to load configuration", logrus.Fields{
+			"error": err.Error(),
+		})
 		return
 	}
 
-	// Initialize the database
-	err = database.InitDatabase()
-	if err != nil {
-		fmt.Printf("Error initializing database: %s\n", err)
-		return
-	}
+	// Initialize logger
+	initLogger()
 
-	// initalize utils
+	// Initialize utilities
 	utils.InitValidator()
 
-	// Create the router from the api package
-	router := api.NewRouter()
+	// Initialize the database
+	if err := initDatabase(); err != nil {
+		utils.LogFatal("Failed to initialize the database", logrus.Fields{
+			"error": err.Error(),
+		})
+		return
+	}
 
 	// Start the server
+	startServer()
+}
+
+// loadConfig loads application configuration
+func loadConfig() error {
+	utils.LogInfo("Loading application configuration", nil)
+	if err := config.LoadEnv(); err != nil {
+		utils.LogError(err, "Error loading configuration", nil)
+		return err
+	}
+	utils.LogInfo("Configuration loaded successfully", nil)
+	return nil
+}
+
+// initLogger initializes the global logger
+func initLogger() {
+	logLevel := config.AppConfig.Log.Level
+	logFormat := config.AppConfig.Log.Format
+	utils.InitGlobalLogger(logLevel, logFormat)
+	utils.LogInfo("Logger initialized", logrus.Fields{
+		"logLevel":  logLevel,
+		"logFormat": logFormat,
+	})
+}
+
+// initDatabase initializes the database connection
+func initDatabase() error {
+	utils.LogInfo("Initializing database", nil)
+	if err := database.InitDatabase(); err != nil {
+		utils.LogError(err, "Error initializing database", nil)
+		return err
+	}
+	utils.LogInfo("Database initialized successfully", nil)
+	return nil
+}
+
+// startServer configures and starts the HTTP server
+func startServer() {
 	serverPort := config.AppConfig.Server.Port
-	fmt.Printf("Server is running on port: %d\n", serverPort)
+	utils.LogInfo("Starting server", logrus.Fields{
+		"port": serverPort,
+	})
 
 	server := &http.Server{
 		Addr:         fmt.Sprintf(":%d", serverPort),
-		Handler:      router,
+		Handler:      api.NewRouter(),
 		ReadTimeout:  5 * time.Second,
 		WriteTimeout: 10 * time.Second,
 		IdleTimeout:  15 * time.Second,
 	}
 
-	err = server.ListenAndServe()
-
-	if err != nil {
-		fmt.Printf("Error starting server: %s\n", err)
+	if err := server.ListenAndServe(); err != nil {
+		utils.LogFatal("Error starting server", logrus.Fields{
+			"error": err.Error(),
+		})
 	}
 }
