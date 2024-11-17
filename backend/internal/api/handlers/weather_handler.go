@@ -39,36 +39,40 @@ func WeatherHandler(w http.ResponseWriter, r *http.Request) {
 	data, err := GetWeatherData()
 	if err != nil {
 		utils.LogError(err, fetchDataError, nil)
-		http.Error(w, fetchDataError, http.StatusInternalServerError)
+		utils.WriteJSONError(w, fetchDataError, http.StatusInternalServerError)
 		return
 	}
 
-	response := WeatherResponse{Data: data}
-
-	if err := json.NewEncoder(w).Encode(response); err != nil {
-		utils.LogError(err, encodeResponseError, nil)
-		http.Error(w, encodeResponseError, http.StatusInternalServerError)
-		return
-	}
+	utils.JSONSuccess(w, map[string]interface{}{
+		"status": "success",
+		"data":   data,
+	}, http.StatusOK)
 
 	utils.LogInfo("Weather data fetched and response sent successfully", nil)
 }
 
-// GetWeatherData fetches current weather data for Copenhagen from OpenWeatherMap API
+// GetWeatherData fetches weather data for Copenhagen from the OpenWeather API.
+// It first checks if the data is available in the cache. If cached data is found,
+// it returns the cached data. Otherwise, it fetches the data from the API, decodes
+// the response, stores the data in the cache, and then returns the data.
+//
+// Returns:
+//   - map[string]interface{}: The weather data.
+//   - error: An error if there was an issue fetching or decoding the data.
 func GetWeatherData() (map[string]interface{}, error) {
 	utils.LogInfo("Fetching weather data", nil)
+
 	if cachedData, found := WeatherCache.Get(weatherDataCacheKey); found {
-		utils.LogInfo("Weather data found in cache", nil)
+		utils.LogInfo("Weather data retrieved from cache", nil)
 		return cachedData.(map[string]interface{}), nil
 	}
 
 	apiKey := config.AppConfig.WeatherAPI.OpenWeatherAPIKey
 	url := fmt.Sprintf("https://api.openweathermap.org/data/2.5/weather?q=Copenhagen&appid=%s", apiKey)
+
 	res, err := http.Get(url)
 	if err != nil {
-		utils.LogError(err, "Failed to fetch weather data from API", logrus.Fields{
-			"url": url,
-		})
+		utils.LogError(err, "Failed to fetch weather data from API", logrus.Fields{"url": url})
 		return nil, err
 	}
 	defer res.Body.Close()
@@ -78,9 +82,9 @@ func GetWeatherData() (map[string]interface{}, error) {
 		utils.LogError(err, "Failed to decode weather API response", nil)
 		return nil, err
 	}
-    
+
 	WeatherCache.Set(weatherDataCacheKey, weatherData, weatherDataCacheTime)
-	utils.LogInfo("Weather data fetched and stored in cache successfully", nil)
+	utils.LogInfo("Weather data fetched and stored in cache", nil)
 
 	return weatherData, nil
 }
