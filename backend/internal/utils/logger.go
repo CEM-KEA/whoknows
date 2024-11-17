@@ -93,6 +93,8 @@ func cleanFields(fields logrus.Fields) logrus.Fields {
 		if str, ok := value.(string); ok {
 			if key == "apiKey" {
 				str = obfuscateAPIKey(str)
+			} else if key == "authHeader" {
+				str = obfuscateAuthHeader(str)
 			}
 			str = strings.ReplaceAll(str, "\n", "")
 			str = strings.ReplaceAll(str, "\r", "")
@@ -112,6 +114,13 @@ func cleanFields(fields logrus.Fields) logrus.Fields {
 func obfuscateAPIKey(apiKey string) string {
 	if len(apiKey) > 10 {
 		return apiKey[:5] + "*****" + apiKey[len(apiKey)-5:]
+	}
+	return "*****"
+}
+
+func obfuscateAuthHeader(authHeader string) string {
+	if len(authHeader) > 10 {
+		return authHeader[:5] + "*****" + authHeader[len(authHeader)-5:]
 	}
 	return "*****"
 }
