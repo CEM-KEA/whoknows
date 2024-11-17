@@ -88,7 +88,7 @@ func extractToken(r *http.Request) (string, error) {
 
 	parts := strings.Split(authHeader, " ")
 	if len(parts) != 2 || parts[0] != "Bearer" {
-		utils.LogWarn("Invalid Authorization header format", map[string]interface{}{"authHeader": authHeader})
+		utils.LogWarn("Invalid Authorization header format", nil)
 		return "", errors.New("Invalid Authorization header format")
 	}
 
