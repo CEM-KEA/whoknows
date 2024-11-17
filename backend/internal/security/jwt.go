@@ -92,17 +92,17 @@ func ValidateJWT(tokenString string) (jwt.MapClaims, error) {
 
 // ValidateJWTRevoked checks if the token is revoked
 func ValidateJWTRevoked(db *gorm.DB, jwt string) error {
-	utils.LogInfo("Checking if JWT is revoked", logrus.Fields{"jwt": jwt})
+	utils.LogInfo("Checking if JWT is revoked", logrus.Fields{"jwt": utils.ObfuscateSensitiveFields(logrus.Fields{"jwt": jwt})["jwt"]})
 
 	var jwtModel models.JWT
 	err := db.Where("token = ?", jwt).First(&jwtModel).Error
 	if err != nil {
-		utils.LogError(err, "Failed to query token", logrus.Fields{"jwt": jwt})
+		utils.LogError(err, "Failed to query token", logrus.Fields{"jwt": utils.ObfuscateSensitiveFields(logrus.Fields{"jwt": jwt})["jwt"]})
 		return errors.Wrap(err, "failed to query token")
 	}
 
 	if jwtModel.RevokedAt != nil {
-		utils.LogInfo("Token is revoked", logrus.Fields{"jwt": jwt})
+		utils.LogInfo("Token is revoked", logrus.Fields{"jwt": utils.ObfuscateSensitiveFields(logrus.Fields{"jwt": jwt})["jwt"]})
 		return errors.New("token is revoked")
 	}
 
@@ -111,22 +111,22 @@ func ValidateJWTRevoked(db *gorm.DB, jwt string) error {
 
 // RevokeJWT revokes a given JWT token
 func RevokeJWT(db *gorm.DB, jwt string) error {
-	utils.LogInfo("Revoking JWT token", logrus.Fields{"jwt": jwt})
+	utils.LogInfo("Revoking JWT token", logrus.Fields{"jwt": utils.ObfuscateSensitiveFields(logrus.Fields{"jwt": jwt})["jwt"]})
 
 	var jwtModel models.JWT
 	err := db.Where("token = ?", jwt).First(&jwtModel).Error
 	if err != nil {
-		utils.LogError(err, "Failed to query token", logrus.Fields{"jwt": jwt})
+		utils.LogError(err, "Failed to query token", logrus.Fields{"jwt": utils.ObfuscateSensitiveFields(logrus.Fields{"jwt": jwt})["jwt"]})
 		return errors.Wrap(err, "failed to query token")
 	}
 
 	jwtModel.RevokedAt = &time.Time{}
 	err = db.Save(&jwtModel).Error
 	if err != nil {
-		utils.LogError(err, "Failed to update token", logrus.Fields{"jwt": jwt})
+		utils.LogError(err, "Failed to update token", logrus.Fields{"jwt": utils.ObfuscateSensitiveFields(logrus.Fields{"jwt": jwt})["jwt"]})
 		return errors.Wrap(err, "failed to update token")
 	}
 
-	utils.LogInfo("Token revoked successfully", logrus.Fields{"jwt": jwt})
+	utils.LogInfo("Token revoked successfully", logrus.Fields{"jwt": utils.ObfuscateSensitiveFields(logrus.Fields{"jwt": jwt})["jwt"]})
 	return nil
 }
