@@ -23,30 +23,48 @@ import (
 func MetricsMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		start := time.Now()
-		utils.IncrementActiveRequests(r.Method, r.URL.Path)
+		path := utils.SanitizeValue(r.URL.Path) // Ensure the path is sanitized for logging and metrics.
+		method := utils.SanitizeValue(r.Method)
+
+		utils.LogInfo("Incoming request", map[string]interface{}{
+			"method": method,
+			"path":   path,
+		})
+
+		utils.IncrementActiveRequests(method, path)
+		
+		wrappedWriter := &responseWriter{ResponseWriter: w}
 
 		defer func() {
-			utils.DecrementActiveRequests(r.Method, r.URL.Path)
+			utils.DecrementActiveRequests(method, path)
+
 			duration := time.Since(start).Seconds()
-			utils.ObserveHTTPRequestDuration(r.Method, r.URL.Path, duration)
+			utils.ObserveHTTPRequestDuration(method, path, duration)
+
+			utils.LogInfo("Request completed", map[string]interface{}{
+				"method":       method,
+				"path":         path,
+				"duration_sec": duration,
+				"response_size": wrappedWriter.size,
+			})
 		}()
 
 		if r.ContentLength > 0 {
-			utils.ObserveRequestSize(r.Method, r.URL.Path, float64(r.ContentLength))
+			utils.ObserveRequestSize(method, path, float64(r.ContentLength))
 		}
 
-		wrappedWriter := &responseWriter{ResponseWriter: w}
 		next.ServeHTTP(wrappedWriter, r)
-		utils.ObserveResponseSize(r.Method, r.URL.Path, float64(wrappedWriter.size))
+		utils.ObserveResponseSize(method, path, float64(wrappedWriter.size))
 	})
 }
 
-// responseWriter wraps http.ResponseWriter to capture response size
+// responseWriter wraps http.ResponseWriter to capture response size.
 type responseWriter struct {
 	http.ResponseWriter
 	size int
 }
 
+// Write intercepts the response body write to track the size.
 func (rw *responseWriter) Write(b []byte) (int, error) {
 	size, err := rw.ResponseWriter.Write(b)
 	rw.size += size
