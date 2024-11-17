@@ -142,8 +142,8 @@ func TestAuthMiddleware(t *testing.T) {
 			},
 			expectedStatus: http.StatusUnauthorized,
 			expectError:    true,
-			errorMessage:   "Invalid user ID",
-		},
+			errorMessage:   "Failed to parse user ID: strconv.ParseUint: parsing \"not_a_number\": invalid syntax",
+		},		
 	}
 
 	for _, tt := range tests {
