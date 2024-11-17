@@ -51,28 +51,40 @@ func WeatherHandler(w http.ResponseWriter, r *http.Request) {
 	utils.LogInfo("Weather data fetched and response sent successfully", nil)
 }
 
-// GetWeatherData fetches weather data for Copenhagen from the OpenWeather API.
-// It first checks if the data is available in the cache. If cached data is found,
-// it returns the cached data. Otherwise, it fetches the data from the API, decodes
-// the response, stores the data in the cache, and then returns the data.
+
+// GetWeatherData fetches weather data from the OpenWeather API for Copenhagen,
+// logs the request and response process, and stores the fetched data in a cache.
+//
+// It returns a map containing the weather data and an error if any occurred
+// during the process.
+//
+// The function performs the following steps:
+//  1. Logs the initiation of the weather data fetching process.
+//  2. Constructs the API request URL using the base URL and query parameters.
+//  3. Logs the sanitized request URL (without the API key).
+//  4. Sends an HTTP GET request to the OpenWeather API.
+//  5. Handles any errors that occur during the HTTP request.
+//  6. Decodes the JSON response from the API into a map.
+//  7. Logs any errors that occur during the JSON decoding process.
+//  8. Stores the fetched weather data in a cache.
+//  9. Logs the successful fetching and caching of the weather data.
 //
 // Returns:
-//   - map[string]interface{}: The weather data.
-//   - error: An error if there was an issue fetching or decoding the data.
+// - map[string]interface{}: The weather data fetched from the API.
+// - error: An error if any occurred during the process.
 func GetWeatherData() (map[string]interface{}, error) {
 	utils.LogInfo("Fetching weather data", nil)
+	baseURL := "https://api.openweathermap.org/data/2.5/weather"
+	queryParams := fmt.Sprintf("q=Copenhagen&appid=%s", config.AppConfig.WeatherAPI.OpenWeatherAPIKey)
+	fullURL := fmt.Sprintf("%s?%s", baseURL, queryParams)
 
-	if cachedData, found := WeatherCache.Get(weatherDataCacheKey); found {
-		utils.LogInfo("Weather data retrieved from cache", nil)
-		return cachedData.(map[string]interface{}), nil
-	}
+	utils.LogInfo("Sending request to OpenWeather API", logrus.Fields{
+		"url": fmt.Sprintf("%s?q=Copenhagen", baseURL),
+	})
 
-	apiKey := config.AppConfig.WeatherAPI.OpenWeatherAPIKey
-	url := fmt.Sprintf("https://api.openweathermap.org/data/2.5/weather?q=Copenhagen&appid=%s", apiKey)
-
-	res, err := http.Get(url)
+	res, err := http.Get(fullURL)
 	if err != nil {
-		utils.LogError(err, "Failed to fetch weather data from API", logrus.Fields{"url": url})
+		utils.LogError(err, "Failed to fetch weather data from API", logrus.Fields{"url": baseURL})
 		return nil, err
 	}
 	defer res.Body.Close()
