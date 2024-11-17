@@ -20,36 +20,33 @@ import (
 //	@Failure		500	{string}	string	"Failed to revoke token"
 //	@Router			/api/logout [get]
 func LogoutHandler(w http.ResponseWriter, r *http.Request) {
-	logger := utils.Logger
-	logger.Info("Processing logout request")
-
+	utils.LogInfo("Processing logout request", nil)
 	authHeader := r.Header.Get("Authorization")
 	if authHeader == "" {
-		logger.Warn("No Authorization header found")
-		w.WriteHeader(http.StatusUnauthorized)
-		w.Write([]byte("No Authorization header found"))
+		utils.LogWarn("No Authorization header found", nil)
+		utils.WriteJSONError(w, "No Authorization header found", http.StatusUnauthorized)
 		return
 	}
 
 	parts := strings.Split(authHeader, " ")
 	if len(parts) != 2 || parts[0] != "Bearer" {
-		logger.Warn("Invalid Authorization header format")
-		w.WriteHeader(http.StatusUnauthorized)
-		w.Write([]byte("Invalid Authorization header format"))
+		utils.LogWarn("Invalid Authorization header format", nil)
+		utils.WriteJSONError(w, "Invalid Authorization header format", http.StatusUnauthorized)
 		return
 	}
 	token := parts[1]
 
 	err := security.RevokeJWT(database.DB, token)
 	if err != nil {
-		logger.WithError(err).Warn("Failed to revoke token")
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte("Failed to revoke token"))
+		utils.LogError(err, "Failed to revoke token", nil)
+		utils.WriteJSONError(w, "Failed to revoke token", http.StatusInternalServerError)
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("Logged out successfully"))
+	utils.JSONSuccess(w, map[string]interface{}{
+		"status":  "success",
+		"message": "Logged out successfully",
+	}, http.StatusOK)
 
-	logger.Info("User logged out successfully")
+	utils.LogInfo("User logged out successfully", nil)
 }
