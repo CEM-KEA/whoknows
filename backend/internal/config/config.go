@@ -10,7 +10,19 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-// LoadEnv loads the configuration based on the environment
+// LoadEnv loads the environment configuration for the application.
+// It first checks if an environment file path is specified in the ENV_FILE_PATH
+// environment variable. If specified, it attempts to load the configuration
+// from the .env file at that path. If the .env file cannot be read, an error
+// is logged and returned.
+//
+// If no .env file path is specified, it loads the configuration directly from
+// the environment variables.
+//
+// The function also populates the AppConfig from the environment variables.
+// If there is an error during this process, it logs the error and returns it.
+//
+// Returns an error if there is any issue loading the configuration.
 func LoadEnv() error {
 	utils.LogInfo("Loading environment configuration", nil)
 
@@ -41,7 +53,14 @@ func LoadEnv() error {
 	return nil
 }
 
-// loadConfigFromEnv maps environment variables to AppConfig
+
+// loadConfigFromEnv loads the application configuration from environment variables.
+// It maps environment variable keys to their respective configuration fields and
+// attempts to load each one using helper functions such as getEnv, getEnvAsInt, and getEnvAsBool.
+// If any environment variable fails to load, it logs the error and returns it.
+// If all environment variables are loaded successfully, it logs a success message.
+//
+// Returns an error if any environment variable fails to load.
 func loadConfigFromEnv() error {
 	var err error
 
@@ -83,7 +102,7 @@ func loadConfigFromEnv() error {
 			return fmt.Errorf("error loading %s: %v", key, err)
 		}
 	}
-
+	
 	utils.LogInfo("All environment variables loaded successfully", nil)
 	return nil
 }

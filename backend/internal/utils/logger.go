@@ -10,6 +10,18 @@ import (
 
 var Logger *logrus.Logger
 
+// NewLogger creates a new instance of a logrus.Logger with the specified log level and format.
+// The log level can be any valid logrus log level (e.g., "debug", "info", "warn", "error").
+// If the provided log level is invalid, it defaults to "info" level.
+// The log format can be either "json" or "JSON" for JSON formatted logs, or any other value for text formatted logs.
+// The logger output is set to os.Stdout.
+//
+// Parameters:
+//   - logLevel: The desired log level as a string.
+//   - logFormat: The desired log format as a string.
+//
+// Returns:
+//   - *logrus.Logger: A pointer to the configured logrus.Logger instance.
 func NewLogger(logLevel string, logFormat string) *logrus.Logger {
 	logger := logrus.New()
 
@@ -20,7 +32,6 @@ func NewLogger(logLevel string, logFormat string) *logrus.Logger {
 	}
 	logger.SetLevel(level)
 
-	// Set log output format
 	switch logFormat {
 	case "json", "JSON":
 		logger.SetFormatter(&logrus.JSONFormatter{})
@@ -28,7 +39,6 @@ func NewLogger(logLevel string, logFormat string) *logrus.Logger {
 		logger.SetFormatter(&logrus.TextFormatter{})
 	}
 
-	// Set output to stdout
 	logger.SetOutput(os.Stdout)
 
 	return logger
@@ -38,7 +48,17 @@ func InitGlobalLogger(logLevel, logFormat string) {
 	Logger = NewLogger(logLevel, logFormat)
 }
 
-// ObfuscateSensitiveFields obfuscates sensitive fields in log messages
+
+// ObfuscateSensitiveFields takes a map of logrus fields and obfuscates the value of the "jwt" field if it exists.
+// If the "jwt" field is a string and its length is greater than 10, it replaces the middle part of the string with asterisks.
+// The first and last 5 characters of the "jwt" string are preserved.
+// All other fields are returned unchanged.
+//
+// Parameters:
+//   fields (logrus.Fields): A map of logrus fields to be processed.
+//
+// Returns:
+//   logrus.Fields: A new map with the "jwt" field obfuscated if applicable.
 func ObfuscateSensitiveFields(fields logrus.Fields) logrus.Fields {
 	obfuscatedFields := make(logrus.Fields)
 	for key, value := range fields {
@@ -56,7 +76,18 @@ func ObfuscateSensitiveFields(fields logrus.Fields) logrus.Fields {
 	return obfuscatedFields
 }
 
-// cleanFields removes newlines, carriage returns, and other potentially malicious characters from string fields
+
+// cleanFields sanitizes the values of the provided logrus.Fields map by removing
+// certain control characters (newline, carriage return, tab, backspace, form feed)
+// and escaping HTML special characters, backslashes, double quotes, and single quotes.
+// This ensures that the log fields are safe for logging and do not contain any
+// potentially harmful or malformed data.
+//
+// Parameters:
+//   fields (logrus.Fields): A map of log fields to be sanitized.
+//
+// Returns:
+//   logrus.Fields: A new map with sanitized log field values.
 func cleanFields(fields logrus.Fields) logrus.Fields {
 	for key, value := range fields {
 		if str, ok := value.(string); ok {

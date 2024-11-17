@@ -104,7 +104,21 @@ var (
 	)
 )
 
-// RegisterMetrics registers all Prometheus metrics
+
+// RegisterMetrics registers various Prometheus metrics used for monitoring
+// the application. It logs the start and successful completion of the
+// registration process. The metrics registered include:
+//  - HttpRequestsTotal: Total number of HTTP requests
+//  - HttpRequestDuration: Duration of HTTP requests
+//  - HttpActiveRequests: Number of active HTTP requests
+//  - HttpRequestSize: Size of HTTP requests
+//  - HttpResponseSize: Size of HTTP responses
+//  - DBQueryDuration: Duration of database queries
+//  - DBFailedQueries: Number of failed database queries
+//  - CacheHits: Number of cache hits
+//  - CacheMisses: Number of cache misses
+//  - UserRegistrations: Number of user registrations
+//  - SearchQueries: Number of search queries
 func RegisterMetrics() {
 	LogInfo("Registering Prometheus metrics", nil)
 	prometheus.MustRegister(HttpRequestsTotal)
@@ -121,7 +135,9 @@ func RegisterMetrics() {
 	LogInfo("Prometheus metrics registered successfully", nil)
 }
 
-// ExposeMetrics exposes Prometheus metrics on the /metrics endpoint
+// ExposeMetrics sets up an HTTP handler for Prometheus metrics at the endpoint "/api/probe"
+// and starts a server on port 9090 to expose these metrics. If the server fails to start,
+// an error is logged. A log message is also generated when the server starts successfully.
 func ExposeMetrics() {
 	http.Handle("/api/probe", promhttp.Handler())
 	go func() {

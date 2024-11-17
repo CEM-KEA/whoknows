@@ -13,14 +13,23 @@ import (
 	"gorm.io/gorm"
 )
 
-// DB holds the database connection
+
+// DB is a global variable that holds the database connection instance
+// managed by GORM. It is used throughout the application to interact
+// with the database.
 var DB *gorm.DB
 
-// InitDatabase initializes the Postgres database connection for production
+
+// InitDatabase initializes the database connection using the configuration
+// specified in the application configuration. It sets up the Data Source Name (DSN)
+// for Postgres, opens the database connection using GORM, registers database
+// callbacks for Prometheus metrics, and performs schema migrations if enabled
+// in the configuration.
+//
+// Returns an error if the database connection fails or if there is an error
+// during schema migration.
 func InitDatabase() error {
 	utils.LogInfo("Setting up database connection", nil)
-
-	// Create the Data Source Name (DSN) for Postgres
 	dsn := fmt.Sprintf(
 		"host=%s user=%s password=%s dbname=%s port=%d sslmode=%s",
 		config.AppConfig.Database.Host,
@@ -31,7 +40,6 @@ func InitDatabase() error {
 		config.AppConfig.Database.SSLMode,
 	)
 
-	// Open the Postgres database connection
 	var err error
 	DB, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
@@ -44,7 +52,6 @@ func InitDatabase() error {
 
 	utils.LogInfo("Database connection established", nil)
 
-	// Perform migrations if enabled in the configuration
 	if config.AppConfig.Database.Migrate {
 		return autoMigrate()
 	}
@@ -53,11 +60,12 @@ func InitDatabase() error {
 	return nil
 }
 
-// InitTestDatabase initializes an SQLite in-memory database for testing
+// InitTestDatabase initializes an in-memory SQLite database for testing purposes.
+// It sets up the database connection using GORM and performs auto-migration.
+//
+// Returns an error if the database connection or migration fails.
 func InitTestDatabase() error {
 	utils.LogInfo("Setting up SQLite in-memory test database", nil)
-
-	// Open the SQLite in-memory database connection
 	var err error
 	DB, err = gorm.Open(sqlite.Open(":memory:"), &gorm.Config{})
 	if err != nil {
@@ -67,15 +75,16 @@ func InitTestDatabase() error {
 
 	utils.LogInfo("SQLite in-memory test database connection established", nil)
 
-	// Perform migrations for the test database
 	return autoMigrate()
 }
 
-// autoMigrate migrates the database schema to the latest version
+// autoMigrate handles the automatic migration of the database schema.
+// It logs the start and end of the migration process, and performs the migration
+// using gormigrate. If the migration fails, it logs the error and returns it.
+//
+// Returns an error if the migration fails.
 func autoMigrate() error {
 	utils.LogInfo("Migrating database schema", nil)
-
-	// Define the migration
 	m := gormigrate.New(DB, gormigrate.DefaultOptions, []*gormigrate.Migration{
 		{
 			ID: time.Now().Format("20060102150405"),
@@ -88,7 +97,6 @@ func autoMigrate() error {
 		},
 	})
 
-	// Run the migration
 	err := m.Migrate()
 	if err != nil {
 		utils.LogError(err, "Failed to migrate database schema", nil)

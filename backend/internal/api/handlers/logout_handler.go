@@ -23,7 +23,6 @@ func LogoutHandler(w http.ResponseWriter, r *http.Request) {
 	logger := utils.Logger
 	logger.Info("Processing logout request")
 
-	//Get the authorization header to get the jwt token
 	authHeader := r.Header.Get("Authorization")
 	if authHeader == "" {
 		logger.Warn("No Authorization header found")
@@ -32,7 +31,6 @@ func LogoutHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	//Sepreate the Bearer and the token
 	parts := strings.Split(authHeader, " ")
 	if len(parts) != 2 || parts[0] != "Bearer" {
 		logger.Warn("Invalid Authorization header format")
@@ -42,7 +40,6 @@ func LogoutHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	token := parts[1]
 
-	//Revoke the jwt token
 	err := security.RevokeJWT(database.DB, token)
 	if err != nil {
 		logger.WithError(err).Warn("Failed to revoke token")

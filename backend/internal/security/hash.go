@@ -7,7 +7,15 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-// HashPassword hashes the password
+// HashPassword hashes the given password using bcrypt with a cost of 14.
+// It logs the process of hashing the password and handles errors appropriately.
+//
+// Parameters:
+//   - password: The plain text password to be hashed.
+//
+// Returns:
+//   - A string representing the hashed password.
+//   - An error if the password is empty or if hashing fails.
 func HashPassword(password string) (string, error) {
 	utils.LogInfo("Hashing password", logrus.Fields{})
 
@@ -26,7 +34,16 @@ func HashPassword(password string) (string, error) {
 	return string(bytes), nil
 }
 
-// CheckPasswordHash checks the password hash
+// CheckPasswordHash compares a plaintext password with a hashed password and returns
+// true if they match, otherwise returns false. It logs a warning if the comparison fails
+// and logs an info message if the comparison is successful.
+//
+// Parameters:
+//   - password: the plaintext password to compare
+//   - hash: the hashed password to compare against
+//
+// Returns:
+//   - bool: true if the password matches the hash, false otherwise
 func CheckPasswordHash(password, hash string) bool {
 	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
 	if err != nil {

@@ -36,8 +36,6 @@ const (
 // handler for GET request to /api/weather
 func WeatherHandler(w http.ResponseWriter, r *http.Request) {
 	utils.LogInfo("Processing weather request", nil)
-
-	// Fetch weather data
 	data, err := GetWeatherData()
 	if err != nil {
 		utils.LogError(err, fetchDataError, nil)
@@ -45,10 +43,8 @@ func WeatherHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Prepare response
 	response := WeatherResponse{Data: data}
 
-	// Send response
 	if err := json.NewEncoder(w).Encode(response); err != nil {
 		utils.LogError(err, encodeResponseError, nil)
 		http.Error(w, encodeResponseError, http.StatusInternalServerError)
@@ -61,14 +57,11 @@ func WeatherHandler(w http.ResponseWriter, r *http.Request) {
 // GetWeatherData fetches current weather data for Copenhagen from OpenWeatherMap API
 func GetWeatherData() (map[string]interface{}, error) {
 	utils.LogInfo("Fetching weather data", nil)
-
-	// Check cache for existing data
 	if cachedData, found := WeatherCache.Get(weatherDataCacheKey); found {
 		utils.LogInfo("Weather data found in cache", nil)
 		return cachedData.(map[string]interface{}), nil
 	}
 
-	// Construct API request
 	apiKey := config.AppConfig.WeatherAPI.OpenWeatherAPIKey
 	url := fmt.Sprintf("https://api.openweathermap.org/data/2.5/weather?q=Copenhagen&appid=%s", apiKey)
 	res, err := http.Get(url)
@@ -80,14 +73,12 @@ func GetWeatherData() (map[string]interface{}, error) {
 	}
 	defer res.Body.Close()
 
-	// Decode API response
 	var weatherData map[string]interface{}
 	if err := json.NewDecoder(res.Body).Decode(&weatherData); err != nil {
 		utils.LogError(err, "Failed to decode weather API response", nil)
 		return nil, err
 	}
-
-	// Store data in cache
+    
 	WeatherCache.Set(weatherDataCacheKey, weatherData, weatherDataCacheTime)
 	utils.LogInfo("Weather data fetched and stored in cache successfully", nil)
 

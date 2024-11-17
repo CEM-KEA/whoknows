@@ -39,8 +39,6 @@ type LoginResponse struct {
 //	@Router /login [post]
 func Login(w http.ResponseWriter, r *http.Request) {
 	utils.LogInfo("Processing login request", nil)
-
-	// Decode request body
 	var request LoginRequest
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 		utils.LogError(err, "Failed to decode request body", nil)
@@ -48,7 +46,6 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Validate request
 	if err := utils.Validate(request); err != nil {
 		sanitizedUsername := strings.ReplaceAll(request.Username, "\n", "")
 		sanitizedUsername = strings.ReplaceAll(sanitizedUsername, "\r", "")
@@ -59,7 +56,6 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Authenticate user
 	user, valid, err := services.CheckUserPassword(database.DB, request.Password, request.Username)
 	if err != nil || !valid {
 		sanitizedUsername := strings.ReplaceAll(request.Username, "\n", "")
@@ -71,7 +67,6 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Generate JWT
 	token, err := security.GenerateJWT(user.ID, user.Username)
 	if err != nil {
 		sanitizedUsername := strings.ReplaceAll(request.Username, "\n", "")
@@ -83,7 +78,6 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Save JWT to database
 	jwtModel := models.JWT{
 		UserID:    user.ID,
 		Token:     token,
@@ -98,7 +92,6 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Update last login timestamp
 	if err := services.UpdateLastLogin(database.DB, user); err != nil {
 		utils.LogError(err, "Failed to update last login", logrus.Fields{
 			"username": user.Username,
@@ -107,13 +100,11 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Prepare response
 	response := LoginResponse{
 		Token:                 token,
 		RequirePasswordChange: user.UpdatedAt.Before(time.Date(2024, 10, 31, 0, 0, 0, 0, time.UTC)), // Check if user changed password after incident on 31/10/2024
 	}
 
-	// Send response
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	if err := json.NewEncoder(w).Encode(response); err != nil {
@@ -124,7 +115,6 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Log successful login
 	utils.LogInfo("User logged in successfully", logrus.Fields{
 		"username": user.Username,
 		"userID":   user.ID,

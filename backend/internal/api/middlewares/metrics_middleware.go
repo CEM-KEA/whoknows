@@ -23,27 +23,20 @@ import (
 func MetricsMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		start := time.Now()
-
-		// Increment active requests
 		utils.IncrementActiveRequests(r.Method, r.URL.Path)
 
-		// Defer decrementing active requests and observe request duration
 		defer func() {
 			utils.DecrementActiveRequests(r.Method, r.URL.Path)
 			duration := time.Since(start).Seconds()
 			utils.ObserveHTTPRequestDuration(r.Method, r.URL.Path, duration)
 		}()
 
-		// Capture request size if content length is known
 		if r.ContentLength > 0 {
 			utils.ObserveRequestSize(r.Method, r.URL.Path, float64(r.ContentLength))
 		}
 
-		// Wrap response writer to capture response size
 		wrappedWriter := &responseWriter{ResponseWriter: w}
 		next.ServeHTTP(wrappedWriter, r)
-
-		// Capture response size
 		utils.ObserveResponseSize(r.Method, r.URL.Path, float64(wrappedWriter.size))
 	})
 }

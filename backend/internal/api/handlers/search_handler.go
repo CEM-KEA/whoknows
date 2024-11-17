@@ -33,12 +33,9 @@ type RequestValidationError struct {
 //	@Router			/api/search [get]
 func Search(w http.ResponseWriter, r *http.Request) {
 	utils.LogInfo("Processing search request", nil)
-
-	// Extract query parameters
 	q := r.URL.Query().Get("q")
 	language := r.URL.Query().Get("language")
 
-	// Validate the required search query parameter
 	if q == "" {
 		msg := "Search query (q) is required"
 		utils.LogWarn("Search query validation failed", logrus.Fields{
@@ -57,7 +54,6 @@ func Search(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Log the search query
 	searchLog := models.SearchLog{Query: q}
 	if err := services.CreateSearchLog(database.DB, &searchLog); err != nil {
 		utils.LogError(err, "Failed to log search query", logrus.Fields{
@@ -67,14 +63,12 @@ func Search(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Increment the search queries counter
 	queryType := "generic" // Default query type
 	if language != "" {
 		queryType = "language_filtered"
 	}
 	utils.IncrementSearchQueries(queryType)
 
-	// Perform the search
 	var pages []models.Page
 	query := database.DB.Where("content LIKE ?", "%"+q+"%").Order("title ASC")
 	if language != "" {
@@ -90,7 +84,6 @@ func Search(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Prepare the response
 	response := SearchResponse{
 		Data: make([]map[string]interface{}, len(pages)),
 	}
@@ -104,7 +97,6 @@ func Search(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	// Encode and send the response
 	if err := json.NewEncoder(w).Encode(response); err != nil {
 		utils.LogError(err, "Failed to encode search response", logrus.Fields{
 			"query":    q,
@@ -114,7 +106,6 @@ func Search(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Log success
 	utils.LogInfo("Search query completed successfully", logrus.Fields{
 		"query":    q,
 		"language": language,

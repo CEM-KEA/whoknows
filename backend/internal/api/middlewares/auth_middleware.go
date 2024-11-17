@@ -17,13 +17,21 @@ type contextKey string
 
 const UserKey contextKey = "userID"
 
-// AuthMiddleware validates the JWT token and adds the user ID to the context.
+// AuthMiddleware is a middleware function that handles authentication for incoming HTTP requests.
+// It extracts and validates a JWT token from the request, verifies the user exists in the database,
+// and adds the user ID to the request context if authentication is successful.
+//
+// Parameters:
+//   - db: A *gorm.DB instance for database operations.
+//   - validateJWT: A function that takes a JWT token string and returns the token claims as a map and an error.
+//
+// Returns:
+//   A middleware function that wraps an http.Handler and performs authentication.
 func AuthMiddleware(db *gorm.DB, validateJWT func(token string) (map[string]interface{}, error)) func(http.Handler) http.Handler {
 	utils.LogInfo("Setting up auth middleware", nil)
 
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			// Extract and validate the token
 			token, err := extractToken(r)
 			if err != nil {
 				utils.LogWarn("Failed to extract token", logrus.Fields{"error": err.Error()})
@@ -31,7 +39,6 @@ func AuthMiddleware(db *gorm.DB, validateJWT func(token string) (map[string]inte
 				return
 			}
 
-			// Validate the token and extract claims
 			claims, err := validateJWT(token)
 			if err != nil {
 				utils.LogWarn("Invalid token", logrus.Fields{"error": err.Error()})
@@ -39,7 +46,6 @@ func AuthMiddleware(db *gorm.DB, validateJWT func(token string) (map[string]inte
 				return
 			}
 
-			// Extract user ID from claims
 			userID, err := extractUserID(claims)
 			if err != nil {
 				utils.LogWarn("Invalid user ID in token", logrus.Fields{"error": err.Error()})
@@ -47,7 +53,6 @@ func AuthMiddleware(db *gorm.DB, validateJWT func(token string) (map[string]inte
 				return
 			}
 
-			// Verify user exists in the database
 			_, err = services.GetUserByID(db, uint(userID))
 			if err != nil {
 				utils.LogWarn("User not found", logrus.Fields{"userID": userID, "error": err.Error()})
@@ -55,7 +60,6 @@ func AuthMiddleware(db *gorm.DB, validateJWT func(token string) (map[string]inte
 				return
 			}
 
-			// Add user ID to the context and proceed
 			ctx := context.WithValue(r.Context(), UserKey, uint(userID))
 			utils.LogInfo("User authenticated successfully", logrus.Fields{"userID": userID})
 			next.ServeHTTP(w, r.WithContext(ctx))
@@ -63,7 +67,16 @@ func AuthMiddleware(db *gorm.DB, validateJWT func(token string) (map[string]inte
 	}
 }
 
-// extractToken retrieves the JWT token from the Authorization header.
+// extractToken extracts the Bearer token from the Authorization header of an HTTP request.
+// It logs the process of extracting the token and returns an error if the Authorization header
+// is missing or if it is not in the correct format.
+//
+// Parameters:
+//   - r: The HTTP request from which to extract the token.
+//
+// Returns:
+//   - string: The extracted token if successful.
+//   - error: An error if the Authorization header is missing or incorrectly formatted.
 func extractToken(r *http.Request) (string, error) {
 	utils.LogInfo("Extracting token from request", nil)
 
@@ -83,7 +96,18 @@ func extractToken(r *http.Request) (string, error) {
 	return parts[1], nil
 }
 
-// extractUserID retrieves the user ID from JWT claims.
+
+// extractUserID extracts the user ID from the given JWT claims map.
+// It expects the user ID to be stored under the "sub" key as a string.
+// If the user ID is found and successfully parsed as a uint64, it returns the user ID.
+// Otherwise, it returns an error indicating the failure reason.
+//
+// Parameters:
+//   - claims: A map containing JWT claims.
+//
+// Returns:
+//   - uint64: The extracted user ID.
+//   - error: An error if the user ID is not found or cannot be parsed.
 func extractUserID(claims map[string]interface{}) (uint64, error) {
 	utils.LogInfo("Extracting user ID from claims", nil)
 
@@ -103,7 +127,18 @@ func extractUserID(claims map[string]interface{}) (uint64, error) {
 	return userID, nil
 }
 
-// GetUserIDFromContext retrieves the user ID from the request context.
+
+// GetUserIDFromContext retrieves the user ID from the given context.
+// It expects the user ID to be stored in the context with the key UserKey.
+// If the user ID is found, it returns the user ID and a nil error.
+// If the user ID is not found, it returns 0 and an error indicating that the user ID was not found.
+//
+// Parameters:
+//   - ctx: The context from which to retrieve the user ID.
+//
+// Returns:
+//   - uint: The user ID retrieved from the context.
+//   - error: An error if the user ID is not found in the context.
 func GetUserIDFromContext(ctx context.Context) (uint, error) {
 	utils.LogInfo("Getting user ID from context", nil)
 

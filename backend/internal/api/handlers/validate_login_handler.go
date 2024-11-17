@@ -22,8 +22,6 @@ import (
 // Handler for validating the jwt token
 func ValidateLoginHandler(w http.ResponseWriter, r *http.Request) {
 	utils.LogInfo("Processing validate login request", nil)
-
-	// Extract the Authorization header
 	authHeader := r.Header.Get("Authorization")
 	if authHeader == "" {
 		utils.LogWarn("Authorization header is missing", nil)
@@ -31,7 +29,6 @@ func ValidateLoginHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Parse the Bearer token
 	parts := strings.Split(authHeader, " ")
 	if len(parts) != 2 || parts[0] != "Bearer" {
 		utils.LogWarn("Invalid Authorization header format", nil)
@@ -41,21 +38,18 @@ func ValidateLoginHandler(w http.ResponseWriter, r *http.Request) {
 
 	tokenString := parts[1]
 
-	// Validate the JWT
 	_, err := security.ValidateJWT(tokenString)
 	if err != nil {
 		http.Error(w, "Invalid token", http.StatusUnauthorized)
 		return
 	}
 
-	// Check if the token is revoked
 	err = security.ValidateJWTRevoked(database.DB, tokenString)
 	if err != nil {
 		http.Error(w, "Token expired/revoked", http.StatusUnauthorized)
 		return
 	}
 
-	// Successful validation
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte("valid"))
 

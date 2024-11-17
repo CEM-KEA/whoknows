@@ -31,8 +31,6 @@ type ChangePasswordRequest struct {
 //	@Router /api/change-password [post]
 func ChangePasswordHandler(w http.ResponseWriter, r *http.Request) {
 	utils.LogInfo("Processing change password request", nil)
-
-	// Decode request body
 	var request ChangePasswordRequest
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 		utils.LogError(err, "Failed to decode request body", nil)
@@ -40,14 +38,12 @@ func ChangePasswordHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Validate request data
 	if err := utils.Validate(request); err != nil {
 		utils.LogError(err, "Request validation failed", nil)
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	// Check user credentials
 	user, valid, err := services.CheckUserPassword(database.DB, request.Password, request.Username)
 	if err != nil || !valid {
 		utils.LogWarn("Invalid user credentials", map[string]interface{}{
@@ -57,7 +53,6 @@ func ChangePasswordHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Hash new password
 	hash, err := bcrypt.GenerateFromPassword([]byte(request.NewPassword), bcrypt.DefaultCost)
 	if err != nil {
 		utils.LogError(err, "Password hashing failed", map[string]interface{}{
@@ -67,7 +62,6 @@ func ChangePasswordHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Update user password and timestamp
 	user.PasswordHash = string(hash)
 	user.UpdatedAt = time.Now()
 	if err := services.UpdateUser(database.DB, user); err != nil {
@@ -78,7 +72,6 @@ func ChangePasswordHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Respond with success
 	utils.LogInfo("Password changed successfully", map[string]interface{}{
 		"username": request.Username,
 	})

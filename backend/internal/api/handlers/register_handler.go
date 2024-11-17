@@ -34,8 +34,6 @@ type RegisterRequest struct {
 //	@Router			/api/register [post]
 func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 	utils.LogInfo("Processing register request", nil)
-
-	// Decode request body
 	var req RegisterRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		utils.LogError(err, "Failed to decode request body", nil)
@@ -43,7 +41,6 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Validate the request
 	if err := utils.Validate(req); err != nil {
 		if validationErrors, ok := err.(validator.ValidationErrors); ok {
 			for _, ve := range validationErrors {
@@ -63,7 +60,6 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Hash the password
 	hashedPassword, err := security.HashPassword(req.Password)
 	if err != nil {
 		utils.LogError(err, "Failed to hash password", logrus.Fields{
@@ -73,14 +69,12 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Create a new user
 	user := models.User{
 		Username:     req.Username,
 		Email:        req.Email,
 		PasswordHash: hashedPassword,
 	}
 
-	// Save the user to the database
 	if err := services.CreateUser(database.DB, &user); err != nil {
 		utils.LogError(err, "Failed to create user in database", logrus.Fields{
 			"username": user.Username,
@@ -90,10 +84,8 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Increment the user registrations counter
 	utils.IncrementUserRegistrations()
 
-	// Send response
 	response := map[string]string{"message": "User created successfully"}
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
@@ -105,7 +97,6 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Log successful creation
 	utils.LogInfo("User created successfully", logrus.Fields{
 		"username": user.Username,
 		"email":    user.Email,
