@@ -24,6 +24,12 @@ type LoginResponse struct {
 	RequirePasswordChange bool   `json:"require_password_change"`
 }
 
+func sanitizeUsername(username string) string {
+	sanitizedUsername := strings.ReplaceAll(username, "\n", "")
+	sanitizedUsername = strings.ReplaceAll(sanitizedUsername, "\r", "")
+	return sanitizedUsername
+}
+
 // Login handles the login request.
 //
 //	@Summary Login a user
@@ -47,8 +53,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := utils.Validate(request); err != nil {
-		sanitizedUsername := strings.ReplaceAll(request.Username, "\n", "")
-		sanitizedUsername = strings.ReplaceAll(sanitizedUsername, "\r", "")
+		sanitizedUsername := sanitizeUsername(request.Username)
 		utils.LogError(err, "Request validation failed", logrus.Fields{
 			"username": sanitizedUsername,
 		})
@@ -58,8 +63,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 
 	user, valid, err := services.CheckUserPassword(database.DB, request.Password, request.Username)
 	if err != nil || !valid {
-		sanitizedUsername := strings.ReplaceAll(request.Username, "\n", "")
-		sanitizedUsername = strings.ReplaceAll(sanitizedUsername, "\r", "")
+		sanitizedUsername := sanitizeUsername(request.Username)
 		utils.LogWarn("Invalid user credentials", logrus.Fields{
 			"username": sanitizedUsername,
 		})
@@ -69,8 +73,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 
 	token, err := security.GenerateJWT(user.ID, user.Username)
 	if err != nil {
-		sanitizedUsername := strings.ReplaceAll(request.Username, "\n", "")
-		sanitizedUsername = strings.ReplaceAll(sanitizedUsername, "\r", "")
+		sanitizedUsername := sanitizeUsername(request.Username)
 		utils.LogError(err, "Failed to generate token", logrus.Fields{
 			"username": sanitizedUsername,
 		})
