@@ -2,6 +2,7 @@ package utils
 
 import (
 	"os"
+	"strings"
 
 	"github.com/sirupsen/logrus"
 )
@@ -36,32 +37,60 @@ func InitGlobalLogger(logLevel, logFormat string) {
 	Logger = NewLogger(logLevel, logFormat)
 }
 
+// ObfuscateSensitiveFields obfuscates sensitive fields in log messages
+func ObfuscateSensitiveFields(fields logrus.Fields) logrus.Fields {
+	obfuscatedFields := make(logrus.Fields)
+	for key, value := range fields {
+		if key == "jwt" {
+			strValue, ok := value.(string)
+			if ok && len(strValue) > 10 {
+				obfuscatedFields[key] = strValue[:5] + "*****" + strValue[len(strValue)-5:]
+			} else {
+				obfuscatedFields[key] = value
+			}
+		} else {
+			obfuscatedFields[key] = value
+		}
+	}
+	return obfuscatedFields
+}
+
+// cleanFields removes newlines and carriage returns from string fields
+func cleanFields(fields logrus.Fields) logrus.Fields {
+	for key, value := range fields {
+		if str, ok := value.(string); ok {
+			fields[key] = strings.ReplaceAll(strings.ReplaceAll(str, "\n", ""), "\r", "")
+		}
+	}
+	return fields
+}
+
 // LogDebug logs a debug message with specific fields
 func LogDebug(message string, fields logrus.Fields) {
-	Logger.WithFields(fields).Debug(message)
+	Logger.WithFields(cleanFields(fields)).Debug(message)
 }
 
 // LogInfo logs an informational message with specific fields
 func LogInfo(message string, fields logrus.Fields) {
-	Logger.WithFields(fields).Info(message)
+	Logger.WithFields(cleanFields(fields)).Info(message)
 }
 
 // LogError logs an error with a specific context
 func LogError(err error, message string, fields logrus.Fields) {
-	Logger.WithFields(fields).WithError(err).Warn(message)
+	Logger.WithFields(cleanFields(fields)).WithError(err).Warn(message)
 }
 
 // LogWarn logs a warning message with specific fields
 func LogWarn(message string, fields logrus.Fields) {
-	Logger.WithFields(fields).Warn(message)
+	Logger.WithFields(cleanFields(fields)).Warn(message)
 }
 
 // LogFatal logs a fatal message with specific fields
 func LogFatal(message string, fields logrus.Fields) {
-	Logger.WithFields(fields).Fatal(message)
+	Logger.WithFields(cleanFields(fields)).Fatal(message)
 }
 
 // LogPanic logs a panic message with specific fields
 func LogPanic(message string, fields logrus.Fields) {
-	Logger.WithFields(fields).Panic(message)
+	Logger.WithFields(cleanFields(fields)).Panic(message)
 }
