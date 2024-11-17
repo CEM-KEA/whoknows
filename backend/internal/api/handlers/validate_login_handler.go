@@ -7,7 +7,6 @@ import (
 	"github.com/CEM-KEA/whoknows/backend/internal/database"
 	"github.com/CEM-KEA/whoknows/backend/internal/security"
 	"github.com/CEM-KEA/whoknows/backend/internal/utils"
-	"github.com/sirupsen/logrus"
 )
 
 //	@Description	Validates the jwt token
@@ -35,9 +34,7 @@ func ValidateLoginHandler(w http.ResponseWriter, r *http.Request) {
 	// Parse the Bearer token
 	parts := strings.Split(authHeader, " ")
 	if len(parts) != 2 || parts[0] != "Bearer" {
-		utils.LogWarn("Invalid Authorization header format", logrus.Fields{
-			"authHeader": authHeader,
-		})
+		utils.LogWarn("Invalid Authorization header format", nil)
 		http.Error(w, "Invalid Authorization header format", http.StatusUnauthorized)
 		return
 	}
@@ -47,10 +44,6 @@ func ValidateLoginHandler(w http.ResponseWriter, r *http.Request) {
 	// Validate the JWT
 	_, err := security.ValidateJWT(tokenString)
 	if err != nil {
-		utils.LogWarn("Invalid JWT token", logrus.Fields{
-			"token": tokenString,
-			"error": err.Error(),
-		})
 		http.Error(w, "Invalid token", http.StatusUnauthorized)
 		return
 	}
@@ -58,10 +51,6 @@ func ValidateLoginHandler(w http.ResponseWriter, r *http.Request) {
 	// Check if the token is revoked
 	err = security.ValidateJWTRevoked(database.DB, tokenString)
 	if err != nil {
-		utils.LogWarn("JWT token is revoked or expired", logrus.Fields{
-			"token": tokenString,
-			"error": err.Error(),
-		})
 		http.Error(w, "Token expired/revoked", http.StatusUnauthorized)
 		return
 	}
@@ -70,7 +59,5 @@ func ValidateLoginHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte("valid"))
 
-	utils.LogInfo("Token validation successful - user is logged in", logrus.Fields{
-		"token": tokenString,
-	})
+	utils.LogInfo("Token validation successful - user is logged in", nil)
 }
