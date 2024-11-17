@@ -22,17 +22,19 @@ import (
 // Handler for validating the jwt token
 func ValidateLoginHandler(w http.ResponseWriter, r *http.Request) {
 	utils.LogInfo("Processing validate login request", nil)
+
+	// Extract and validate Authorization header
 	authHeader := r.Header.Get("Authorization")
 	if authHeader == "" {
 		utils.LogWarn("Authorization header is missing", nil)
-		http.Error(w, "No Authorization header found", http.StatusUnauthorized)
+		utils.WriteJSONError(w, "No Authorization header found", http.StatusUnauthorized)
 		return
 	}
 
 	parts := strings.Split(authHeader, " ")
 	if len(parts) != 2 || parts[0] != "Bearer" {
 		utils.LogWarn("Invalid Authorization header format", nil)
-		http.Error(w, "Invalid Authorization header format", http.StatusUnauthorized)
+		utils.WriteJSONError(w, "Invalid Authorization header format", http.StatusUnauthorized)
 		return
 	}
 
@@ -40,18 +42,21 @@ func ValidateLoginHandler(w http.ResponseWriter, r *http.Request) {
 
 	_, err := security.ValidateJWT(tokenString)
 	if err != nil {
-		http.Error(w, "Invalid token", http.StatusUnauthorized)
+		utils.LogWarn("Invalid JWT token", nil)
+		utils.WriteJSONError(w, "Invalid token", http.StatusUnauthorized)
 		return
 	}
 
 	err = security.ValidateJWTRevoked(database.DB, tokenString)
 	if err != nil {
-		http.Error(w, "Token expired/revoked", http.StatusUnauthorized)
+		utils.LogWarn("JWT token expired or revoked", nil)
+		utils.WriteJSONError(w, "Token expired/revoked", http.StatusUnauthorized)
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("valid"))
+	utils.JSONSuccess(w, map[string]interface{}{
+		"status": "valid",
+	}, http.StatusOK)
 
 	utils.LogInfo("Token validation successful - user is logged in", nil)
 }
