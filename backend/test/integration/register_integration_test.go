@@ -13,6 +13,7 @@ import (
 )
 
 func TestRegisterIntegration(t *testing.T) {
+	helpers.SetupLogger()
 	helpers.SetupTestDB(t)
 
 	router := api.NewRouter()
