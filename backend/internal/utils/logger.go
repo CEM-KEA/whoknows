@@ -3,6 +3,7 @@ package utils
 import (
 	"os"
 	"strings"
+	"html"
 
 	"github.com/sirupsen/logrus"
 )
@@ -64,6 +65,7 @@ func cleanFields(fields logrus.Fields) logrus.Fields {
 			str = strings.ReplaceAll(str, "\t", "")
 			str = strings.ReplaceAll(str, "\b", "")
 			str = strings.ReplaceAll(str, "\f", "")
+			str = html.EscapeString(str)
 			str = strings.ReplaceAll(str, "\\", "\\\\")
 			str = strings.ReplaceAll(str, "\"", "\\\"")
 			str = strings.ReplaceAll(str, "'", "\\'")
