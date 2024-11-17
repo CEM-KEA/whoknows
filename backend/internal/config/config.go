@@ -83,7 +83,7 @@ func loadConfigFromEnv() error {
 			return fmt.Errorf("error loading %s: %v", key, err)
 		}
 	}
-	
+
 	utils.LogInfo("All environment variables loaded successfully", nil)
 	return nil
 }
