@@ -10,46 +10,45 @@ import (
 	"github.com/CEM-KEA/whoknows/backend/internal/utils"
 	"github.com/gorilla/mux"
 	"github.com/rs/cors"
-	"github.com/sirupsen/logrus"
 	httpSwagger "github.com/swaggo/http-swagger"
 )
 
-// NewRouter initializes and returns a new HTTP router with predefined routes,
-// middlewares, and configurations. It sets up routes for serving static files,
-// redirects, Swagger documentation, and API endpoints. Additionally, it applies
-// CORS configuration and wraps the router with necessary middlewares for metrics
-// and no-cache headers.
+
+// NewRouter initializes and returns a new HTTP router with all the necessary routes and middlewares configured.
+// It sets up static file routes, redirects, Swagger documentation, and API routes.
+// Additionally, it applies CORS and other middlewares such as metrics and no-cache.
+// Returns an http.Handler that can be used to handle HTTP requests.
 func NewRouter() http.Handler {
 	utils.LogInfo("Initializing router", nil)
 
 	router := mux.NewRouter()
-	// Static file routes
-	utils.LogInfo("Setting up static file routes", nil)
-	router.HandleFunc("/api/robots.txt", serveStaticFile("./static/robots.txt", "text/plain"))
-	router.HandleFunc("/api/sitemap.xml", serveStaticFile("./static/sitemap.xml", "application/xml"))
-
-	// Redirects
-	utils.LogInfo("Setting up redirects", nil)
+	setupStaticFileRoutes(router)
 	setupRedirects(router)
-
-	// Swagger documentation
-	utils.LogInfo("Setting up Swagger documentation route", nil)
-	router.PathPrefix("/api/swagger/").Handler(httpSwagger.WrapHandler)
-
-	// API routes
-	utils.LogInfo("Setting up API routes", nil)
+	setupSwaggerDocs(router)
 	setupAPIRoutes(router)
 
-	// CORS configuration
+	// Apply CORS and other middlewares
 	corsHandler := setupCORS()
-
-	// Wrap router with middleware
-	utils.LogInfo("Applying middlewares", nil)
+	utils.LogInfo("Middlewares applied successfully", nil)
 	return middlewares.MetricsMiddleware(middlewares.NoCacheMiddleware(corsHandler(router)))
 }
 
+
+// setupStaticFileRoutes configures the routes for serving static files.
+// It sets up handlers for serving the robots.txt and sitemap.xml files.
+//
+// Parameters:
+//   - router: a pointer to the mux.Router where the routes will be configured.
+func setupStaticFileRoutes(router *mux.Router) {
+	utils.LogInfo("Configuring static file routes", nil)
+	router.HandleFunc("/api/robots.txt", serveStaticFile("./static/robots.txt", "text/plain"))
+	router.HandleFunc("/api/sitemap.xml", serveStaticFile("./static/sitemap.xml", "application/xml"))
+}
+
+
 // serveStaticFile returns an HTTP handler function that serves a static file.
-// It sets the Content-Type header to the provided contentType and logs the file path.
+// The handler sets the Content-Type header to the provided contentType and
+// serves the file located at filePath.
 //
 // Parameters:
 //   - filePath: The path to the static file to be served.
@@ -59,26 +58,22 @@ func NewRouter() http.Handler {
 //   An HTTP handler function that serves the specified static file.
 func serveStaticFile(filePath string, contentType string) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
-		utils.LogInfo("Serving static file", logrus.Fields{
-			"path": filePath,
+		utils.LogInfo("Serving static file", map[string]interface{}{
+			"file": filePath,
 		})
 		w.Header().Set("Content-Type", contentType)
 		http.ServeFile(w, r, filePath)
 	}
 }
 
-
-// setupRedirects configures the provided router with various redirect routes.
-// It sets up redirects for the root path, API paths, Swagger documentation,
-// robots.txt, and sitemap.xml. All redirects point to their respective API endpoints.
+// setupRedirects configures the given router with various redirect routes.
+// It sets up redirects for the root path, /api, /api/, /api/swagger, /robots.txt, and /sitemap.xml.
+// The redirects for /robots.txt and /sitemap.xml are permanent (HTTP 301).
 //
 // Parameters:
-//   - router (*mux.Router): The router to configure with redirects.
-//
-// Example:
-//   router := mux.NewRouter()
-//   setupRedirects(router)
+//   - router: The mux.Router instance to configure with redirects.
 func setupRedirects(router *mux.Router) {
+	utils.LogInfo("Configuring redirects", nil)
 	redirectHandler := RedirectToSwaggerHandler()
 	router.Handle("/", redirectHandler)
 	router.Handle("/api", redirectHandler)
@@ -86,21 +81,31 @@ func setupRedirects(router *mux.Router) {
 	router.Handle("/api/swagger", redirectHandler)
 	router.Handle("/robots.txt", http.RedirectHandler("/api/robots.txt", http.StatusMovedPermanently))
 	router.Handle("/sitemap.xml", http.RedirectHandler("/api/sitemap.xml", http.StatusMovedPermanently))
-	utils.LogInfo("Redirects configured", nil)
+}
+
+
+// setupSwaggerDocs configures the Swagger documentation route for the provided router.
+// It logs the setup process and sets up the route to serve Swagger UI.
+//
+// Parameters:
+//   - router (*mux.Router): The router to which the Swagger documentation route will be added.
+func setupSwaggerDocs(router *mux.Router) {
+	utils.LogInfo("Setting up Swagger documentation route", nil)
+	router.PathPrefix("/api/swagger/").Handler(httpSwagger.WrapHandler)
 }
 
 
 // setupAPIRoutes configures the API routes for the application.
-// It registers the following routes with their respective handlers:
-//  - GET /api/search: handled by handlers.Search
-//  - GET /api/weather: handled by handlers.WeatherHandler
-//  - POST /api/register: handled by handlers.RegisterHandler
-//  - POST /api/login: handled by handlers.Login
-//  - GET /api/logout: handled by handlers.LogoutHandler
-//  - GET /api/validate-login: handled by handlers.ValidateLoginHandler
-//  - POST /api/change-password: handled by handlers.ChangePasswordHandler
-// Additionally, it logs a message indicating that the API routes have been configured.
+// It sets up the following routes:
+// - GET /api/search: handled by handlers.Search
+// - GET /api/weather: handled by handlers.WeatherHandler
+// - POST /api/register: handled by handlers.RegisterHandler
+// - POST /api/login: handled by handlers.Login
+// - GET /api/logout: handled by handlers.LogoutHandler
+// - GET /api/validate-login: handled by handlers.ValidateLoginHandler
+// - POST /api/change-password: handled by handlers.ChangePasswordHandler
 func setupAPIRoutes(router *mux.Router) {
+	utils.LogInfo("Configuring API routes", nil)
 	router.HandleFunc("/api/search", handlers.Search).Methods("GET")
 	router.HandleFunc("/api/weather", handlers.WeatherHandler).Methods("GET")
 	router.HandleFunc("/api/register", handlers.RegisterHandler).Methods("POST")
@@ -108,22 +113,23 @@ func setupAPIRoutes(router *mux.Router) {
 	router.HandleFunc("/api/logout", handlers.LogoutHandler).Methods("GET")
 	router.HandleFunc("/api/validate-login", handlers.ValidateLoginHandler).Methods("GET")
 	router.HandleFunc("/api/change-password", handlers.ChangePasswordHandler).Methods("POST")
-	utils.LogInfo("API routes configured", nil)
 }
+
 
 // setupCORS configures Cross-Origin Resource Sharing (CORS) settings based on the application's environment.
 // It returns a middleware handler function that applies the CORS settings to incoming HTTP requests.
 //
-// In "development" environment, all origins are allowed.
-// In "test" environment, only "http://localhost" and "https://localhost" are allowed.
-// In other environments, only "http://cemdev.dk" and "https://cemdev.dk" are allowed.
+// The allowed origins are determined by the environment:
+// - "development": allows all origins ("*").
+// - "test": allows "http://localhost" and "https://localhost".
+// - Other environments: allows "http://cemdev.dk" and "https://cemdev.dk".
 //
 // The CORS settings include:
-// - Allowed methods: GET, POST, PUT, DELETE, OPTIONS
-// - Allowed headers: Authorization, Content-Type
-// - Allow credentials: true
+// - Allowed methods: GET, POST, PUT, DELETE, OPTIONS.
+// - Allowed headers: Authorization, Content-Type.
+// - Allow credentials: true.
 //
-// The function also logs the configured environment and allowed origins.
+// The function also logs the CORS configuration for informational purposes.
 func setupCORS() func(http.Handler) http.Handler {
 	env := config.AppConfig.Environment.Environment
 	var allowedOrigins []string
@@ -137,8 +143,8 @@ func setupCORS() func(http.Handler) http.Handler {
 		allowedOrigins = []string{"http://cemdev.dk", "https://cemdev.dk"}
 	}
 
-	utils.LogInfo("Configuring CORS", logrus.Fields{
-		"environment": env,
+	utils.LogInfo("CORS configuration set", map[string]interface{}{
+		"environment":    env,
 		"allowedOrigins": allowedOrigins,
 	})
 
@@ -150,9 +156,7 @@ func setupCORS() func(http.Handler) http.Handler {
 	}).Handler
 }
 
-// RedirectToSwaggerHandler returns an HTTP handler that redirects requests to the Swagger documentation page.
-// It logs an informational message indicating the redirection and then performs a permanent redirect to "/api/swagger/".
+// RedirectToSwaggerHandler redirects root requests to Swagger documentation.
 func RedirectToSwaggerHandler() http.Handler {
-	utils.LogInfo("Redirecting to Swagger documentation", nil)
 	return http.RedirectHandler("/api/swagger/", http.StatusMovedPermanently)
 }
