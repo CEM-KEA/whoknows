@@ -91,6 +91,9 @@ func ObfuscateSensitiveFields(fields logrus.Fields) logrus.Fields {
 func cleanFields(fields logrus.Fields) logrus.Fields {
 	for key, value := range fields {
 		if str, ok := value.(string); ok {
+			if key == "apiKey" {
+				str = obfuscateAPIKey(str)
+			}
 			str = strings.ReplaceAll(str, "\n", "")
 			str = strings.ReplaceAll(str, "\r", "")
 			str = strings.ReplaceAll(str, "\t", "")
@@ -104,6 +107,13 @@ func cleanFields(fields logrus.Fields) logrus.Fields {
 		}
 	}
 	return fields
+}
+
+func obfuscateAPIKey(apiKey string) string {
+	if len(apiKey) > 10 {
+		return apiKey[:5] + "*****" + apiKey[len(apiKey)-5:]
+	}
+	return "*****"
 }
 
 // LogDebug logs a debug message with specific fields
