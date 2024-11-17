@@ -44,7 +44,7 @@ func TestRegisterIntegration(t *testing.T) {
 				"password2": "password456",
 			},
 			expectedStatus: http.StatusBadRequest,
-			expectedBody:   "Password confirmation does not match\n",
+			expectedBody:   "Password2: eqfield",
 		},
 	}
 
