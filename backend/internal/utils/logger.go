@@ -55,11 +55,19 @@ func ObfuscateSensitiveFields(fields logrus.Fields) logrus.Fields {
 	return obfuscatedFields
 }
 
-// cleanFields removes newlines and carriage returns from string fields
+// cleanFields removes newlines, carriage returns, and other potentially malicious characters from string fields
 func cleanFields(fields logrus.Fields) logrus.Fields {
 	for key, value := range fields {
 		if str, ok := value.(string); ok {
-			fields[key] = strings.ReplaceAll(strings.ReplaceAll(str, "\n", ""), "\r", "")
+			str = strings.ReplaceAll(str, "\n", "")
+			str = strings.ReplaceAll(str, "\r", "")
+			str = strings.ReplaceAll(str, "\t", "")
+			str = strings.ReplaceAll(str, "\b", "")
+			str = strings.ReplaceAll(str, "\f", "")
+			str = strings.ReplaceAll(str, "\\", "\\\\")
+			str = strings.ReplaceAll(str, "\"", "\\\"")
+			str = strings.ReplaceAll(str, "'", "\\'")
+			fields[key] = str
 		}
 	}
 	return fields
