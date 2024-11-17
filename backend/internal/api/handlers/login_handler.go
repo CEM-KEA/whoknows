@@ -3,6 +3,7 @@ package handlers
 import (
 	"encoding/json"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/CEM-KEA/whoknows/backend/internal/database"
@@ -49,8 +50,10 @@ func Login(w http.ResponseWriter, r *http.Request) {
 
 	// Validate request
 	if err := utils.Validate(request); err != nil {
+		sanitizedUsername := strings.ReplaceAll(request.Username, "\n", "")
+		sanitizedUsername = strings.ReplaceAll(sanitizedUsername, "\r", "")
 		utils.LogError(err, "Request validation failed", logrus.Fields{
-			"username": request.Username,
+			"username": sanitizedUsername,
 		})
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -59,8 +62,10 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	// Authenticate user
 	user, valid, err := services.CheckUserPassword(database.DB, request.Password, request.Username)
 	if err != nil || !valid {
+		sanitizedUsername := strings.ReplaceAll(request.Username, "\n", "")
+		sanitizedUsername = strings.ReplaceAll(sanitizedUsername, "\r", "")
 		utils.LogWarn("Invalid user credentials", logrus.Fields{
-			"username": request.Username,
+			"username": sanitizedUsername,
 		})
 		http.Error(w, "Invalid username or password", http.StatusUnauthorized)
 		return
@@ -69,8 +74,10 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	// Generate JWT
 	token, err := security.GenerateJWT(user.ID, user.Username)
 	if err != nil {
+		sanitizedUsername := strings.ReplaceAll(request.Username, "\n", "")
+		sanitizedUsername = strings.ReplaceAll(sanitizedUsername, "\r", "")
 		utils.LogError(err, "Failed to generate token", logrus.Fields{
-			"username": user.Username,
+			"username": sanitizedUsername,
 		})
 		http.Error(w, "Failed to generate token", http.StatusInternalServerError)
 		return
