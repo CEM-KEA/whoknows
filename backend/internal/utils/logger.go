@@ -1,14 +1,23 @@
 package utils
 
 import (
+	"fmt"
 	"os"
-	"strings"
-	"html"
 
 	"github.com/sirupsen/logrus"
 )
 
 var Logger *logrus.Logger
+
+// Define a whitelist of allowed fields that can be logged
+var allowedLogFields = map[string]bool{
+	"request_id": true, // Example: Include request IDs for debugging
+	"status":     true, // Example: Include status codes
+	"error":      true, // Example: Include error messages
+	"message":    true, // Example: General messages
+	"timestamp":  true, // Example: Include timestamps if necessary
+	"query":      true, // Example: Include query strings
+}
 
 // NewLogger creates a new instance of a logrus.Logger with the specified log level and format.
 // The log level can be any valid logrus log level (e.g., "debug", "info", "warn", "error").
@@ -49,80 +58,26 @@ func InitGlobalLogger(logLevel, logFormat string) {
 }
 
 
-// ObfuscateSensitiveFields takes a map of logrus fields and obfuscates the value of the "jwt" field if it exists.
-// If the "jwt" field is a string and its length is greater than 10, it replaces the middle part of the string with asterisks.
-// The first and last 5 characters of the "jwt" string are preserved.
-// All other fields are returned unchanged.
+// cleanFields sanitizes the provided log fields by retaining only the allowed fields
+// and redacting the rest. The values of the allowed fields are sanitized using the
+// SanitizeValue function.
 //
 // Parameters:
-//   fields (logrus.Fields): A map of logrus fields to be processed.
+//   fields (logrus.Fields): The log fields to be sanitized.
 //
 // Returns:
-//   logrus.Fields: A new map with the "jwt" field obfuscated if applicable.
-func ObfuscateSensitiveFields(fields logrus.Fields) logrus.Fields {
-	obfuscatedFields := make(logrus.Fields)
-	for key, value := range fields {
-		if key == "jwt" {
-			strValue, ok := value.(string)
-			if ok && len(strValue) > 10 {
-				obfuscatedFields[key] = strValue[:5] + "*****" + strValue[len(strValue)-5:]
-			} else {
-				obfuscatedFields[key] = value
-			}
-		} else {
-			obfuscatedFields[key] = value
-		}
-	}
-	return obfuscatedFields
-}
-
-
-// cleanFields sanitizes the values of the provided logrus.Fields map by removing
-// certain control characters (newline, carriage return, tab, backspace, form feed)
-// and escaping HTML special characters, backslashes, double quotes, and single quotes.
-// This ensures that the log fields are safe for logging and do not contain any
-// potentially harmful or malformed data.
-//
-// Parameters:
-//   fields (logrus.Fields): A map of log fields to be sanitized.
-//
-// Returns:
-//   logrus.Fields: A new map with sanitized log field values.
+//   logrus.Fields: The sanitized log fields with only allowed fields retained and
+//   their values sanitized, while the rest are redacted.
 func cleanFields(fields logrus.Fields) logrus.Fields {
+	sanitizedFields := make(logrus.Fields)
 	for key, value := range fields {
-		if str, ok := value.(string); ok {
-			if key == "apiKey" {
-				str = obfuscateAPIKey(str)
-			} else if key == "authHeader" {
-				str = obfuscateAuthHeader(str)
-			}
-			str = strings.ReplaceAll(str, "\n", "")
-			str = strings.ReplaceAll(str, "\r", "")
-			str = strings.ReplaceAll(str, "\t", "")
-			str = strings.ReplaceAll(str, "\b", "")
-			str = strings.ReplaceAll(str, "\f", "")
-			str = html.EscapeString(str)
-			str = strings.ReplaceAll(str, "\\", "\\\\")
-			str = strings.ReplaceAll(str, "\"", "\\\"")
-			str = strings.ReplaceAll(str, "'", "\\'")
-			fields[key] = str
+		if allowedLogFields[key] {
+			sanitizedFields[key] = SanitizeValue(fmt.Sprintf("%v", value))
+		} else {
+			sanitizedFields[key] = "<REDACTED>"
 		}
 	}
-	return fields
-}
-
-func obfuscateAPIKey(apiKey string) string {
-	if len(apiKey) > 10 {
-		return apiKey[:5] + "*****" + apiKey[len(apiKey)-5:]
-	}
-	return "*****"
-}
-
-func obfuscateAuthHeader(authHeader string) string {
-	if len(authHeader) > 10 {
-		return authHeader[:5] + "*****" + authHeader[len(authHeader)-5:]
-	}
-	return "*****"
+	return sanitizedFields
 }
 
 // LogDebug logs a debug message with specific fields
