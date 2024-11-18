@@ -123,6 +123,7 @@ jobs:
             # Pull the compose.prod.yml
             git fetch origin main
             git checkout origin/main -- compose.prod.yml
+            git checkout origin/main -- promtail-config.yaml
 
             # Set environment variables directly in OS (no need for .env)
             export API_DATABASE_USER="${{ secrets.API_DATABASE_USER }}"

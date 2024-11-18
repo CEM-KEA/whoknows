@@ -111,7 +111,10 @@ services:
       - ./logs/backend.log:/var/log/backend.log  # Backend logs
       - /var/log/nginx:/var/log/nginx           # Nginx logs
       - /var/log/positions.yaml:/var/log/positions.yaml
-    command: -config.file=/etc/promtail/config.yaml
+    command:
+      - -config.expand-env=true 
+      - -config.file=/etc/promtail/config.yaml
+    
     networks:
       - CEM-KEA
 
