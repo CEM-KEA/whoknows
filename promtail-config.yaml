@@ -6,7 +6,7 @@ clients:
   - url: http://${MONITOR_IP}:3100/loki/api/v1/push
 
 positions:
-  filename: /var/log/positions.yaml
+  filename: /var/log/positions/positions.yaml
 
 scrape_configs:
   # Scrape backend logs

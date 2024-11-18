@@ -1,6 +1,7 @@
 volumes:
   postgres_data:
     external: true
+  promtail_positions:
 
 networks:
   CEM-KEA:
@@ -47,7 +48,7 @@ services:
     image: ghcr.io/cem-kea/whoknows/frontend:${FRONTEND_VERSION}
     restart: always
     ports:
-      - "3000:80"  # Serve frontend on port 3000 for internal testing
+      - "3000:80"
     environment:
       - VITE_API_URL=${VITE_API_URL}
     networks:
@@ -108,13 +109,12 @@ services:
     restart: always
     volumes:
       - ./promtail-config.yaml:/etc/promtail/config.yaml
-      - ./logs/backend.log:/var/log/backend.log  # Backend logs
-      - /var/log/nginx:/var/log/nginx           # Nginx logs
-      - /var/log/positions.yaml:/var/log/positions.yaml
+      - ./logs/backend.log:/var/log/backend.log
+      - /var/log/nginx:/var/log/nginx
+      - promtail_positions:/var/log/positions
     command:
       - -config.expand-env=true 
       - -config.file=/etc/promtail/config.yaml
-    
     networks:
       - CEM-KEA
 
