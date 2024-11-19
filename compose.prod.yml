@@ -85,6 +85,8 @@ services:
     volumes:
       - ./nginx.conf:/etc/nginx/conf.d/default.conf
       - /etc/letsencrypt:/etc/letsencrypt
+      - ./nginx-main.conf:/etc/nginx/nginx.conf
+      - ./logs/nginx:/var/log/nginx 
     depends_on:
       - frontend
       - backend
@@ -152,6 +154,8 @@ services:
       - --nginx.scrape-uri=http://nginx:81/nginx_status
       - --nginx.access-log=/var/log/nginx/access.log
       - --nginx.format=response_status
+    volumes:
+      - ./logs/nginx:/var/log/nginx:ro
     restart: always
     ports:
       - "9113:9113"
