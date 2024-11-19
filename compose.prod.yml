@@ -109,7 +109,7 @@ services:
     restart: always
     volumes:
       - ./promtail-config.yaml:/etc/promtail/config.yaml
-      - ./logs/backend.log:/var/log/backend.log
+      - /var/run/docker.sock:/var/run/docker.sock
       - /var/log/nginx:/var/log/nginx
       - promtail_positions:/var/log/positions
     command:

@@ -27,12 +27,21 @@ scrape_configs:
     pipeline_stages:
       - docker: {}
 
-  # Scrape Nginx logs from the host
+  # Scrape Nginx logs from the Docker container
   - job_name: "nginx-logs"
-    static_configs:
-      - targets:
-          - localhost
-        labels:
-          job: nginx
-          instance: nginx-instance
-          __path__: /var/log/nginx/*.log
+    docker_sd_configs:
+      - host: unix:///var/run/docker.sock
+    relabel_configs:
+      # Keep only logs from the nginx container
+      - source_labels: [__meta_docker_container_name]
+        regex: nginx
+        action: keep
+      # Set the instance label to the container name
+      - source_labels: [__meta_docker_container_name]
+        target_label: instance
+      # Set the job label to nginx
+      - target_label: job
+        replacement: nginx
+    pipeline_stages:
+      - docker: {}
+    
