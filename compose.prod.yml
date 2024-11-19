@@ -148,7 +148,7 @@ services:
     container_name: nginx_exporter
     image: nginx/nginx-prometheus-exporter:latest
     command:
-      - --nginx.scrape-uri=http://nginx/stub_status
+      - -nginx.scrape-uri=http://nginx/nginx_status
     restart: always
     ports:
       - "9113:9113"
@@ -156,3 +156,10 @@ services:
       - nginx
     networks:
       - CEM-KEA
+
+  debugger:
+    container_name: debugger
+    image: curlimages/curl:latest
+    networks:
+      - CEM-KEA
+    command: ["sleep", "infinity"]
