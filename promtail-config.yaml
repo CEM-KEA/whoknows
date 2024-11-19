@@ -24,6 +24,11 @@ scrape_configs:
         replacement: whoknows-backend
       - target_label: env
         replacement: production
+    pipeline_stages:
+      - docker: {}
+      - static_labels:
+          job: backend
+          host: "primary-system"
 
   - job_name: "nginx-logs"
     docker_sd_configs:
@@ -38,4 +43,8 @@ scrape_configs:
         replacement: nginx
       - target_label: env
         replacement: production
-    
+    pipeline_stages:
+      - docker: {}
+      - static_labels:
+          job: nginx
+          host: "primary-system"
