@@ -5,7 +5,7 @@ server:
 clients:
   - url: https://monitor.cemdev.dk/loki/api/v1/push
     tls_config:
-    insecure_skip_verify: false
+      insecure_skip_verify: false
 
 positions:
   filename: /var/log/positions/positions.yaml
