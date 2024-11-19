@@ -151,11 +151,7 @@ services:
     container_name: nginx_exporter
     image: nginx/nginx-prometheus-exporter:latest
     command:
-      - --nginx.scrape-uri=http://nginx:81/nginx_status
-      - --nginx.access-log=/var/log/nginx/access.log
-      - --nginx.format=response_status
-    volumes:
-      - ./logs/nginx:/var/log/nginx:ro
+      - -nginx.scrape-uri=http://nginx:81/nginx_status
     restart: always
     ports:
       - "9113:9113"
