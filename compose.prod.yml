@@ -123,12 +123,15 @@ services:
     image: gcr.io/cadvisor/cadvisor:latest
     restart: always
     ports:
-      - "8081:8080"
+      - "8082:8080"
     volumes:
       - /:/rootfs:ro
       - /var/run:/var/run:ro
       - /sys:/sys:ro
       - /var/lib/docker/:/var/lib/docker:ro
+      - /dev/disk/:/dev/disk:ro
+    devices:
+      - /dev/kmsg:/dev/kmsg
     networks:
       - CEM-KEA
 
