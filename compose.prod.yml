@@ -80,6 +80,7 @@ services:
     restart: always
     ports:
       - "80:80"
+      - "81:81"
       - "443:443"
     volumes:
       - ./nginx.conf:/etc/nginx/conf.d/default.conf
@@ -148,7 +149,7 @@ services:
     container_name: nginx_exporter
     image: nginx/nginx-prometheus-exporter:latest
     command:
-      - -nginx.scrape-uri=http://nginx/nginx_status
+      - --nginx.scrape-uri=http://nginx:81/nginx_status
     restart: always
     ports:
       - "9113:9113"
