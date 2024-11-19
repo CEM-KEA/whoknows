@@ -11,39 +11,45 @@ positions:
   filename: /var/log/positions/positions.yaml
 
 scrape_configs:
-  # Scrape backend logs from Docker container
+  # Backend logs configuration
   - job_name: "backend-logs"
     docker_sd_configs:
       - host: unix:///var/run/docker.sock
     relabel_configs:
-      # Keep only logs from the backend container
       - source_labels: [__meta_docker_container_name]
         regex: backend
         action: keep
-      # Set the instance label to the container name
+      - source_labels: [__meta_docker_container_name]
+        target_label: container_name
       - source_labels: [__meta_docker_container_name]
         target_label: instance
-      # Set the job label to backend
       - target_label: job
         replacement: backend
     pipeline_stages:
       - docker: {}
+      - labels:
+          job: backend
+          env: production
+          host: "primary-system"
 
-  # Scrape Nginx logs from the Docker container
+  # Nginx logs configuration
   - job_name: "nginx-logs"
     docker_sd_configs:
       - host: unix:///var/run/docker.sock
     relabel_configs:
-      # Keep only logs from the nginx container
       - source_labels: [__meta_docker_container_name]
         regex: nginx
         action: keep
-      # Set the instance label to the container name
+      - source_labels: [__meta_docker_container_name]
+        target_label: container_name
       - source_labels: [__meta_docker_container_name]
         target_label: instance
-      # Set the job label to nginx
       - target_label: job
         replacement: nginx
     pipeline_stages:
       - docker: {}
+      - labels:
+          job: nginx
+          env: production
+          host: "primary-system"
     
