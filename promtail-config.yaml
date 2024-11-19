@@ -3,7 +3,9 @@ server:
   grpc_listen_port: 0
 
 clients:
-  - url: http://51.20.246.124:3100/loki/api/v1/push
+  - url: https://monitor.cemdev.dk/loki/api/v1/push
+    tls_config:
+    insecure_skip_verify: false
 
 positions:
   filename: /var/log/positions/positions.yaml
