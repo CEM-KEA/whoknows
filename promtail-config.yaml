@@ -3,30 +3,31 @@ server:
   grpc_listen_port: 0
 
 clients:
-  - url: http://${MONITOR_IP}:3100/loki/api/v1/push
+  - url: http://51.20.246.124:3100/loki/api/v1/push
 
 positions:
   filename: /var/log/positions/positions.yaml
 
 scrape_configs:
-  # Scrape backend logs
+  # Scrape backend logs from Docker container
   - job_name: "backend-logs"
     docker_sd_configs:
       - host: unix:///var/run/docker.sock
     relabel_configs:
-      # Target only the backend container by its container name
+      # Keep only logs from the backend container
       - source_labels: [__meta_docker_container_name]
-        regex: "/backend"
+        regex: backend
         action: keep
+      # Set the instance label to the container name
       - source_labels: [__meta_docker_container_name]
         target_label: instance
-        replacement: backend-instance
+      # Set the job label to backend
+      - target_label: job
+        replacement: backend
     pipeline_stages:
       - docker: {}
-    labels:
-      job: backend
 
-  # Scrape Nginx logs
+  # Scrape Nginx logs from the host
   - job_name: "nginx-logs"
     static_configs:
       - targets:
