@@ -147,6 +147,8 @@ services:
   nginx_exporter:
     container_name: nginx_exporter
     image: nginx/nginx-prometheus-exporter:latest
+    command:
+    - -nginx.scrape-uri=http://nginx:80/stub_status
     restart: always
     ports:
       - "9113:9113"
