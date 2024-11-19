@@ -148,13 +148,10 @@ services:
     container_name: nginx_exporter
     image: nginx/nginx-prometheus-exporter:latest
     command:
-    - --nginx.scrape-uri=https://cemdev.dk/stub_status
-    - --nginx.ssl-verify=false
+      - --nginx.scrape-uri=http://nginx/stub_status
     restart: always
     ports:
       - "9113:9113"
-    environment:
-      - NGINX_STATUS_URL=http://nginx/nginx_status
     depends_on:
       - nginx
     networks:
