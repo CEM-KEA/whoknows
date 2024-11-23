@@ -8,8 +8,8 @@ import (
 )
 
 // preprocessQuery processes the input query string by trimming whitespace,
-// checking if it should be skipped, and extracting key terms if it is a 
-// programming-related question. It returns the processed query string and 
+// and extracting key terms if it is a programming-related question.
+// It returns the processed query string and 
 // a boolean indicating whether the query is valid.
 //
 // Parameters:
@@ -24,10 +24,6 @@ func preprocessQuery(query string) (string, bool) {
         return "", false
     }
 
-    if shouldSkipQuery(query) {
-        return "", false
-    }
-
     if isProgrammingQuestion(query) {
         terms := extractKeyTerms(query)
         if len(terms) > 0 {
@@ -37,22 +33,6 @@ func preprocessQuery(query string) (string, bool) {
     }
 
     return cleanQuery(query), true
-}
-
-// shouldSkipQuery determines if a given query should be skipped based on certain criteria.
-// It returns true if the query matches any of the following conditions:
-// 1. The query contains sports match indicators such as "vs" or "versus".
-// 2. The query contains future event dates, specifically the years "2024" or "2025".
-func shouldSkipQuery(query string) bool {
-    if matchRegex := regexp.MustCompile(`\b(vs|versus)\b`); matchRegex.MatchString(query) {
-        return true
-    }
-
-    if strings.Contains(query, "2024") || strings.Contains(query, "2025") {
-        return true
-    }
-
-    return false
 }
 
 // isProgrammingQuestion checks if a given query string matches any of the predefined
@@ -111,7 +91,6 @@ func extractKeyTerms(query string) []string {
             terms = append(terms, word)
         }
     }
-    
     return terms
 }
 
@@ -126,7 +105,6 @@ func extractKeyTerms(query string) []string {
 // Returns:
 //   - A cleaned and formatted query string suitable for use in a URL.
 func cleanQuery(query string) string {
-    // Remove common prefixes
     prefixes := []string{
         "what is", "what are", "how to", "is ", "are ", "why ",
         "when ", "where ", "who ", "which ", "how ", "can ",
@@ -139,7 +117,6 @@ func cleanQuery(query string) string {
         }
     }
 
-    // Remove common suffixes
     suffixes := []string{
         " in 2024", " 2024", " 2025",
         " stock", " wiki", " wikipedia",
