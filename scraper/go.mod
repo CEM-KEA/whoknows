@@ -1,7 +1,5 @@
 module github.com/CEM-KEA/whoknows/backend/scraper
-module github.com/CEM-KEA/whoknows/backend/scraper
 
-go 1.23.0
 go 1.23.0
 
 require (
