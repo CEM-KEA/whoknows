@@ -93,6 +93,10 @@ func handleRequest(ctx context.Context) error {
     return nil
 }
 
+
+// main is the entry point for the AWS Lambda function. It starts the Lambda
+// function by calling lambda.Start with the handleRequest function as the
+// handler.
 func main() {
     lambda.Start(handleRequest)
 }
