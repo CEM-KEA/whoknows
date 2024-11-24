@@ -114,9 +114,7 @@ function Search() {
                     title={result.url}
                   >
                     {result.title}
-                    <p className="text-gray-400 italic">
-                      ...{highlightText(result.content, search)}...
-                    </p>
+                    <p className="text-gray-400 italic">{highlightText(result.content, search)}</p>
                   </a>
                 </li>
               ))}
