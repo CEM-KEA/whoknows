@@ -50,6 +50,23 @@ function Search() {
     performSearch(search);
   };
 
+  // highlights the part of the text that matches the search query
+  const highlightText = (text: string, highlight: string) => {
+    const regex = new RegExp(`(${highlight})`, "gi");
+    return text.split(regex).map((part, index) =>
+      regex.test(part) ? (
+        <span
+          key={part + index}
+          className="bg-yellow-200"
+        >
+          {part}
+        </span>
+      ) : (
+        part
+      )
+    );
+  };
+
   return (
     <PageLayout>
       <div className="flex gap-2">
@@ -97,6 +114,9 @@ function Search() {
                     title={result.url}
                   >
                     {result.title}
+                    <p className="text-gray-400 italic">
+                      ...{highlightText(result.content, search)}...
+                    </p>
                   </a>
                 </li>
               ))}

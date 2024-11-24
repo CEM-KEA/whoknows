@@ -33,6 +33,7 @@ services:
       - "8080:8080"
     volumes:
       - ./backend:/app:delegated
+      - /app/tmp/ # Ensure Air can use this directory for hot reloading
     command: air
     networks:
       - CEM-KEA
@@ -51,7 +52,7 @@ services:
       - "5173:5173" # Vite default dev server port
     volumes:
       - ./frontend:/app
-      - /app/node_modules  # Mount node_modules inside the container to avoid rollup bug (https://github.com/vitejs/vite/discussions/15532)
+      - /app/node_modules # Mount node_modules inside the container to avoid rollup bug (https://github.com/vitejs/vite/discussions/15532)
     command: npm run dev -- --host
     networks:
       - CEM-KEA

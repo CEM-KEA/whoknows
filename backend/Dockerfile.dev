@@ -10,7 +10,7 @@ WORKDIR /app
 # Copy go mod and sum files
 COPY go.mod go.sum ./
 
-# Download all dependencies
+# Download all dependencies and initialize Air
 RUN go mod download
 
 # Copy the Go app source code to the container
