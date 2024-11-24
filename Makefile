@@ -5,7 +5,7 @@ DEV_STATUS_FILE := .dev_status
 dev:
 	@if [ ! -f $(DEV_STATUS_FILE) ]; then \
 		echo "Starting development environment..."; \
-		docker compose -f compose.dev.yml up --build; \
+		docker compose -f compose.dev.yml up --build -d; \
 		touch $(DEV_STATUS_FILE); \
 	else \
 		echo "Stopping development environment..."; \
