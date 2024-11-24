@@ -13,6 +13,7 @@ import (
 )
 
 func TestLoginIntegration(t *testing.T) {
+	helpers.SetupLogger()
 	helpers.SetupTestDB(t)
 
 	router := api.NewRouter()
@@ -39,7 +40,7 @@ func TestLoginIntegration(t *testing.T) {
 				"password": "wrongpassword",
 			},
 			expectedStatus: http.StatusUnauthorized,
-			expectedBody:   "Invalid password",
+			expectedBody:   "Invalid username or password",
 		},
 		{
 			name: "Non-existent User",
@@ -48,7 +49,7 @@ func TestLoginIntegration(t *testing.T) {
 				"password": "password123",
 			},
 			expectedStatus: http.StatusUnauthorized,
-			expectedBody:   "Invalid username",
+			expectedBody:   "Invalid username or password",
 		},
 	}
 

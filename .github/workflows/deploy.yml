@@ -123,6 +123,9 @@ jobs:
             # Pull the compose.prod.yml
             git fetch origin main
             git checkout origin/main -- compose.prod.yml
+            git checkout origin/main -- promtail-config.yaml
+            git checkout origin/main -- nginx.conf
+            git checkout origin/main -- nginx-main.conf
 
             # Set environment variables directly in OS (no need for .env)
             export API_DATABASE_USER="${{ secrets.API_DATABASE_USER }}"
@@ -142,6 +145,7 @@ jobs:
             export IMAGE_TAG="${{ env.IMAGE_TAG }}"
             export BACKEND_VERSION="${{ env.IMAGE_TAG }}"
             export FRONTEND_VERSION="${{ env.IMAGE_TAG }}"
+            export MONITOR_IP="${{ secrets.MONITOR_IP }}"
 
             # Pull the latest images from GHCR
             echo "Pulling backend image ghcr.io/${{ env.REPO_NAME }}/backend:${{ env.IMAGE_TAG }}"

@@ -14,6 +14,7 @@ export interface ILoginSession {
 
 export interface ILoginResponse {
   token: string;
+  require_password_change: boolean;
 }
 
 export interface IRegisterRequest {
@@ -21,4 +22,11 @@ export interface IRegisterRequest {
   email: string;
   password: string;
   password2: string;
+}
+
+export interface IChangePasswordRequest {
+  username: string;
+  old_password: string;
+  new_password: string;
+  repeat_new_password: string;
 }

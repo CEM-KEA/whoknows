@@ -72,12 +72,24 @@ jobs:
   e2e_test:
     runs-on: ubuntu-latest
     needs: check_branch_status
+    env:
+      API_DATABASE_USER: ${{ secrets.API_DATABASE_USER }}
+      API_DATABASE_PASSWORD: ${{ secrets.API_DATABASE_PASSWORD }}
+      API_DATABASE_NAME: ${{ secrets.API_DATABASE_NAME }}
+      API_JWT_SECRET: ${{ secrets.API_JWT_SECRET }}
+      API_WEATHER_API_KEY: ${{ secrets.API_WEATHER_API_KEY }}
 
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0 # Fetch all history and tags
+        
+      - name: Create .env file
+        run: |
+          echo "API_DATABASE_USER=${{ env.API_DATABASE_USER }}" > .env
+          echo "API_DATABASE_PASSWORD=${{ env.API_DATABASE_PASSWORD }}" >> .env
+          echo "API_DATABASE_NAME=${{ env.API_DATABASE_NAME }}" >> .env
+          echo "API_JWT_SECRET=${{ env.API_JWT_SECRET }}" >> .env
+          echo "API_WEATHER_API_KEY=${{ env.API_WEATHER_API_KEY }}" >> .env
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -89,19 +101,8 @@ jobs:
         with:
           go-version: "1.23"
 
-      - name: Set up Docker Compose
-        run: docker compose --version
-
       - name: Create PostgreSQL Data Volume
         run: docker volume create postgres_data
-
-      - name: Set environment variables for Docker Compose
-        run: |
-          echo "API_DATABASE_USER=${{ secrets.API_DATABASE_USER }}" > .env
-          echo "API_DATABASE_PASSWORD=${{ secrets.API_DATABASE_PASSWORD }}" >> .env
-          echo "API_DATABASE_NAME=${{ secrets.API_DATABASE_NAME }}" >> .env
-          echo "API_JWT_SECRET=${{ secrets.API_JWT_SECRET }}" >> .env
-          echo "API_WEATHER_API_KEY=${{ secrets.API_WEATHER_API_KEY }}" >> .env
 
       - name: Start Docker Compose
         run: |
@@ -206,3 +207,112 @@ jobs:
 
       - name: Stop Docker Compose
         run: docker compose -f compose.test.yml down
+
+  zap_scan_backend:
+    runs-on: ubuntu-latest    
+    needs: check_branch_status
+    env:
+      API_DATABASE_USER: ${{ secrets.API_DATABASE_USER }}
+      API_DATABASE_PASSWORD: ${{ secrets.API_DATABASE_PASSWORD }}
+      API_DATABASE_NAME: ${{ secrets.API_DATABASE_NAME }}
+      API_JWT_SECRET: ${{ secrets.API_JWT_SECRET }}
+      API_WEATHER_API_KEY: ${{ secrets.API_WEATHER_API_KEY }}
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Create .env file
+        run: |
+          echo "API_DATABASE_USER=${{ env.API_DATABASE_USER }}" > .env
+          echo "API_DATABASE_PASSWORD=${{ env.API_DATABASE_PASSWORD }}" >> .env
+          echo "API_DATABASE_NAME=${{ env.API_DATABASE_NAME }}" >> .env
+          echo "API_JWT_SECRET=${{ env.API_JWT_SECRET }}" >> .env
+          echo "API_WEATHER_API_KEY=${{ env.API_WEATHER_API_KEY }}" >> .env
+      
+      - name: Start Docker Compose for ZAP
+        run: |
+          docker compose --env-file .env -f compose.test.yml up --build -d
+
+      - name: Wait for Backend to be Ready
+        run: |
+          MAX_RETRIES=30
+          RETRY_INTERVAL=10
+          retries=0
+          until curl -s http://localhost:8080 > /dev/null; do
+            retries=$((retries+1))
+            if [ "$retries" -ge "$MAX_RETRIES" ]; then
+              echo "Backend did not become ready within the timeout. Exiting."
+              exit 1
+            fi
+            echo "Waiting for backend to be ready... (Attempt: $retries/$MAX_RETRIES)"
+            sleep $RETRY_INTERVAL
+          done
+
+          echo "Backend is ready!"
+          
+      - name: ZAP Full Scan - Backend
+        uses: zaproxy/action-full-scan@v0.11.0
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          target: http://localhost:8080
+          rules_file_name: '.zap/rules_backend.tsv'
+          cmd_options: '-a'
+
+      - name: Stop Docker Compose
+        run: docker compose -f compose.test.yml down
+
+  zap_scan_frontend:
+    runs-on: ubuntu-latest    
+    needs: check_branch_status
+    env:
+      API_DATABASE_USER: ${{ secrets.API_DATABASE_USER }}
+      API_DATABASE_PASSWORD: ${{ secrets.API_DATABASE_PASSWORD }}
+      API_DATABASE_NAME: ${{ secrets.API_DATABASE_NAME }}
+      API_JWT_SECRET: ${{ secrets.API_JWT_SECRET }}
+      API_WEATHER_API_KEY: ${{ secrets.API_WEATHER_API_KEY }}
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Create .env file
+        run: |
+          echo "API_DATABASE_USER=${{ env.API_DATABASE_USER }}" > .env
+          echo "API_DATABASE_PASSWORD=${{ env.API_DATABASE_PASSWORD }}" >> .env
+          echo "API_DATABASE_NAME=${{ env.API_DATABASE_NAME }}" >> .env
+          echo "API_JWT_SECRET=${{ env.API_JWT_SECRET }}" >> .env
+          echo "API_WEATHER_API_KEY=${{ env.API_WEATHER_API_KEY }}" >> .env
+      
+      - name: Start Docker Compose for ZAP
+        run: |
+          docker compose --env-file .env -f compose.test.yml up --build -d
+
+      - name: Wait for Frontend to be Ready
+        run: |
+          MAX_RETRIES=30
+          RETRY_INTERVAL=10
+          retries=0
+          until curl -s http://localhost:80 > /dev/null; do
+            retries=$((retries+1))
+            if [ "$retries" -ge "$MAX_RETRIES" ]; then
+              echo "Frontend did not become ready within the timeout. Exiting."
+              exit 1
+            fi
+            echo "Waiting for frontend to be ready... (Attempt: $retries/$MAX_RETRIES)"
+            sleep $RETRY_INTERVAL
+          done
+
+          echo "Frontend is ready!"
+          
+      - name: ZAP Full Scan - Frontend
+        uses: zaproxy/action-full-scan@v0.11.0
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          target: http://localhost
+          rules_file_name: '.zap/rules_frontend.tsv'
+          cmd_options: '-a'
+
+      - name: Stop Docker Compose
+        run: docker compose -f compose.test.yml down
+

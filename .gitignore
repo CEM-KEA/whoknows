@@ -476,3 +476,7 @@ $RECYCLE.BIN/
 # Air tmp files
 /backend/tmp/*
 # End of https://www.toptal.com/developers/gitignore/api/jetbrains+all,macos,windows,visualstudiocode,linux,python,flask,react,go
+
+.dev_status
+/scraper/bootstrap
+/scraper/function.zip

@@ -18,79 +18,91 @@ type LoginRequest struct {
 }
 
 type LoginResponse struct {
-	Token string `json:"token"`
+	Status                string `json:"status"`
+	Token                 string `json:"token"`
+	RequirePasswordChange bool   `json:"require_password_change"`
 }
 
-// LoginRequest represents the login request payload
-//	@Description	Login with username and password
-//	@Accept			json
-//	@Produce		json
-//	@Param			login	body		LoginRequest	true	"Login credentials"
-//	@Success		200		{object}	LoginResponse
-//	@Failure		400		{string}	string	"Invalid request body"
-//	@Failure		401		{string}	string	"Invalid username or password"
-//	@Router			/api/login [post]
-// Handler for login
+// Login handles the login request.
+//
+//	@Summary Login a user
+//	@Description Authenticate user and return a JWT token for further requests.
+//	@Tags Authentication
+//	@Accept json
+//	@Produce json
+//	@Param loginRequest body handlers.LoginRequest true "Login request body"
+//	@Success 200 {object} handlers.LoginResponse "Successful login"
+//	@Failure 400 {object} map[string]string "Invalid request body"
+//	@Failure 401 {object} map[string]string "Invalid username or password"
+//	@Failure 500 {object} map[string]string "Internal server error"
+//	@Router /login [post]
 func Login(w http.ResponseWriter, r *http.Request) {
+	utils.LogInfo("Processing login request", nil)
+
+	// Decode and sanitize the request body
 	var request LoginRequest
+	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+		utils.LogError(err, "Failed to decode request body", nil)
+		utils.WriteJSONError(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+	utils.SanitizeStruct(&request)
 
-	//Decode the request body into the LoginRequest struct
-	err := json.NewDecoder(r.Body).Decode(&request)
-	if err != nil {
-		http.Error(w, "Invalid request body", http.StatusBadRequest)
+	// Validate the sanitized request
+	if err := utils.Validate(request); err != nil {
+		utils.LogError(err, "Request validation failed", nil)
+		utils.WriteJSONError(w, "Invalid input data", http.StatusBadRequest)
 		return
 	}
 
-	//Validate the request
-	err = utils.Validate(request)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+	// Check user credentials
+	user, valid, err := services.CheckUserPassword(database.DB, request.Password, request.Username)
+	if err != nil || !valid {
+		utils.LogWarn("Invalid user credentials", nil)
+		utils.WriteJSONError(w, "Invalid username or password", http.StatusUnauthorized)
 		return
 	}
 
-	//Retrieve the user from the database by username
-	user, err := services.GetUserByUsername(database.DB, request.Username)
-
-	if err != nil {
-		http.Error(w, "Invalid username", http.StatusUnauthorized)
-		return
-	}
-
-	//Check if the user exists and if the password matches
-	if !security.CheckPasswordHash(request.Password, user.PasswordHash) {
-		http.Error(w, "Invalid password", http.StatusUnauthorized)
-		return
-	}
-
-	//Generate a JWT token for the user
+	// Generate JWT
 	token, err := security.GenerateJWT(user.ID, user.Username)
-
 	if err != nil {
-		http.Error(w, "Failed to generate token", http.StatusInternalServerError)
+		utils.LogError(err, "Failed to generate token", nil)
+		utils.WriteJSONError(w, "Failed to generate token", http.StatusInternalServerError)
 		return
 	}
 
+	// Save token to database
 	jwtModel := models.JWT{
 		UserID:    user.ID,
 		Token:     token,
-		ExpiresAt: time.Now().Add(time.Hour * 24),
+		ExpiresAt: time.Now().Add(24 * time.Hour),
 		CreatedAt: time.Now(),
-		RevokedAt: nil,
 	}
-
-	err = database.DB.Create(&jwtModel).Error
-	if err != nil {
-		http.Error(w, "Failed to save token", http.StatusInternalServerError)
+	if err := database.DB.Create(&jwtModel).Error; err != nil {
+		utils.LogError(err, "Failed to save token to database", nil)
+		utils.WriteJSONError(w, "Failed to save token", http.StatusInternalServerError)
 		return
 	}
 
-	//Return the token in the response
-	response := LoginResponse{
-		Token: token,
+	// Update last login timestamp
+	if err := services.UpdateLastLogin(database.DB, user); err != nil {
+		utils.LogError(err, "Failed to update last login", nil)
+		utils.WriteJSONError(w, "Failed to update last login", http.StatusInternalServerError)
+		return
 	}
 
-	//Write the response
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(response)
+	// Prepare response
+	response := LoginResponse{
+		Token:                 token,
+		RequirePasswordChange: user.UpdatedAt.Before(time.Date(2024, 10, 31, 0, 0, 0, 0, time.UTC)), // Check if user changed password after incident on 31/10/2024
+	}
+
+	// Send success response
+	utils.JSONSuccess(w, map[string]interface{}{
+		"status":                  "success",
+		"token":                   response.Token,
+		"require_password_change": response.RequirePasswordChange,
+	}, http.StatusOK)
+
+	utils.LogInfo("User logged in successfully", nil)
 }

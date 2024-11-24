@@ -1,0 +1,50 @@
+server:
+  http_listen_port: 9080
+  grpc_listen_port: 0
+
+clients:
+  - url: https://monitor.cemdev.dk/loki/api/v1/push
+    tls_config:
+      insecure_skip_verify: false
+
+positions:
+  filename: /var/log/positions/positions.yaml
+
+scrape_configs:
+  - job_name: "backend-logs"
+    docker_sd_configs:
+      - host: unix:///var/run/docker.sock
+    relabel_configs:
+      - source_labels: [__meta_docker_container_name]
+        regex: backend
+        action: keep
+      - source_labels: [__meta_docker_container_name]
+        target_label: container
+      - target_label: service
+        replacement: whoknows-backend
+      - target_label: env
+        replacement: production
+    pipeline_stages:
+      - docker: {}
+      - static_labels:
+          job: backend
+          host: "primary-system"
+
+  - job_name: "nginx-logs"
+    docker_sd_configs:
+      - host: unix:///var/run/docker.sock
+    relabel_configs:
+      - source_labels: [__meta_docker_container_name]
+        regex: nginx
+        action: keep
+      - source_labels: [__meta_docker_container_name]
+        target_label: container
+      - target_label: service
+        replacement: nginx
+      - target_label: env
+        replacement: production
+    pipeline_stages:
+      - docker: {}
+      - static_labels:
+          job: nginx
+          host: "primary-system"

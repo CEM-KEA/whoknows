@@ -13,6 +13,12 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+// SetupLogger initializes the logger for testing
+func SetupLogger() {
+	// Initialize logger for tests with debug level and text format
+	utils.InitGlobalLogger("debug", "text")
+}
+
 // SetupTestDB initializes the test database and seeds initial data
 func SetupTestDB(t *testing.T) {
 	utils.InitValidator()
