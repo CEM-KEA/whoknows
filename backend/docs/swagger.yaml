@@ -1,5 +1,21 @@
 basePath: /
 definitions:
+  handlers.ChangePasswordRequest:
+    properties:
+      new_password:
+        type: string
+      old_password:
+        type: string
+      repeat_new_password:
+        type: string
+      username:
+        type: string
+    required:
+    - new_password
+    - old_password
+    - repeat_new_password
+    - username
+    type: object
   handlers.LoginRequest:
     properties:
       password:
@@ -12,6 +28,10 @@ definitions:
     type: object
   handlers.LoginResponse:
     properties:
+      require_password_change:
+        type: boolean
+      status:
+        type: string
       token:
         type: string
     type: object
@@ -56,33 +76,42 @@ info:
   title: WhoKnows API
   version: "1.0"
 paths:
-  /api/login:
+  /api/change-password:
     post:
       consumes:
       - application/json
-      description: Login with username and password
+      description: Endpoint to change the password of a user
       parameters:
-      - description: Login credentials
+      - description: Change password payload
         in: body
-        name: login
+        name: changePasswordRequest
         required: true
         schema:
-          $ref: '#/definitions/handlers.LoginRequest'
+          $ref: '#/definitions/handlers.ChangePasswordRequest'
       produces:
       - application/json
       responses:
         "200":
-          description: OK
+          description: Password changed successfully
           schema:
-            $ref: '#/definitions/handlers.LoginResponse'
+            additionalProperties:
+              type: string
+            type: object
         "400":
-          description: Invalid request body
+          description: Validation error
           schema:
-            type: string
-        "401":
-          description: Invalid username or password
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Failed to change password
           schema:
-            type: string
+            additionalProperties:
+              type: string
+            type: object
+      summary: Change user password
+      tags:
+      - Authentication
   /api/logout:
     get:
       description: Logs out the user by revoking the jwt token
@@ -101,6 +130,8 @@ paths:
             type: string
       security:
       - Bearer: []
+      tags:
+      - Authentication
   /api/register:
     post:
       consumes:
@@ -128,6 +159,8 @@ paths:
           description: Failed to create user
           schema:
             type: string
+      tags:
+      - Authentication
   /api/search:
     get:
       description: Search for pages by content
@@ -170,6 +203,8 @@ paths:
             type: string
       security:
       - Bearer: []
+      tags:
+      - Authentication
   /api/weather:
     get:
       description: Get weather information
@@ -184,6 +219,46 @@ paths:
           description: Failed to fetch weather data
           schema:
             type: string
+  /login:
+    post:
+      consumes:
+      - application/json
+      description: Authenticate user and return a JWT token for further requests.
+      parameters:
+      - description: Login request body
+        in: body
+        name: loginRequest
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Successful login
+          schema:
+            $ref: '#/definitions/handlers.LoginResponse'
+        "400":
+          description: Invalid request body
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Invalid username or password
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Login a user
+      tags:
+      - Authentication
 securityDefinitions:
   Bearer:
     in: header

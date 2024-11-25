@@ -8,43 +8,56 @@
     },
     "basePath": "/",
     "paths": {
-        "/api/login": {
+        "/api/change-password": {
             "post": {
-                "description": "Login with username and password",
+                "description": "Endpoint to change the password of a user",
                 "consumes": [
                     "application/json"
                 ],
                 "produces": [
                     "application/json"
                 ],
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Change user password",
                 "parameters": [
                     {
-                        "description": "Login credentials",
-                        "name": "login",
+                        "description": "Change password payload",
+                        "name": "changePasswordRequest",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/handlers.LoginRequest"
+                            "$ref": "#/definitions/handlers.ChangePasswordRequest"
                         }
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "Password changed successfully",
                         "schema": {
-                            "$ref": "#/definitions/handlers.LoginResponse"
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
                         }
                     },
                     "400": {
-                        "description": "Invalid request body",
+                        "description": "Validation error",
                         "schema": {
-                            "type": "string"
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
                         }
                     },
-                    "401": {
-                        "description": "Invalid username or password",
+                    "500": {
+                        "description": "Failed to change password",
                         "schema": {
-                            "type": "string"
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
                         }
                     }
                 }
@@ -58,6 +71,9 @@
                     }
                 ],
                 "description": "Logs out the user by revoking the jwt token",
+                "tags": [
+                    "Authentication"
+                ],
                 "responses": {
                     "200": {
                         "description": "Logged out successfully",
@@ -88,6 +104,9 @@
                 ],
                 "produces": [
                     "application/json"
+                ],
+                "tags": [
+                    "Authentication"
                 ],
                 "parameters": [
                     {
@@ -173,6 +192,9 @@
                     }
                 ],
                 "description": "Validates the jwt token",
+                "tags": [
+                    "Authentication"
+                ],
                 "responses": {
                     "200": {
                         "description": "valid",
@@ -210,9 +232,93 @@
                     }
                 }
             }
+        },
+        "/login": {
+            "post": {
+                "description": "Authenticate user and return a JWT token for further requests.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Login a user",
+                "parameters": [
+                    {
+                        "description": "Login request body",
+                        "name": "loginRequest",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handlers.LoginRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful login",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.LoginResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request body",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Invalid username or password",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
+        "handlers.ChangePasswordRequest": {
+            "type": "object",
+            "required": [
+                "new_password",
+                "old_password",
+                "repeat_new_password",
+                "username"
+            ],
+            "properties": {
+                "new_password": {
+                    "type": "string"
+                },
+                "old_password": {
+                    "type": "string"
+                },
+                "repeat_new_password": {
+                    "type": "string"
+                },
+                "username": {
+                    "type": "string"
+                }
+            }
+        },
         "handlers.LoginRequest": {
             "type": "object",
             "required": [
@@ -231,6 +337,12 @@
         "handlers.LoginResponse": {
             "type": "object",
             "properties": {
+                "require_password_change": {
+                    "type": "boolean"
+                },
+                "status": {
+                    "type": "string"
+                },
                 "token": {
                     "type": "string"
                 }

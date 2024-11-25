@@ -70,9 +70,11 @@ func Search(w http.ResponseWriter, r *http.Request) {
 		Data: make([]map[string]interface{}, len(pages)),
 	}
 	for i, page := range pages {
+		// get the content of the page around the first search match
+		content := utils.GetContentAroundMatch(page.Content, q)
 		response.Data[i] = map[string]interface{}{
 			"id":       page.ID,
-			"content":  page.Content,
+			"content":  content,
 			"language": page.Language,
 			"title":    page.Title,
 			"url":      page.Url,
