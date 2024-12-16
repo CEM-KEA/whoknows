@@ -114,6 +114,7 @@ func setupAPIRoutes(router *mux.Router) {
 	router.HandleFunc("/api/validate-login", handlers.ValidateLoginHandler).Methods("GET")
 	router.HandleFunc("/api/change-password", handlers.ChangePasswordHandler).Methods("POST")
 	router.Handle("/api/probe", promhttp.Handler())
+	router.Handle("/metrics", promhttp.Handler())
 }
 
 
