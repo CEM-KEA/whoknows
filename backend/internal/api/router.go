@@ -9,10 +9,10 @@ import (
 	"github.com/CEM-KEA/whoknows/backend/internal/config"
 	"github.com/CEM-KEA/whoknows/backend/internal/utils"
 	"github.com/gorilla/mux"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/rs/cors"
 	httpSwagger "github.com/swaggo/http-swagger"
 )
-
 
 // NewRouter initializes and returns a new HTTP router with all the necessary routes and middlewares configured.
 // It sets up static file routes, redirects, Swagger documentation, and API routes.
@@ -113,6 +113,7 @@ func setupAPIRoutes(router *mux.Router) {
 	router.HandleFunc("/api/logout", handlers.LogoutHandler).Methods("GET")
 	router.HandleFunc("/api/validate-login", handlers.ValidateLoginHandler).Methods("GET")
 	router.HandleFunc("/api/change-password", handlers.ChangePasswordHandler).Methods("POST")
+	router.Handle("/api/probe", promhttp.Handler())
 }
 
 
