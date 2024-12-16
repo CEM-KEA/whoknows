@@ -91,6 +91,9 @@ func startServer() {
 		"port": serverPort,
 	})
 
+	utils.RegisterMetrics()
+    utils.ExposeMetrics()
+
 	server := &http.Server{
 		Addr:         fmt.Sprintf(":%d", serverPort),
 		Handler:      api.NewRouter(),
